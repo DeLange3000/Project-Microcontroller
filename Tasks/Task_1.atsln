@@ -1,0 +1,58 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Atmel Studio Solution File, Format Version 11.00
+VisualStudioVersion = 14.0.23107.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{18226A42-8477-4023-8AD2-40C49DA407C9}") = "Task_1", "Task_1\Task_1.asmproj", "{59B1D629-9DCC-43ED-A0FD-8AB0E4D622AB}"
+EndProject
+Project("{18226A42-8477-4023-8AD2-40C49DA407C9}") = "Task_2", "Task_2\Task_2.asmproj", "{DF8DBF43-B821-4E6C-A924-60E0CED28663}"
+EndProject
+Project("{18226A42-8477-4023-8AD2-40C49DA407C9}") = "Task_3", "Task_3\Task_3.asmproj", "{691855A4-A4FD-4DD3-8699-AF9599CB7D9F}"
+EndProject
+Project("{18226A42-8477-4023-8AD2-40C49DA407C9}") = "Task_4", "Task_4\Task_4.asmproj", "{72D1E4CC-7EB7-45D2-860F-A083C87045FE}"
+EndProject
+Project("{18226A42-8477-4023-8AD2-40C49DA407C9}") = "Task_5", "Task_5\Task_5.asmproj", "{13CAD8A1-1C71-47BF-91BA-4449E80326DB}"
+EndProject
+Project("{18226A42-8477-4023-8AD2-40C49DA407C9}") = "Task_6", "Task_6\Task_6.asmproj", "{9D6F7AE0-8A69-4BCC-8460-942C38A56331}"
+EndProject
+Project("{18226A42-8477-4023-8AD2-40C49DA407C9}") = "Task_7", "Task_7\Task_7.asmproj", "{D9AFC1BF-DF7D-48C6-8C23-BB414809C87B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|AVR = Debug|AVR
+		Release|AVR = Release|AVR
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{59B1D629-9DCC-43ED-A0FD-8AB0E4D622AB}.Debug|AVR.ActiveCfg = Debug|AVR
+		{59B1D629-9DCC-43ED-A0FD-8AB0E4D622AB}.Debug|AVR.Build.0 = Debug|AVR
+		{59B1D629-9DCC-43ED-A0FD-8AB0E4D622AB}.Release|AVR.ActiveCfg = Release|AVR
+		{59B1D629-9DCC-43ED-A0FD-8AB0E4D622AB}.Release|AVR.Build.0 = Release|AVR
+		{DF8DBF43-B821-4E6C-A924-60E0CED28663}.Debug|AVR.ActiveCfg = Debug|AVR
+		{DF8DBF43-B821-4E6C-A924-60E0CED28663}.Debug|AVR.Build.0 = Debug|AVR
+		{DF8DBF43-B821-4E6C-A924-60E0CED28663}.Release|AVR.ActiveCfg = Release|AVR
+		{DF8DBF43-B821-4E6C-A924-60E0CED28663}.Release|AVR.Build.0 = Release|AVR
+		{691855A4-A4FD-4DD3-8699-AF9599CB7D9F}.Debug|AVR.ActiveCfg = Debug|AVR
+		{691855A4-A4FD-4DD3-8699-AF9599CB7D9F}.Debug|AVR.Build.0 = Debug|AVR
+		{691855A4-A4FD-4DD3-8699-AF9599CB7D9F}.Release|AVR.ActiveCfg = Release|AVR
+		{691855A4-A4FD-4DD3-8699-AF9599CB7D9F}.Release|AVR.Build.0 = Release|AVR
+		{72D1E4CC-7EB7-45D2-860F-A083C87045FE}.Debug|AVR.ActiveCfg = Debug|AVR
+		{72D1E4CC-7EB7-45D2-860F-A083C87045FE}.Debug|AVR.Build.0 = Debug|AVR
+		{72D1E4CC-7EB7-45D2-860F-A083C87045FE}.Release|AVR.ActiveCfg = Release|AVR
+		{72D1E4CC-7EB7-45D2-860F-A083C87045FE}.Release|AVR.Build.0 = Release|AVR
+		{13CAD8A1-1C71-47BF-91BA-4449E80326DB}.Debug|AVR.ActiveCfg = Debug|AVR
+		{13CAD8A1-1C71-47BF-91BA-4449E80326DB}.Debug|AVR.Build.0 = Debug|AVR
+		{13CAD8A1-1C71-47BF-91BA-4449E80326DB}.Release|AVR.ActiveCfg = Release|AVR
+		{13CAD8A1-1C71-47BF-91BA-4449E80326DB}.Release|AVR.Build.0 = Release|AVR
+		{9D6F7AE0-8A69-4BCC-8460-942C38A56331}.Debug|AVR.ActiveCfg = Debug|AVR
+		{9D6F7AE0-8A69-4BCC-8460-942C38A56331}.Debug|AVR.Build.0 = Debug|AVR
+		{9D6F7AE0-8A69-4BCC-8460-942C38A56331}.Release|AVR.ActiveCfg = Release|AVR
+		{9D6F7AE0-8A69-4BCC-8460-942C38A56331}.Release|AVR.Build.0 = Release|AVR
+		{D9AFC1BF-DF7D-48C6-8C23-BB414809C87B}.Debug|AVR.ActiveCfg = Debug|AVR
+		{D9AFC1BF-DF7D-48C6-8C23-BB414809C87B}.Debug|AVR.Build.0 = Debug|AVR
+		{D9AFC1BF-DF7D-48C6-8C23-BB414809C87B}.Release|AVR.ActiveCfg = Release|AVR
+		{D9AFC1BF-DF7D-48C6-8C23-BB414809C87B}.Release|AVR.Build.0 = Release|AVR
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,36 @@
+<ASSEMBLER_INFO>
+ <VERSION>2.2.8</VERSION>
+ <DEVICE>"ATmega328P"</DEVICE>
+ <WORKING_DIR>D:\VUB\MA1\Sensors and Microsystem Electronics\Tasks\Task_1\Task_4\Debug</WORKING_DIR>
+ <INCLUDE_PATH>
+  <DIR>C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc</DIR>
+  <DIR>C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avrassembler\Include</DIR>
+  <DIR></DIR>
+ </INCLUDE_PATH>
+ <SOURCE_FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Tasks\Task_1\Task_4\main.asm</SOURCE_FILE>
+ <INCLUDED_FILES>
+  <FILE>C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328Pdef.inc</FILE>
+  <FILE>C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328pdef.inc</FILE>
+ </INCLUDED_FILES>
+ <OBJECT_FILES>
+  <FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Tasks\Task_1\Task_4\Debug\Task_4.obj</FILE>
+ </OBJECT_FILES>
+ <HEX_FILES>
+  <FILE>Task_4.hex</FILE>
+ </HEX_FILES>
+ <OUTPUT_FILES>
+  <FILE>Task_4.map</FILE>
+  <FILE>Task_4.lss</FILE>
+ </OUTPUT_FILES>
+ <LABELS>
+  <init><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Tasks\Task_1\Task_4\main.asm</FILE><LINE>21</LINE></init>
+  <main><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Tasks\Task_1\Task_4\main.asm</FILE><LINE>37</LINE></main>
+  <OOLoop1><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Tasks\Task_1\Task_4\main.asm</FILE><LINE>40</LINE></OOLoop1>
+  <OLoop1><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Tasks\Task_1\Task_4\main.asm</FILE><LINE>42</LINE></OLoop1>
+  <Loop1><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Tasks\Task_1\Task_4\main.asm</FILE><LINE>44</LINE></Loop1>
+  <OOLoop2><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Tasks\Task_1\Task_4\main.asm</FILE><LINE>55</LINE></OOLoop2>
+  <OLoop2><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Tasks\Task_1\Task_4\main.asm</FILE><LINE>57</LINE></OLoop2>
+  <Loop2><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Tasks\Task_1\Task_4\main.asm</FILE><LINE>59</LINE></Loop2>
+  <start><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Tasks\Task_1\Task_4\main.asm</FILE><LINE>82</LINE></start>
+ </LABELS>
+</ASSEMBLER_INFO>
