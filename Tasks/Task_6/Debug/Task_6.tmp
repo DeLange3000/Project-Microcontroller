@@ -1,19 +1,19 @@
 <ASSEMBLER_INFO>
  <VERSION>2.2.8</VERSION>
  <DEVICE>"ATmega328P"</DEVICE>
- <WORKING_DIR>D:\VUB\MA1\Sensors and Microsystem Electronics\Tasks\Task_1\Task_6\Debug</WORKING_DIR>
+ <WORKING_DIR>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Task_6\Debug</WORKING_DIR>
  <INCLUDE_PATH>
   <DIR>C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc</DIR>
   <DIR>C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avrassembler\Include</DIR>
   <DIR></DIR>
  </INCLUDE_PATH>
- <SOURCE_FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Tasks\Task_1\Task_6\main.asm</SOURCE_FILE>
+ <SOURCE_FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Task_6\main.asm</SOURCE_FILE>
  <INCLUDED_FILES>
   <FILE>C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328Pdef.inc</FILE>
   <FILE>C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328pdef.inc</FILE>
  </INCLUDED_FILES>
  <OBJECT_FILES>
-  <FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Tasks\Task_1\Task_6\Debug\Task_6.obj</FILE>
+  <FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Task_6\Debug\Task_6.obj</FILE>
  </OBJECT_FILES>
  <HEX_FILES>
   <FILE>Task_6.hex</FILE>
@@ -23,10 +23,10 @@
   <FILE>Task_6.lss</FILE>
  </OUTPUT_FILES>
  <LABELS>
-  <init><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Tasks\Task_1\Task_6\main.asm</FILE><LINE>22</LINE></init>
-  <TIM0_OVF_ISR><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Tasks\Task_1\Task_6\main.asm</FILE><LINE>65</LINE></TIM0_OVF_ISR>
-  <main><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Tasks\Task_1\Task_6\main.asm</FILE><LINE>47</LINE></main>
-  <JoyPressed><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Tasks\Task_1\Task_6\main.asm</FILE><LINE>58</LINE></JoyPressed>
-  <JoyNotPressed><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Tasks\Task_1\Task_6\main.asm</FILE><LINE>54</LINE></JoyNotPressed>
+  <init><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Task_6\main.asm</FILE><LINE>22</LINE></init>
+  <TIM0_OVF_ISR><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Task_6\main.asm</FILE><LINE>65</LINE></TIM0_OVF_ISR>
+  <main><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Task_6\main.asm</FILE><LINE>47</LINE></main>
+  <JoyPressed><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Task_6\main.asm</FILE><LINE>58</LINE></JoyPressed>
+  <JoyNotPressed><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Task_6\main.asm</FILE><LINE>54</LINE></JoyNotPressed>
  </LABELS>
 </ASSEMBLER_INFO>

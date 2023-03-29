@@ -1,5 +1,5 @@
 
-AVRASM ver. 2.2.8  D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Task_2\main.asm Wed Mar 29 15:25:54 2023
+AVRASM ver. 2.2.8  D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Task_10\main.asm Wed Mar 29 15:25:55 2023
 
 
 EQU  SIGNATURE_000 0000001e
@@ -696,6 +696,23 @@ EQU  TWIaddr      00000030
 EQU  SPMRaddr     00000032
 EQU  INT_VECTORS_SIZE 00000034
 CSEG init         00000001
-CSEG main         00000008
-CSEG JoyPressed   0000000f
-CSEG JoyNotPressed 0000000c
+CSEG main         00000007
+CSEG outer_loop   00000008
+CSEG loop1        00000009
+CSEG draw_YEET    0000001b
+CSEG done_drawing 0000000a
+CSEG next_loop    0000000b
+CSEG loop2        0000000c
+CSEG skip         00000010
+CSEG setrow       00000011
+CSEG no_pixel     00000059
+CSEG line_7n      00000053
+CSEG line_6n      00000052
+CSEG line_5       0000005e
+CSEG line_4       00000047
+CSEG line_3       0000003c
+CSEG line_2       00000031
+CSEG line_1       0000002b
+CSEG pixel        00000054
+CSEG line_6       00000067
+CSEG line_7       00000070

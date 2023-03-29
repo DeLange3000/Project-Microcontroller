@@ -1,0 +1,38 @@
+<ASSEMBLER_INFO>
+ <VERSION>2.2.8</VERSION>
+ <DEVICE>"ATmega328P"</DEVICE>
+ <WORKING_DIR>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Task_9\Debug</WORKING_DIR>
+ <INCLUDE_PATH>
+  <DIR>C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc</DIR>
+  <DIR>C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avrassembler\Include</DIR>
+  <DIR></DIR>
+ </INCLUDE_PATH>
+ <SOURCE_FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Task_9\main.asm</SOURCE_FILE>
+ <INCLUDED_FILES>
+  <FILE>C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328Pdef.inc</FILE>
+  <FILE>C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328pdef.inc</FILE>
+ </INCLUDED_FILES>
+ <OBJECT_FILES>
+  <FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Task_9\Debug\Task_9.obj</FILE>
+ </OBJECT_FILES>
+ <HEX_FILES>
+  <FILE>Task_9.hex</FILE>
+ </HEX_FILES>
+ <OUTPUT_FILES>
+  <FILE>Task_9.map</FILE>
+  <FILE>Task_9.lss</FILE>
+ </OUTPUT_FILES>
+ <LABELS>
+  <init><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Task_9\main.asm</FILE><LINE>21</LINE></init>
+  <main><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Task_9\main.asm</FILE><LINE>34</LINE></main>
+  <outer_loop><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Task_9\main.asm</FILE><LINE>36</LINE></outer_loop>
+  <loop1><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Task_9\main.asm</FILE><LINE>38</LINE></loop1>
+  <even><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Task_9\main.asm</FILE><LINE>62</LINE></even>
+  <even2><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Task_9\main.asm</FILE><LINE>65</LINE></even2>
+  <uneven><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Task_9\main.asm</FILE><LINE>51</LINE></uneven>
+  <next_loop><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Task_9\main.asm</FILE><LINE>76</LINE></next_loop>
+  <loop2><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Task_9\main.asm</FILE><LINE>78</LINE></loop2>
+  <skip><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Task_9\main.asm</FILE><LINE>83</LINE></skip>
+  <setrow><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Task_9\main.asm</FILE><LINE>85</LINE></setrow>
+ </LABELS>
+</ASSEMBLER_INFO>
