@@ -38,20 +38,11 @@ main:
 	outer_loop:
 		ldi r17, 80
 		SBI PORTB, 3
-		mov r19, r18
-		loop:
-			sbi PINB, 3
-			dec r19
-			brne loop
-
 		loop1:
-			sbi PINB, 3
+			sbi PORTB, 3
 			cbi PORTB, 5
 			sbi PORTB, 5
-			cpi r17, 41
-			brne continue
-			sbi PINB, 3
-			continue:
+			SBI PINB, 3
 			dec r17
 			brne loop1
 		next_loop:
@@ -59,10 +50,10 @@ main:
 		loop2:
 			cp r17, r18
 			brne skip
-			sbi PORTB, 3
+			sbi PINB, 3
 			rjmp setrow
 			skip:
-			cbi PORTB, 3
+			cbi PINB, 3
 			setrow:
 			cbi PORTB, 5
 			sbi PORTB, 5

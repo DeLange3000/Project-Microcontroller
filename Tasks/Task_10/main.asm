@@ -29,9 +29,10 @@ init:
 	sbi PORTB, 4
 
 	// line of 80 bits runs through height of 2 panels:     --->
-	//														<---
+	//														--->
 	// r18 =0 is highest line of bottom and top panels
 
+	// WRITES "YEET" ON SCREEN
 main:
 	ldi r18, 8
 	outer_loop:

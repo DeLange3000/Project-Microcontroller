@@ -23,6 +23,8 @@ Project("{18226A42-8477-4023-8AD2-40C49DA407C9}") = "Task_9", "Task_9\Task_9.asm
 EndProject
 Project("{18226A42-8477-4023-8AD2-40C49DA407C9}") = "Task_10", "Task_10\Task_10.asmproj", "{0A163A1A-4689-438B-BE79-210CCFB2E38E}"
 EndProject
+Project("{18226A42-8477-4023-8AD2-40C49DA407C9}") = "CoolScreen", "CoolScreen\CoolScreen.asmproj", "{6FDA950B-9879-4934-B73B-32C9E34BFE6F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|AVR = Debug|AVR
@@ -69,6 +71,10 @@ Global
 		{0A163A1A-4689-438B-BE79-210CCFB2E38E}.Debug|AVR.Build.0 = Debug|AVR
 		{0A163A1A-4689-438B-BE79-210CCFB2E38E}.Release|AVR.ActiveCfg = Release|AVR
 		{0A163A1A-4689-438B-BE79-210CCFB2E38E}.Release|AVR.Build.0 = Release|AVR
+		{6FDA950B-9879-4934-B73B-32C9E34BFE6F}.Debug|AVR.ActiveCfg = Debug|AVR
+		{6FDA950B-9879-4934-B73B-32C9E34BFE6F}.Debug|AVR.Build.0 = Debug|AVR
+		{6FDA950B-9879-4934-B73B-32C9E34BFE6F}.Release|AVR.ActiveCfg = Release|AVR
+		{6FDA950B-9879-4934-B73B-32C9E34BFE6F}.Release|AVR.Build.0 = Release|AVR
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

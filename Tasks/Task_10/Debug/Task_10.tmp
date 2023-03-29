@@ -24,25 +24,25 @@
  </OUTPUT_FILES>
  <LABELS>
   <init><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Task_10\main.asm</FILE><LINE>21</LINE></init>
-  <main><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Task_10\main.asm</FILE><LINE>34</LINE></main>
-  <outer_loop><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Task_10\main.asm</FILE><LINE>36</LINE></outer_loop>
-  <loop1><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Task_10\main.asm</FILE><LINE>38</LINE></loop1>
-  <draw_YEET><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Task_10\main.asm</FILE><LINE>66</LINE></draw_YEET>
-  <done_drawing><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Task_10\main.asm</FILE><LINE>40</LINE></done_drawing>
-  <next_loop><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Task_10\main.asm</FILE><LINE>43</LINE></next_loop>
-  <loop2><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Task_10\main.asm</FILE><LINE>45</LINE></loop2>
-  <skip><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Task_10\main.asm</FILE><LINE>50</LINE></skip>
-  <setrow><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Task_10\main.asm</FILE><LINE>52</LINE></setrow>
-  <no_pixel><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Task_10\main.asm</FILE><LINE>141</LINE></no_pixel>
-  <line_7n><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Task_10\main.asm</FILE><LINE>132</LINE></line_7n>
-  <line_6n><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Task_10\main.asm</FILE><LINE>131</LINE></line_6n>
-  <line_5><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Task_10\main.asm</FILE><LINE>148</LINE></line_5>
-  <line_4><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Task_10\main.asm</FILE><LINE>118</LINE></line_4>
-  <line_3><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Task_10\main.asm</FILE><LINE>105</LINE></line_3>
-  <line_2><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Task_10\main.asm</FILE><LINE>92</LINE></line_2>
-  <line_1><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Task_10\main.asm</FILE><LINE>84</LINE></line_1>
-  <pixel><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Task_10\main.asm</FILE><LINE>134</LINE></pixel>
-  <line_6><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Task_10\main.asm</FILE><LINE>159</LINE></line_6>
-  <line_7><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Task_10\main.asm</FILE><LINE>170</LINE></line_7>
+  <main><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Task_10\main.asm</FILE><LINE>36</LINE></main>
+  <outer_loop><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Task_10\main.asm</FILE><LINE>38</LINE></outer_loop>
+  <loop1><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Task_10\main.asm</FILE><LINE>40</LINE></loop1>
+  <draw_YEET><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Task_10\main.asm</FILE><LINE>68</LINE></draw_YEET>
+  <done_drawing><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Task_10\main.asm</FILE><LINE>42</LINE></done_drawing>
+  <next_loop><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Task_10\main.asm</FILE><LINE>45</LINE></next_loop>
+  <loop2><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Task_10\main.asm</FILE><LINE>47</LINE></loop2>
+  <skip><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Task_10\main.asm</FILE><LINE>52</LINE></skip>
+  <setrow><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Task_10\main.asm</FILE><LINE>54</LINE></setrow>
+  <no_pixel><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Task_10\main.asm</FILE><LINE>143</LINE></no_pixel>
+  <line_7n><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Task_10\main.asm</FILE><LINE>134</LINE></line_7n>
+  <line_6n><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Task_10\main.asm</FILE><LINE>133</LINE></line_6n>
+  <line_5><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Task_10\main.asm</FILE><LINE>150</LINE></line_5>
+  <line_4><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Task_10\main.asm</FILE><LINE>120</LINE></line_4>
+  <line_3><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Task_10\main.asm</FILE><LINE>107</LINE></line_3>
+  <line_2><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Task_10\main.asm</FILE><LINE>94</LINE></line_2>
+  <line_1><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Task_10\main.asm</FILE><LINE>86</LINE></line_1>
+  <pixel><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Task_10\main.asm</FILE><LINE>136</LINE></pixel>
+  <line_6><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Task_10\main.asm</FILE><LINE>161</LINE></line_6>
+  <line_7><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Task_10\main.asm</FILE><LINE>172</LINE></line_7>
  </LABELS>
 </ASSEMBLER_INFO>
