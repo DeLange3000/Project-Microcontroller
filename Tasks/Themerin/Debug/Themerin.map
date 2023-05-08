@@ -1,5 +1,5 @@
 
-AVRASM ver. 2.2.8  D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm Mon May 08 16:15:30 2023
+AVRASM ver. 2.2.8  D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm Mon May 08 17:00:05 2023
 
 
 EQU  SIGNATURE_000 0000001e
@@ -700,7 +700,7 @@ CSEG TIM0_OVF_ISR 0000004c
 CSEG ADC_COMPLETE 00000053
 CSEG main         00000049
 CSEG JoyPressed   00000052
-CSEG left         0000005c
-CSEG up           00000061
-CSEG down         00000066
-CSEG led_off      0000006b
+CSEG left         00000058
+CSEG led_off      00000067
+CSEG up           0000005d
+CSEG down         00000062

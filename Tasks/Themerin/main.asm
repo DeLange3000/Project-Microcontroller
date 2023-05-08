@@ -60,7 +60,7 @@ init:
 	ldi r16, 0b11111000
 	sts ADCSRA, r16
 
-	ldi r16, 0b00000000
+	ldi r16, 0b00100000
 	sts ADMUX, r16
 	
 	ldi r16, 0b00000000
@@ -75,7 +75,8 @@ init:
 
 main:
 	CBI DDRC, 2 
-	CBI DDRC, 3 
+	CBI DDRC, 3
+
 
     rjmp main
 
@@ -95,15 +96,10 @@ TIM0_OVF_ISR:
 
 
 ADC_COMPLETE:
-	in r0, PINC
+	ldi r16, ADCH
 	
-	;out TCNT0, R0
-	BST R0, 0
-	BRTC left
-	BST R0, 1
-	BRTC up
-	BST R0, 3
-	BRTC down
+	cpi r16, 0b00100000
+	brlo left
 	rjmp led_off
 	reti
 

@@ -1,5 +1,5 @@
 
-AVRASM ver. 2.2.8  D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm Mon May 08 16:15:30 2023
+AVRASM ver. 2.2.8  D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm Mon May 08 17:00:05 2023
 
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328Pdef.inc'
 D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm(16): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328pdef.inc'
@@ -1091,7 +1091,7 @@ D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\The
 00003e ef08                      	ldi r16, 0b11111000
 00003f 9300 007a                 	sts ADCSRA, r16
                                  
-000041 e000                      	ldi r16, 0b00000000
+000041 e200                      	ldi r16, 0b00100000
 000042 9300 007c                 	sts ADMUX, r16
                                  	
 000044 e000                      	ldi r16, 0b00000000
@@ -1106,7 +1106,8 @@ D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\The
                                  
                                  main:
 000049 983a                      	CBI DDRC, 2 
-00004a 983b                      	CBI DDRC, 3 
+00004a 983b                      	CBI DDRC, 3
+                                 
                                  
 00004b cffd                          rjmp main
                                  
@@ -1126,48 +1127,43 @@ D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\The
                                  
                                  
                                  ADC_COMPLETE:
-000053 b006                      	in r0, PINC
+000053 e708                      	ldi r16, ADCL
                                  	
-                                 	;out TCNT0, R0
-000054 fa00                      	BST R0, 0
-000055 f436                      	BRTC left
-000056 fa01                      	BST R0, 1
-000057 f44e                      	BRTC up
-000058 fa03                      	BST R0, 3
-000059 f466                      	BRTC down
-00005a c010                      	rjmp led_off
-00005b 9518                      	reti
+000054 3200                      	cpi r16, 0b00100000
+000055 f010                      	brlo left
+000056 c010                      	rjmp led_off
+000057 9518                      	reti
                                  
                                  
                                  
                                  	left:
-00005c 9a3b                      		SBI DDRC, 3
-00005d 9a3a                      		SBI DDRC, 2
-00005e 9a42                      		SBI PORTC, 2 ;led 2 off
-00005f 9843                      		CBI PORTC, 3 ; led 3 on
-000060 9518                      		reti
+000058 9a3b                      		SBI DDRC, 3
+000059 9a3a                      		SBI DDRC, 2
+00005a 9a42                      		SBI PORTC, 2 ;led 2 off
+00005b 9843                      		CBI PORTC, 3 ; led 3 on
+00005c 9518                      		reti
                                  
                                  	up:
-000061 9a3b                      		SBI DDRC, 3
-000062 9a3a                      		SBI DDRC, 2
-000063 9a43                      		SBI PORTC, 3 ;led 3 off
-000064 9842                      		CBI PORTC, 2 ; led 2 on
-000065 9518                      		reti
+00005d 9a3b                      		SBI DDRC, 3
+00005e 9a3a                      		SBI DDRC, 2
+00005f 9a43                      		SBI PORTC, 3 ;led 3 off
+000060 9842                      		CBI PORTC, 2 ; led 2 on
+000061 9518                      		reti
                                  
                                  	down:
-000066 9a3b                      		SBI DDRC, 3
-000067 9a3a                      		SBI DDRC, 2
-000068 9843                      		CBI PORTC, 3 ;led 3 on
-000069 9842                      		CBI PORTC, 2 ; led 2 on
-00006a 9518                      		reti
+000062 9a3b                      		SBI DDRC, 3
+000063 9a3a                      		SBI DDRC, 2
+000064 9843                      		CBI PORTC, 3 ;led 3 on
+000065 9842                      		CBI PORTC, 2 ; led 2 on
+000066 9518                      		reti
                                  	
                                  
                                  	led_off:
-00006b 9a3b                      		SBI DDRC, 3
-00006c 9a3a                      		SBI DDRC, 2
-00006d 9a43                      		SBI PORTC, 3 ;led 2 off
-00006e 9a42                      		SBI PORTC, 2 ; led 3 off
-00006f 9518                      		reti
+000067 9a3b                      		SBI DDRC, 3
+000068 9a3a                      		SBI DDRC, 2
+000069 9a43                      		SBI PORTC, 3 ;led 2 off
+00006a 9a42                      		SBI PORTC, 2 ; led 3 off
+00006b 9518                      		reti
                                  
                                  
 
@@ -1187,9 +1183,9 @@ counted separately from r26..r31 here.
 .dseg memory usage only counts static data declared with .byte
 
 "ATmega328P" register use summary:
-x  :   0 y  :   0 z  :   0 r0 :   5 r1 :   2 r2 :   0 r3 :   0 r4 :   0 
+x  :   0 y  :   0 z  :   0 r0 :   1 r1 :   2 r2 :   0 r3 :   0 r4 :   0 
 r5 :   0 r6 :   0 r7 :   0 r8 :   0 r9 :   0 r10:   0 r11:   0 r12:   0 
-r13:   0 r14:   0 r15:   0 r16:  12 r17:   0 r18:   0 r19:   0 r20:   0 
+r13:   0 r14:   0 r15:   0 r16:  14 r17:   0 r18:   0 r19:   0 r20:   0 
 r21:   0 r22:   0 r23:   0 r24:   0 r25:   0 r26:   0 r27:   0 r28:   0 
 r29:   0 r30:   0 r31:   2 
 Registers used: 4 out of 35 (11.4%)
@@ -1198,14 +1194,14 @@ Registers used: 4 out of 35 (11.4%)
 .lds  :   0 .sts  :   0 adc   :   0 add   :   0 adiw  :   0 and   :   0 
 andi  :   0 asr   :   0 bclr  :   0 bld   :   0 brbc  :   0 brbs  :   0 
 brcc  :   0 brcs  :   0 break :   0 breq  :   0 brge  :   0 brhc  :   0 
-brhs  :   0 brid  :   0 brie  :   0 brlo  :   0 brlt  :   0 brmi  :   0 
-brne  :   0 brpl  :   0 brsh  :   0 brtc  :   4 brts  :   0 brvc  :   0 
-brvs  :   0 bset  :   0 bst   :   4 call  :   0 cbi   :   9 cbr   :   0 
+brhs  :   0 brid  :   0 brie  :   0 brlo  :   1 brlt  :   0 brmi  :   0 
+brne  :   0 brpl  :   0 brsh  :   0 brtc  :   1 brts  :   0 brvc  :   0 
+brvs  :   0 bset  :   0 bst   :   1 call  :   0 cbi   :   9 cbr   :   0 
 clc   :   0 clh   :   0 cli   :   0 cln   :   0 clr   :   0 cls   :   0 
 clt   :   0 clv   :   0 clz   :   0 com   :   0 cp    :   0 cpc   :   0 
-cpi   :   0 cpse  :   0 dec   :   0 eor   :   0 fmul  :   0 fmuls :   0 
-fmulsu:   0 icall :   0 ijmp  :   0 in    :   2 inc   :   0 jmp   :   0 
-ld    :   0 ldd   :   0 ldi   :   7 lds   :   0 lpm   :   0 lsl   :   0 
+cpi   :   1 cpse  :   0 dec   :   0 eor   :   0 fmul  :   0 fmuls :   0 
+fmulsu:   0 icall :   0 ijmp  :   0 in    :   1 inc   :   0 jmp   :   0 
+ld    :   0 ldd   :   0 ldi   :   8 lds   :   0 lpm   :   0 lsl   :   0 
 lsr   :   0 mov   :   0 movw  :   0 mul   :   0 muls  :   0 mulsu :   0 
 neg   :   0 nop   :   0 or    :   0 ori   :   0 out   :   4 pop   :   0 
 push  :   0 rcall :   0 ret   :   0 reti  :   8 rjmp  :   6 rol   :   0 
@@ -1214,12 +1210,12 @@ sbiw  :   0 sbr   :   0 sbrc  :   0 sbrs  :   0 sec   :   0 seh   :   0
 sei   :   1 sen   :   0 ser   :   0 ses   :   0 set   :   0 sev   :   0 
 sez   :   0 sleep :   0 spm   :   0 st    :   0 std   :   0 sts   :   4 
 sub   :   0 subi  :   0 swap  :   0 tst   :   0 wdr   :   0 
-Instructions used: 11 out of 113 (9.7%)
+Instructions used: 13 out of 113 (11.5%)
 
 "ATmega328P" memory use summary [bytes]:
 Segment   Begin    End      Code   Data   Used    Size   Use%
 ---------------------------------------------------------------
-[.cseg] 0x000000 0x0000e2    146      0    146   32768   0.4%
+[.cseg] 0x000000 0x0000da    138      0    138   32768   0.4%
 [.dseg] 0x000100 0x000100      0      0      0    2048   0.0%
 [.eseg] 0x000000 0x000000      0      0      0    1024   0.0%
 
