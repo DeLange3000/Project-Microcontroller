@@ -1,10 +1,10 @@
 
-AVRASM ver. 2.2.8  D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Task_7\main.asm Mon May 08 15:20:20 2023
+AVRASM ver. 2.2.8  D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm Mon May 08 16:15:30 2023
 
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328Pdef.inc'
-D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Task_7\main.asm(9): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328pdef.inc'
+D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm(16): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328pdef.inc'
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328Pdef.inc'
-D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Task_7\main.asm(9): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328pdef.inc'
+D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm(16): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328pdef.inc'
                                  
                                  ;
                                  
@@ -987,6 +987,13 @@ D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Tas
                                  
                                  ; ***** END OF FILE ******************************************************
                                  
+                                 ; Themerin.asm
+                                 ;
+                                 ; Created: 8/05/2023 14:05:11
+                                 ; Author : warre
+                                 ;
+                                 
+                                 ;
                                  ; Task_1.asm
                                  ;
                                  ; Created: 15/02/2023 14:14:20
@@ -1044,215 +1051,123 @@ D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Tas
                                  ; constants
                                  
                                  ;Boot code
-000000 c020                      .org 0x000 rjmp init
-000020 c086                      .org 0x0020 rjmp TIM0_OVF_ISR
+000000 c02a                      .org 0x000 rjmp init
+000020 c02b                      .org 0x0020 rjmp TIM0_OVF_ISR
+00002a c028                      .org 0x002A rjmp ADC_COMPLETE 
                                  
                                  
                                  ; Interrupt address vectors
                                  
                                  init:
-                                 	//keyboard
-000021 9a50                      	SBI DDRD, 0
-000022 9a58                      	SBI PORTD, 0
                                  
-000023 9a51                      	SBI DDRD, 1
-000024 9a59                      	SBI PORTD, 1
+                                 	/*SBI DDRB, 1 ; activate buzzer
+                                 	SBI PORTB, 1*/
                                  
-000025 9a52                      	SBI DDRD, 2
-000026 9a5a                      	SBI PORTD, 2
+00002b 9822                      	CBI DDRB, 2 
+00002c 9a2a                      	SBI PORTB, 2
                                  
-000027 9a53                      	SBI DDRD, 3
-000028 9a5b                      	SBI PORTD, 3
+00002d 9838                      	CBI DDRC, 0 ; set ADC input
+00002e 9a40                      	SBI PORTC, 0
                                  
-000029 9854                      	CBI DDRD, 4
-00002a 9a5c                      	SBI PORTD, 4
+00002f 9839                      	CBI DDRC, 1
+000030 9a41                      	SBI PORTC, 1
                                  
-00002b 9855                      	CBI DDRD, 5
-00002c 9a5d                      	SBI PORTD, 5
+000031 9a3a                      	SBI DDRC, 2
+000032 9a42                      	SBI PORTC, 2
                                  
-00002d 9856                      	CBI DDRD, 6
-00002e 9a5e                      	SBI PORTD, 6
+000033 9a3b                      	SBI DDRC, 3
+000034 9a43                      	SBI PORTC, 3
                                  
-00002f 9857                      	CBI DDRD, 7
-000030 9a5f                      	SBI PORTD, 7
+000035 ebf9                      	LDI R31, 185 ; register 31 controls frequency
+000036 bdf6                      	out TCNT0, R31
+                                 
+000037 e004                      	ldi r16,1<<CS02
+000038 bd05                      	out TCCR0B,r16 ; Timer clock = system clock / 256
+000039 e001                      	ldi r16,1<<TOV0
+00003a bb05                      	out TIFR0,r16 ; Clear TOV0/ Clear pending interrupts
+00003b e001                      	ldi r16,1<<TOIE0
+00003c 9300 006e                 	sts TIMSK0,r16 ; Enable Timer/Counter0 Overflow Interrupt
+                                 
+00003e ef08                      	ldi r16, 0b11111000
+00003f 9300 007a                 	sts ADCSRA, r16
+                                 
+000041 e000                      	ldi r16, 0b00000000
+000042 9300 007c                 	sts ADMUX, r16
                                  	
-                                 	//LEDs
-000031 9a3b                      	SBI DDRC, 3
-000032 9a43                      	SBI PORTC, 3
+000044 e000                      	ldi r16, 0b00000000
+000045 9300 007b                 	sts ADCSRB, r16
                                  
-000033 9a3a                      	SBI DDRC, 2
-000034 9a42                      	SBI PORTC, 2
+000047 9478                      	SEI
                                  
-                                 	//buzzer
-000035 9a21                      	SBI DDRB, 1
-000036 9a29                      	SBI PORTB, 1
                                  
-000037 ebf9                      	LDI R31, 185
-000038 bdf6                      	out TCNT0, R31
-                                 
-000039 e004                      	ldi r16,1<<CS02
-00003a bd05                      	out TCCR0B,r16 ; Timer clock = system clock / 256
-00003b e001                      	ldi r16,1<<TOV0
-00003c bb05                      	out TIFR0,r16 ; Clear TOV0/ Clear pending interrupts
-00003d e001                      	ldi r16,1<<TOIE0
-00003e 9300 006e                 	sts TIMSK0,r16 ; Enable Timer/Counter0 Overflow Interrupt
-000040 9478                      	SEI
-000041 c000                      	rjmp main
+000048 c000                      	rjmp main
                                  
                                  
                                  
                                  main:
-000042 9a42                      	SBI PORTC, 2 //turn of leds
-000043 9a43                      	SBI PORTC, 3
+000049 983a                      	CBI DDRC, 2 
+00004a 983b                      	CBI DDRC, 3 
                                  
-000044 9858                      	CBI PORTD, 0 //check row 0
-000045 9859                      	CBI PORTD, 1
-000046 985a                      	CBI PORTD, 2
-000047 985b                      	CBI PORTD, 3
-000048 9b4c                      		SBIS PIND, 4
-000049 c008                      		rjmp get_key
-00004a 9b4d                      		SBIS PIND, 5
-00004b c006                      		rjmp get_key
-00004c 9b4e                      		SBIS PIND, 6
-00004d c004                      		rjmp get_key
-00004e 9b4f                      		SBIS PIND, 7
-00004f c002                      		rjmp get_key
-000050 94f8                      		CLI
-000051 cff0                      		rjmp main
+00004b cffd                          rjmp main
                                  
                                  
-                                 get_key:
-000052 9858                      	CBI PORTD, 0 //check row 0
-000053 9a59                      	SBI PORTD, 1
-000054 9a5a                      	SBI PORTD, 2
-000055 9a5b                      	SBI PORTD, 3
-000056 9b4c                      		SBIS PIND, 4
-000057 c045                      		rjmp output_C
-000058 9b4d                      		SBIS PIND, 5
-000059 c045                      		rjmp output_D
-00005a 9b4e                      		SBIS PIND, 6
-00005b c045                      		rjmp output_E
-00005c 9b4f                      		SBIS PIND, 7
-00005d c045                      		rjmp output_F
+                                 TIM0_OVF_ISR: 
+00004c b013                      	in R1, PINB
+00004d fa12                      	BST R1, 2
                                  
+00004e f41e                      	BRTC JoyPressed
+00004f bc06                      	out TCNT0, R0
+000050 9a19                      	SBI PINB, 1
+000051 9518                      	reti
                                  
-00005e 9a58                      	SBI PORTD, 0 //check row 1
-00005f 9859                      	CBI PORTD, 1
-000060 9a5a                      	SBI PORTD, 2
-000061 9a5b                      	SBI PORTD, 3
-000062 9b4c                      		SBIS PIND, 4
-000063 c037                      		rjmp output_B
-000064 9b4d                      		SBIS PIND, 5
-000065 c024                      		rjmp output_3
-000066 9b4e                      		SBIS PIND, 6
-000067 c028                      		rjmp output_6
-000068 9b4f                      		SBIS PIND, 7
-000069 c02d                      		rjmp output_9
-                                 
-00006a 9a58                      	SBI PORTD, 0 //check row 2
-00006b 9a59                      	SBI PORTD, 1
-00006c 985a                      	CBI PORTD, 2
-00006d 9a5b                      	SBI PORTD, 3
-00006e 9b4c                      		SBIS PIND, 4
-00006f c014                      		rjmp output_0
-000070 9b4d                      		SBIS PIND, 5
-000071 c016                      		rjmp output_2
-000072 9b4e                      		SBIS PIND, 6
-000073 c01a                      		rjmp output_5
-000074 9b4f                      		SBIS PIND, 7
-000075 c01f                      		rjmp output_8
-                                 
-000076 9a58                      	SBI PORTD, 0 //check row 3
-000077 9a59                      	SBI PORTD, 1
-000078 9a5a                      	SBI PORTD, 2
-000079 985b                      	CBI PORTD, 3
-00007a 9b4c                      		SBIS PIND, 4
-00007b c01d                      		rjmp output_A
-00007c 9b4d                      		SBIS PIND, 5
-00007d c008                      		rjmp output_1
-00007e 9b4e                      		SBIS PIND, 6
-00007f c00c                      		rjmp output_4
-000080 9b4f                      		SBIS PIND, 7
-000081 c010                      		rjmp output_7
-000082 9a5b                      	SBI PORTD, 3
-                                 
-000083 cfbe                      	rjmp main
-                                 
-                                 	output_0:
-000084 edfc                      		ldi r31, 220
-000085 c01f                      		rjmp buzzer
-                                 
-                                 	output_1:
-000086 edf2                      		ldi r31, 210
-000087 c01d                      		rjmp buzzer
-                                 
-                                 	output_2:
-000088 ecf8                      		ldi r31, 200
-000089 c01b                      		rjmp buzzer
-                                 
-                                 	output_3:
-00008a ebfe                      		ldi r31, 190
-00008b c019                      		rjmp buzzer
-                                 
-                                 	output_4:
-00008c 9842                      		CBI PORTC, 2
-00008d cfb4                      		rjmp main
-                                 
-                                 	output_5:
-00008e ebf4                      		ldi r31, 180
-00008f c015                      		rjmp buzzer
-                                 
-                                 	output_6:
-000090 eafa                      		ldi r31, 170
-000091 c013                      		rjmp buzzer
-                                 
-                                 	output_7:
-000092 9842                      		CBI PORTC,2
-000093 9843                      		CBI PORTC, 3
-000094 cfad                      		rjmp main
-                                 
-                                 	output_8:
-000095 9843                      		CBI PORTC, 3
-000096 cfab                      		rjmp main
-                                 
-                                 	output_9:
-000097 eaf0                      		ldi r31, 160
-000098 c00c                      		rjmp buzzer
-                                 
-                                 	output_A:
-000099 e9f6                      		ldi r31, 150
-00009a c00a                      		rjmp buzzer
-                                 
-                                 	output_B:
-00009b e8fc                      		ldi r31, 140
-00009c c008                      		rjmp buzzer
-                                 
-                                 	output_C:
-00009d e8f2                      		ldi r31, 130
-00009e c006                      		rjmp buzzer
-                                 
-                                 	output_D:
-00009f e7f8                      		ldi r31, 120
-0000a0 c004                      		rjmp buzzer
-                                 
-                                 	output_E:
-0000a1 e6fe                      		ldi r31, 110
-0000a2 c002                      		rjmp buzzer
-                                 
-                                 	output_F:
-0000a3 e6f4                      		ldi r31, 100
-0000a4 c000                      		rjmp buzzer
-                                 
-                                 	buzzer:
-0000a5 9478                      		SEI
-0000a6 cf9b                      		rjmp main
+                                 	JoyPressed:
                                  		
+000052 9518                      		reti
                                  
-                                 	TIM0_OVF_ISR: 
-                                 	;CBI PORTC,2
-0000a7 bdf6                      	out TCNT0, R31
-0000a8 9a19                      	SBI PINB, 1
-0000a9 9518                      	reti
+                                 
+                                 ADC_COMPLETE:
+000053 b006                      	in r0, PINC
+                                 	
+                                 	;out TCNT0, R0
+000054 fa00                      	BST R0, 0
+000055 f436                      	BRTC left
+000056 fa01                      	BST R0, 1
+000057 f44e                      	BRTC up
+000058 fa03                      	BST R0, 3
+000059 f466                      	BRTC down
+00005a c010                      	rjmp led_off
+00005b 9518                      	reti
+                                 
+                                 
+                                 
+                                 	left:
+00005c 9a3b                      		SBI DDRC, 3
+00005d 9a3a                      		SBI DDRC, 2
+00005e 9a42                      		SBI PORTC, 2 ;led 2 off
+00005f 9843                      		CBI PORTC, 3 ; led 3 on
+000060 9518                      		reti
+                                 
+                                 	up:
+000061 9a3b                      		SBI DDRC, 3
+000062 9a3a                      		SBI DDRC, 2
+000063 9a43                      		SBI PORTC, 3 ;led 3 off
+000064 9842                      		CBI PORTC, 2 ; led 2 on
+000065 9518                      		reti
+                                 
+                                 	down:
+000066 9a3b                      		SBI DDRC, 3
+000067 9a3a                      		SBI DDRC, 2
+000068 9843                      		CBI PORTC, 3 ;led 3 on
+000069 9842                      		CBI PORTC, 2 ; led 2 on
+00006a 9518                      		reti
+                                 	
+                                 
+                                 	led_off:
+00006b 9a3b                      		SBI DDRC, 3
+00006c 9a3a                      		SBI DDRC, 2
+00006d 9a43                      		SBI PORTC, 3 ;led 2 off
+00006e 9a42                      		SBI PORTC, 2 ; led 3 off
+00006f 9518                      		reti
                                  
                                  
 
@@ -1272,39 +1187,39 @@ counted separately from r26..r31 here.
 .dseg memory usage only counts static data declared with .byte
 
 "ATmega328P" register use summary:
-x  :   0 y  :   0 z  :   0 r0 :   0 r1 :   0 r2 :   0 r3 :   0 r4 :   0 
+x  :   0 y  :   0 z  :   0 r0 :   5 r1 :   2 r2 :   0 r3 :   0 r4 :   0 
 r5 :   0 r6 :   0 r7 :   0 r8 :   0 r9 :   0 r10:   0 r11:   0 r12:   0 
-r13:   0 r14:   0 r15:   0 r16:   6 r17:   0 r18:   0 r19:   0 r20:   0 
+r13:   0 r14:   0 r15:   0 r16:  12 r17:   0 r18:   0 r19:   0 r20:   0 
 r21:   0 r22:   0 r23:   0 r24:   0 r25:   0 r26:   0 r27:   0 r28:   0 
-r29:   0 r30:   0 r31:  16 
-Registers used: 2 out of 35 (5.7%)
+r29:   0 r30:   0 r31:   2 
+Registers used: 4 out of 35 (11.4%)
 
 "ATmega328P" instruction use summary:
 .lds  :   0 .sts  :   0 adc   :   0 add   :   0 adiw  :   0 and   :   0 
 andi  :   0 asr   :   0 bclr  :   0 bld   :   0 brbc  :   0 brbs  :   0 
 brcc  :   0 brcs  :   0 break :   0 breq  :   0 brge  :   0 brhc  :   0 
 brhs  :   0 brid  :   0 brie  :   0 brlo  :   0 brlt  :   0 brmi  :   0 
-brne  :   0 brpl  :   0 brsh  :   0 brtc  :   0 brts  :   0 brvc  :   0 
-brvs  :   0 bset  :   0 bst   :   0 call  :   0 cbi   :  16 cbr   :   0 
-clc   :   0 clh   :   0 cli   :   1 cln   :   0 clr   :   0 cls   :   0 
+brne  :   0 brpl  :   0 brsh  :   0 brtc  :   4 brts  :   0 brvc  :   0 
+brvs  :   0 bset  :   0 bst   :   4 call  :   0 cbi   :   9 cbr   :   0 
+clc   :   0 clh   :   0 cli   :   0 cln   :   0 clr   :   0 cls   :   0 
 clt   :   0 clv   :   0 clz   :   0 com   :   0 cp    :   0 cpc   :   0 
 cpi   :   0 cpse  :   0 dec   :   0 eor   :   0 fmul  :   0 fmuls :   0 
-fmulsu:   0 icall :   0 ijmp  :   0 in    :   0 inc   :   0 jmp   :   0 
-ld    :   0 ldd   :   0 ldi   :  17 lds   :   0 lpm   :   0 lsl   :   0 
+fmulsu:   0 icall :   0 ijmp  :   0 in    :   2 inc   :   0 jmp   :   0 
+ld    :   0 ldd   :   0 ldi   :   7 lds   :   0 lpm   :   0 lsl   :   0 
 lsr   :   0 mov   :   0 movw  :   0 mul   :   0 muls  :   0 mulsu :   0 
 neg   :   0 nop   :   0 or    :   0 ori   :   0 out   :   4 pop   :   0 
-push  :   0 rcall :   0 ret   :   0 reti  :   1 rjmp  :  42 rol   :   0 
-ror   :   0 sbc   :   0 sbci  :   0 sbi   :  34 sbic  :   0 sbis  :  20 
+push  :   0 rcall :   0 ret   :   0 reti  :   8 rjmp  :   6 rol   :   0 
+ror   :   0 sbc   :   0 sbci  :   0 sbi   :  20 sbic  :   0 sbis  :   0 
 sbiw  :   0 sbr   :   0 sbrc  :   0 sbrs  :   0 sec   :   0 seh   :   0 
-sei   :   2 sen   :   0 ser   :   0 ses   :   0 set   :   0 sev   :   0 
-sez   :   0 sleep :   0 spm   :   0 st    :   0 std   :   0 sts   :   1 
+sei   :   1 sen   :   0 ser   :   0 ses   :   0 set   :   0 sev   :   0 
+sez   :   0 sleep :   0 spm   :   0 st    :   0 std   :   0 sts   :   4 
 sub   :   0 subi  :   0 swap  :   0 tst   :   0 wdr   :   0 
-Instructions used: 10 out of 113 (8.8%)
+Instructions used: 11 out of 113 (9.7%)
 
 "ATmega328P" memory use summary [bytes]:
 Segment   Begin    End      Code   Data   Used    Size   Use%
 ---------------------------------------------------------------
-[.cseg] 0x000000 0x000154    278      0    278   32768   0.8%
+[.cseg] 0x000000 0x0000e2    146      0    146   32768   0.4%
 [.dseg] 0x000100 0x000100      0      0      0    2048   0.0%
 [.eseg] 0x000000 0x000000      0      0      0    1024   0.0%
 
