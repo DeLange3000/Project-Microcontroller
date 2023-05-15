@@ -1,5 +1,5 @@
 
-AVRASM ver. 2.2.8  D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm Mon May 15 14:28:53 2023
+AVRASM ver. 2.2.8  D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\ADC_test\main.asm Mon May 15 14:14:23 2023
 
 
 EQU  SIGNATURE_000 0000001e
@@ -695,8 +695,8 @@ EQU  ACIaddr      0000002e
 EQU  TWIaddr      00000030
 EQU  SPMRaddr     00000032
 EQU  INT_VECTORS_SIZE 00000034
-CSEG init         0000002b
-CSEG TIM0_OVF_ISR 0000005e
-CSEG ADC_COMPLETE 00000068
-CSEG main         0000005d
-CSEG output_C     00000065
+CSEG TIM0_OVF_ISR 00000049
+CSEG start        00000021
+CSEG prog         00000035
+CSEG setADC       00000035
+CSEG keepPolling  0000003f

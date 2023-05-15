@@ -1,12 +1,12 @@
 
-AVRASM ver. 2.2.8  D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Task_3\main.asm Tue May 09 10:26:40 2023
+AVRASM ver. 2.2.8  D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\ADC_test\main.asm Mon May 15 14:14:23 2023
 
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328Pdef.inc'
-D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Task_3\main.asm(9): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328pdef.inc'
+D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\ADC_test\main.asm(10): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\M328PDEF.INC'
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328Pdef.inc'
-D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Task_3\main.asm(9): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328pdef.inc'
+D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\ADC_test\main.asm(10): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\M328PDEF.INC'
                                  
-                                 ;
+                                     ;
                                  
                                  ;***** Created: 2011-02-09 12:03 ******* Source: ATmega328P.xml **********
                                  ;*************************************************************************
@@ -987,14 +987,15 @@ D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Tas
                                  
                                  ; ***** END OF FILE ******************************************************
                                  
-                                 ; Task_1.asm
+                                 ; Labs.asm
                                  ;
-                                 ; Created: 15/02/2023 14:14:20
-                                 ; Author : warre
+                                 ; Created: 8/14/2016 7:34:43 AM
+                                 ; Author : Dario
                                  ;
                                  
-                                 ; Definition file of the ATmega328P
-                                 .include "m328pdef.inc"
+                                 
+                                 ; Replace with your application code
+                                     .include "M328PDEF.INC"
                                  
                                  ;***** Created: 2011-02-09 12:03 ******* Source: ATmega328P.xml **********
                                  ;*************************************************************************
@@ -1038,66 +1039,67 @@ D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Tas
                                  #endif  /* _M328PDEF_INC_ */
                                  
                                  ; ***** END OF FILE ******************************************************
+                                     .org 0x0000
+000020 c028                      	.org 0x0020 rjmp TIM0_OVF_ISR
+                                 start:
+                                     ;ddrx controls the if a pin is in/out, if the pins corresponding bit in the ddr is 1 it's an out, if it's 0 its an in
+000021 e000                          ldi r16, 0x00 ; set r16 = 0000 0000
+000022 9a38                          SBI ddrc, 0 ;set all c pins as input
+000023 9a39                      	SBI ddrc, 1
                                  
-                                 ;register definitions
+                                 	//buzzer
+000024 9a21                      	SBI DDRB, 1
+000025 9a29                      	SBI PORTB, 1
                                  
-                                 ; constants
+000026 ebf9                      	LDI R31, 185
+000027 bdf6                      	out TCNT0, R31
                                  
-                                 ;Boot code
-                                 .org 0x000
-000000 c000                      	rjmp init
-                                 
-                                 ; Interrupt address vectors
-                                 
-                                 init:
-000001 9822                      	CBI DDRB,2
-000002 9a2a                      	SBI PORTB, 2
-                                 
-000003 9a3b                      	SBI DDRC, 3
-000004 9a43                      	SBI PORTC, 3
-                                 
-000005 9a3a                      	SBI DDRC, 2
-000006 9a42                      	SBI PORTC, 2
-000007 c000                      	rjmp main
-                                 
-                                 
-                                 
-                                 main:
-000008 9a42                      	SBI PORTC, 2
-000009 9843                      	CBI PORTC, 3
-00000a e02f                      	LDI R18, 0x0F
-                                 	OOLoop1:
-00000b ef1f                      		LDI R17, 0xFF
-                                 		OLoop1:
-00000c ef0f                      			LDI R16, 0xFF
-                                 			Loop1:
-00000d 950a                      				DEC R16
-00000e f7f1                      				BRNE Loop1
-00000f 951a                      			dec r17
-000010 f7d9                      			BRNE OLoop1
-000011 952a                      		dec r18
-000012 f7c1                      		BRNE OOLoop1
+000028 e004                      	ldi r16,1<<CS02
+000029 bd05                      	out TCCR0B,r16 ; Timer clock = system clock / 256
+00002a e001                      	ldi r16,1<<TOV0
+00002b bb05                      	out TIFR0,r16 ; Clear TOV0/ Clear pending interrupts
+00002c e001                      	ldi r16,1<<TOIE0
+00002d 9300 006e                 	sts TIMSK0,r16 ; Enable Timer/Counter0 Overflow Interrupt
+00002f 9478                      	SEI
+000030 c004                      	rjmp prog
                                  
                                  
-000013 9842                      	CBI PORTC, 2
-000014 9a43                      	SBI PORTC, 3
-000015 e02f                      	LDI R18, 0x0F
-                                 	OOLoop2:
-000016 ef1f                      		LDI R17, 0xFF
-                                 			OLoop2:
-000017 ef0f                      			LDI R16, 0xFF
-                                 			Loop2:
-000018 950a                      				DEC R16
-000019 f7f1                      				BRNE Loop2
-00001a 951a                      			dec r17	
-00001b f7d9                      			brne OLoop2
-00001c 952a                      		dec r18
-00001d f7c1                      		brne OOLoop2
-                                 
-00001e cfe9                      	rjmp main
+000031 e008                          ldi r16, HIGH(RAMEND)
+000032 bf0e                          out SPH, r16
+000033 ef0f                          ldi r16, LOW(RAMEND)
+000034 bf0d                          out SPL, r16
                                  
                                  
                                  
+                                 prog:
+                                     ;----------------initialise adc
+                                 
+                                 setADC:
+                                 
+000035 9100 0000                     lds r16,0x00
+000037 9300 007a                     STS ADCSRA,R16
+                                 
+000039 ec03                          ldi r16,0xC3
+00003a 9300 007a                     sts ADCSRA,r16
+00003c e200                          ldi r16,0x20    ;the 2 sets the bits to be left justified
+00003d 9300 007c                     sts admux,r16
+                                 
+                                 keepPolling:
+00003f 9100 007a                     lds R16,ADCSRA
+000041 ff04                          sbrs R16,4 ;wait for conversion to complete, when conversion is complete the 4th bit in the ADCSRA is set to true therefor skipping the r jump because of sbrs
+000042 940c 003f                     jmp keepPolling
+                                 
+000044 91f0 0078                     lds r31,ADCL    
+000046 9100 0079                     lds r16,ADCH
+000048 cfec                      	rjmp prog
+                                 
+                                 
+                                 	TIM0_OVF_ISR:
+000049 bdf6                      	out TCNT0, R31
+00004a 9a19                      	SBI PINB, 1
+00004b 9518                      	reti
+                                 
+00004c cfe8                          rjmp prog
                                  
                                  
 
@@ -1119,37 +1121,37 @@ counted separately from r26..r31 here.
 "ATmega328P" register use summary:
 x  :   0 y  :   0 z  :   0 r0 :   0 r1 :   0 r2 :   0 r3 :   0 r4 :   0 
 r5 :   0 r6 :   0 r7 :   0 r8 :   0 r9 :   0 r10:   0 r11:   0 r12:   0 
-r13:   0 r14:   0 r15:   0 r16:   4 r17:   4 r18:   4 r19:   0 r20:   0 
+r13:   0 r14:   0 r15:   0 r16:  20 r17:   0 r18:   0 r19:   0 r20:   0 
 r21:   0 r22:   0 r23:   0 r24:   0 r25:   0 r26:   0 r27:   0 r28:   0 
-r29:   0 r30:   0 r31:   0 
-Registers used: 3 out of 35 (8.6%)
+r29:   0 r30:   0 r31:   4 
+Registers used: 2 out of 35 (5.7%)
 
 "ATmega328P" instruction use summary:
 .lds  :   0 .sts  :   0 adc   :   0 add   :   0 adiw  :   0 and   :   0 
 andi  :   0 asr   :   0 bclr  :   0 bld   :   0 brbc  :   0 brbs  :   0 
 brcc  :   0 brcs  :   0 break :   0 breq  :   0 brge  :   0 brhc  :   0 
 brhs  :   0 brid  :   0 brie  :   0 brlo  :   0 brlt  :   0 brmi  :   0 
-brne  :   6 brpl  :   0 brsh  :   0 brtc  :   0 brts  :   0 brvc  :   0 
-brvs  :   0 bset  :   0 bst   :   0 call  :   0 cbi   :   3 cbr   :   0 
+brne  :   0 brpl  :   0 brsh  :   0 brtc  :   0 brts  :   0 brvc  :   0 
+brvs  :   0 bset  :   0 bst   :   0 call  :   0 cbi   :   0 cbr   :   0 
 clc   :   0 clh   :   0 cli   :   0 cln   :   0 clr   :   0 cls   :   0 
 clt   :   0 clv   :   0 clz   :   0 com   :   0 cp    :   0 cpc   :   0 
-cpi   :   0 cpse  :   0 dec   :   6 eor   :   0 fmul  :   0 fmuls :   0 
-fmulsu:   0 icall :   0 ijmp  :   0 in    :   0 inc   :   0 jmp   :   0 
-ld    :   0 ldd   :   0 ldi   :   6 lds   :   0 lpm   :   0 lsl   :   0 
+cpi   :   0 cpse  :   0 dec   :   0 eor   :   0 fmul  :   0 fmuls :   0 
+fmulsu:   0 icall :   0 ijmp  :   0 in    :   0 inc   :   0 jmp   :   1 
+ld    :   0 ldd   :   0 ldi   :   9 lds   :   4 lpm   :   0 lsl   :   0 
 lsr   :   0 mov   :   0 movw  :   0 mul   :   0 muls  :   0 mulsu :   0 
-neg   :   0 nop   :   0 or    :   0 ori   :   0 out   :   0 pop   :   0 
-push  :   0 rcall :   0 ret   :   0 reti  :   0 rjmp  :   3 rol   :   0 
-ror   :   0 sbc   :   0 sbci  :   0 sbi   :   7 sbic  :   0 sbis  :   0 
-sbiw  :   0 sbr   :   0 sbrc  :   0 sbrs  :   0 sec   :   0 seh   :   0 
-sei   :   0 sen   :   0 ser   :   0 ses   :   0 set   :   0 sev   :   0 
-sez   :   0 sleep :   0 spm   :   0 st    :   0 std   :   0 sts   :   0 
+neg   :   0 nop   :   0 or    :   0 ori   :   0 out   :   6 pop   :   0 
+push  :   0 rcall :   0 ret   :   0 reti  :   1 rjmp  :   4 rol   :   0 
+ror   :   0 sbc   :   0 sbci  :   0 sbi   :   5 sbic  :   0 sbis  :   0 
+sbiw  :   0 sbr   :   0 sbrc  :   0 sbrs  :   1 sec   :   0 seh   :   0 
+sei   :   1 sen   :   0 ser   :   0 ses   :   0 set   :   0 sev   :   0 
+sez   :   0 sleep :   0 spm   :   0 st    :   0 std   :   0 sts   :   4 
 sub   :   0 subi  :   0 swap  :   0 tst   :   0 wdr   :   0 
-Instructions used: 6 out of 113 (5.3%)
+Instructions used: 10 out of 113 (8.8%)
 
 "ATmega328P" memory use summary [bytes]:
 Segment   Begin    End      Code   Data   Used    Size   Use%
 ---------------------------------------------------------------
-[.cseg] 0x000000 0x00003e     62      0     62   32768   0.2%
+[.cseg] 0x000000 0x00009a     90      0     90   32768   0.3%
 [.dseg] 0x000100 0x000100      0      0      0    2048   0.0%
 [.eseg] 0x000000 0x000000      0      0      0    1024   0.0%
 

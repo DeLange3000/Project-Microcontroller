@@ -27,6 +27,8 @@ Project("{18226A42-8477-4023-8AD2-40C49DA407C9}") = "CoolScreen", "CoolScreen\Co
 EndProject
 Project("{18226A42-8477-4023-8AD2-40C49DA407C9}") = "Themerin", "Themerin\Themerin.asmproj", "{D227ADB5-D664-406D-BB70-7C797A13C126}"
 EndProject
+Project("{18226A42-8477-4023-8AD2-40C49DA407C9}") = "ADC_test", "ADC_test\ADC_test.asmproj", "{E18EF8FA-E5D0-4967-BC38-53206C1C8B0D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|AVR = Debug|AVR
@@ -81,6 +83,10 @@ Global
 		{D227ADB5-D664-406D-BB70-7C797A13C126}.Debug|AVR.Build.0 = Debug|AVR
 		{D227ADB5-D664-406D-BB70-7C797A13C126}.Release|AVR.ActiveCfg = Release|AVR
 		{D227ADB5-D664-406D-BB70-7C797A13C126}.Release|AVR.Build.0 = Release|AVR
+		{E18EF8FA-E5D0-4967-BC38-53206C1C8B0D}.Debug|AVR.ActiveCfg = Debug|AVR
+		{E18EF8FA-E5D0-4967-BC38-53206C1C8B0D}.Debug|AVR.Build.0 = Debug|AVR
+		{E18EF8FA-E5D0-4967-BC38-53206C1C8B0D}.Release|AVR.ActiveCfg = Release|AVR
+		{E18EF8FA-E5D0-4967-BC38-53206C1C8B0D}.Release|AVR.Build.0 = Release|AVR
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

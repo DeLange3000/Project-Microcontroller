@@ -28,18 +28,42 @@
 ; Interrupt address vectors
 
 init:
+	//keyboard
+	SBI DDRD, 0
+	SBI PORTD, 0
 
-	/*SBI DDRB, 1 ; activate buzzer
-	SBI PORTB, 1*/
+	SBI DDRD, 1
+	SBI PORTD, 1
 
-	CBI DDRB, 2 
+	SBI DDRD, 2
+	SBI PORTD, 2
+
+	SBI DDRD, 3
+	SBI PORTD, 3
+
+	CBI DDRD, 4
+	SBI PORTD, 4
+
+	CBI DDRD, 5
+	SBI PORTD, 5
+
+	CBI DDRD, 6
+	SBI PORTD, 6
+
+	CBI DDRD, 7
+	SBI PORTD, 7
+
+	SBI DDRB, 1 ; activate buzzer
+	SBI PORTB, 1
+
+	CBI DDRB, 2 ; set up joystick button
 	SBI PORTB, 2
 
-	CBI DDRC, 0 ; set ADC input
-	SBI PORTC, 0
+/*	CBI DDRC, 0 ; set ADC input
+	CBI PORTC, 0
 
 	CBI DDRC, 1
-	SBI PORTC, 1
+	CBI PORTC, 1*/
 
 	SBI DDRC, 2
 	SBI PORTC, 2
@@ -57,14 +81,22 @@ init:
 	ldi r16,1<<TOIE0
 	sts TIMSK0,r16 ; Enable Timer/Counter0 Overflow Interrupt
 
-	ldi r16, 0b11111000
+	ldi r16, 0b00000011
+	sts didr0, r16
+
+	ldi r16, 0b00000000
+	sts PRR, r16
+
+	ldi r16, 0b11101111
 	sts ADCSRA, r16
 
-	ldi r16, 0b00100000
+	ldi r16, 0b00100001
 	sts ADMUX, r16
 	
 	ldi r16, 0b00000000
 	sts ADCSRB, r16
+
+
 
 	SEI
 
@@ -74,65 +106,34 @@ init:
 
 
 main:
-	CBI DDRC, 2 
-	CBI DDRC, 3
-
 
     rjmp main
 
 
-TIM0_OVF_ISR: 
-	in R1, PINB
-	BST R1, 2
+TIM0_OVF_ISR:
+	CBI PORTD, 0 //check row 0
+	SBI PORTD, 1
+	SBI PORTD, 2
+	SBI PORTD, 3
+		SBIS PIND, 4
+		rjmp output_C
 
-	BRTC JoyPressed
-	out TCNT0, R0
+	reti
+
+	output_C:
+	out TCNT0, R31
 	SBI PINB, 1
 	reti
 
-	JoyPressed:
-		
-		reti
 
 
 ADC_COMPLETE:
-	ldi r16, ADCH
+	CBI PORTC, 3 ;led 3 on
+	CBI PORTC, 2 ; led 2 on
+	;ldi r31, ADCL
+	ldi r31, ADCH
 	
-	cpi r16, 0b00100000
-	brlo left
-	rjmp led_off
-	reti
-
-
-
-	left:
-		SBI DDRC, 3
-		SBI DDRC, 2
-		SBI PORTC, 2 ;led 2 off
-		CBI PORTC, 3 ; led 3 on
-		reti
-
-	up:
-		SBI DDRC, 3
-		SBI DDRC, 2
-		SBI PORTC, 3 ;led 3 off
-		CBI PORTC, 2 ; led 2 on
-		reti
-
-	down:
-		SBI DDRC, 3
-		SBI DDRC, 2
-		CBI PORTC, 3 ;led 3 on
-		CBI PORTC, 2 ; led 2 on
-		reti
 	
-
-	led_off:
-		SBI DDRC, 3
-		SBI DDRC, 2
-		SBI PORTC, 3 ;led 2 off
-		SBI PORTC, 2 ; led 3 off
-		reti
 
 
 	reti
