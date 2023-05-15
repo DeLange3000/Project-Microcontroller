@@ -64,33 +64,42 @@ init:
 
 	CBI DDRC, 1
 	CBI PORTC, 1*/
-
+/*
 	SBI DDRC, 2
-	SBI PORTC, 2
+	SBI PORTC, 2*/
 
-	SBI DDRC, 3
-	SBI PORTC, 3
+	cbi ddrc, 2 ;set all c pins as input
+	cbi ddrc, 1
+	cbi ddrc ,0
+	cbi ddrc, 3
+	cbi portc, 3
 
-	LDI R31, 185 ; register 31 controls frequency
-	out TCNT0, R31
+/*	SBI DDRC, 3
+	SBI PORTC, 3*/
 
-	ldi r16,1<<CS02
+	LDI R17, 185 ; register 31 controls frequency
+	out TCNT0, R17
+
+	ldi r16, 0b00000100
 	out TCCR0B,r16 ; Timer clock = system clock / 256
 	ldi r16,1<<TOV0
 	out TIFR0,r16 ; Clear TOV0/ Clear pending interrupts
 	ldi r16,1<<TOIE0
 	sts TIMSK0,r16 ; Enable Timer/Counter0 Overflow Interrupt
 
-	ldi r16, 0b00000011
+	ldi r16, 0b11111111
 	sts didr0, r16
 
-	ldi r16, 0b00000000
-	sts PRR, r16
+	ldi r16, 0b11111111
+	sts didr1, r16
 
-	ldi r16, 0b11101111
+	ldi r16, 0b00000000
+	sts prr, r16
+
+	ldi r16, 0b11101010
 	sts ADCSRA, r16
 
-	ldi r16, 0b00100001
+	ldi r16, 0b01100000 ; last 0011 for adc3
 	sts ADMUX, r16
 	
 	ldi r16, 0b00000000
@@ -121,17 +130,20 @@ TIM0_OVF_ISR:
 	reti
 
 	output_C:
-	out TCNT0, R31
+	
+	out TCNT0, R17
 	SBI PINB, 1
 	reti
 
 
 
 ADC_COMPLETE:
-	CBI PORTC, 3 ;led 3 on
-	CBI PORTC, 2 ; led 2 on
-	;ldi r31, ADCL
-	ldi r31, ADCH
+/*	CBI PORTC, 3 ;led 3 on
+	CBI PORTC, 2 ; led 2 on*/
+	;lds r17, ADCL
+	lds r17, ADCH
+
+	
 	
 	
 
