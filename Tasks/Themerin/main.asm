@@ -181,13 +181,15 @@ main:
 		// f_clk = 16 Mhz/ 256 = 62500² Hz
 		// f_buzzer = f_clk/r20
 
+		cpi r18, 8
+		brne check66
 		call get_hertz // comment this id r20 is used (speeds up display)
 
 		mov r30, r22 // use this to get frequency
 		mov r31, r23
 
-		;ldi r30, 0b00100111 ;  testers
-		;ldi r31, 0b00100011
+		;ldi r30, 0b11010010 ;  testers
+		;ldi r31, 0b00000100
 
 		//mov r30, r20 // use this to get register r20 value
 		//ldi r31, 0
@@ -196,8 +198,11 @@ main:
 		check22:
 		ldi r24, 0
 		check2:
-		cpi r31, 4
+		cpi r31, 3
 		brlo check33
+		cpi r31, 4
+		brlo extra_check
+		not_yet:
 		ldi r23, 15
 		substraction_loop:
 		sbiw r30, 63
@@ -206,6 +211,11 @@ main:
 		sbiw r30, 55
 		inc r24  ; houdt cijfer van de eenheid bij
 		rjmp check2
+
+		extra_check:
+		cpi r30, 0b11101000
+		brlo check33
+		rjmp not_yet
 
 		check33:
 		adiw r30, 50
@@ -224,7 +234,6 @@ main:
 
 		check_double:
 
-
 		check44:
 		ldi r22, 10
 		add r30, r22
@@ -237,19 +246,20 @@ main:
 		rjmp check4
 
 		check55:
-		ldi r21, 0
+		ldi r28, 0
 		adiw r30, 1
 		check5:
 		subi r30, 1
 		cpi r30, 0
 		breq check66
-		inc r21  ; houdt cijfer van de eenheid bij
+		inc r28  ; houdt cijfer van de eenheid bij
 		rjmp check5
 
 		check66:
 
 		// ------------- DRAW NUMBERS -------------------
 
+		mov r21, r28
 		ldi r26, 70
 		call draw1
 
@@ -864,13 +874,14 @@ ldi r24, 0
 cpi r20, 0
 breq end_Hz
 
-;ldi r22, 0b01111010 ; 62500/2 = 31250
-ldi r22, 0b00000001 ; reduced for better display performance
+ldi r22, 0b01111010 ; 62500/2 = 31250
+;ldi r22, 0b00000001 ; reduced for better display performance
 ldi r21, 0b00010010
 mov r23, r20
 com r23
 ldi r25, 0
 ldi r26, 0
+ldi r27, 1
 
 faster_loop:
 cp r22, r23
@@ -878,6 +889,13 @@ brlo devision_loop
 sub r22, r23
 inc r25
 rjmp faster_loop
+
+faster_calc:
+cpi r23, 0b01000000
+brge devision_loop
+lsl r23
+lsl r27
+rjmp faster_calc
 
 devision_loop:
 cpi r22, 0
@@ -887,7 +905,7 @@ sub r21, r23
 brcs sub_from_r22
 done_subbing:
 clc
-inc r24
+add r24, r27
 brcs add_to_r25
 done_adding:
 rjmp devision_loop
@@ -910,7 +928,7 @@ done:
 mov r22, r24
 mov r23, r25
 
-ldi r26, 8 // comment this section if working with real value of 62500
+/*ldi r26, 8 // comment this section if working with real value of 62500
 ldi r25, 1
 shifts:
 dec r26
@@ -920,7 +938,7 @@ lsl r22
 brcc shifts
 add r23, r25
 clc
-rjmp shifts
+rjmp shifts*/
 
 end_Hz:
 
