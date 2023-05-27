@@ -181,42 +181,49 @@ main:
 		// f_clk = 16 Mhz/ 256 = 62500² Hz
 		// f_buzzer = f_clk/r20
 
-		call get_hertz
+		call get_hertz // comment this id r20 is used (speeds up display)
 
-		// result stored in r1:r0
+		mov r30, r22 // use this to get frequency
+		mov r31, r23
 
-		;mov r30, r0
-		;mov r31, r1
+		;ldi r30, 0b00100111 ;  testers
+		;ldi r31, 0b00100011
 
-		;ldi r30, 0b11010010 ;  testers
-		;ldi r31, 0b00000100
+		//mov r30, r20 // use this to get register r20 value
+		//ldi r31, 0
 
-		mov r30, r20
-		ldi r31, 0
-
-
-		// new result: r24, r23, r22, r21
 
 		check22:
 		ldi r24, 0
 		check2:
-		subi r31, 0b00000011
-		cpi r31, 0
-		brmi check33
-		subi r30, 0b11101000
+		cpi r31, 4
+		brlo check33
+		ldi r23, 15
+		substraction_loop:
+		sbiw r30, 63
+		dec r23
+		brne substraction_loop
+		sbiw r30, 55
 		inc r24  ; houdt cijfer van de eenheid bij
 		rjmp check2
 
 		check33:
-		ldi r23, 100
-		add r30, r23
+		adiw r30, 50
+		adiw r30, 50
 		ldi r23, 0
 		check3:
-		subi r30, 100
+		sbiw r30, 50
+		sbiw r30, 50
+		cpi r31, 0
+		brne no_100
 		cpi r30, 100
 		brlo check44
+		no_100:
 		inc r23  ; houdt cijfer van de eenheid bij
 		rjmp check3
+
+		check_double:
+
 
 		check44:
 		ldi r22, 10
@@ -231,10 +238,11 @@ main:
 
 		check55:
 		ldi r21, 0
+		adiw r30, 1
 		check5:
 		subi r30, 1
 		cpi r30, 0
-		brmi check66
+		breq check66
 		inc r21  ; houdt cijfer van de eenheid bij
 		rjmp check5
 
@@ -849,21 +857,72 @@ reti
 		// f_buzzer = f_clk/r20
 
 get_hertz:
-mov r21, r20
-com r21
-neg r21
-
-ldi r23, 250
-
-mul r21, r23
-neg r0
-neg r1
-mul r25, r0 // result in frequency stored across 2 registers
 
 
+ldi r23, 0
+ldi r24, 0
+cpi r20, 0
+breq end_Hz
 
+;ldi r22, 0b01111010 ; 62500/2 = 31250
+ldi r22, 0b00000001 ; reduced for better display performance
+ldi r21, 0b00010010
+mov r23, r20
+com r23
+ldi r25, 0
+ldi r26, 0
 
+faster_loop:
+cp r22, r23
+brlo devision_loop
+sub r22, r23
+inc r25
+rjmp faster_loop
 
+devision_loop:
+cpi r22, 0
+breq maybe_done
+not_done:
+sub r21, r23
+brcs sub_from_r22
+done_subbing:
+clc
+inc r24
+brcs add_to_r25
+done_adding:
+rjmp devision_loop
+
+sub_from_r22:
+cpi r26, 1
+breq done
+dec r22
+rjmp done_subbing
+
+add_to_r25:
+inc r25
+rjmp done_adding
+
+maybe_done:
+ldi r26, 1
+rjmp not_done
+
+done:
+mov r22, r24
+mov r23, r25
+
+ldi r26, 8 // comment this section if working with real value of 62500
+ldi r25, 1
+shifts:
+dec r26
+breq end_Hz
+lsl r23
+lsl r22
+brcc shifts
+add r23, r25
+clc
+rjmp shifts
+
+end_Hz:
 
 reti
 
@@ -877,8 +936,6 @@ TIM0_OVF_ISR:
 		SBIS PIND, 4
 		rjmp output_C
 		sbi portc, 3
-
-
 	reti
 
 	output_C:
@@ -893,6 +950,19 @@ TIM0_OVF_ISR:
 ADC_COMPLETE:
 /*	CBI PORTC, 3 ;led 3 on
 	CBI PORTC, 2 ; led 2 on*/
+
+	CBI PORTD, 0 //check row 0
+	SBI PORTD, 1
+	SBI PORTD, 2
+	SBI PORTD, 3
+		SBIS PIND, 4
+		rjmp output_C_ADC
+		sbi portc, 3
+
+	ldi r20, 0
+	reti
+	output_C_ADC:
+	CBI portc, 3
 	lds r20, ADCL
 	lds r20, ADCH
 

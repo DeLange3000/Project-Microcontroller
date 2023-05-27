@@ -1,5 +1,5 @@
 
-AVRASM ver. 2.2.8  D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm Sat May 27 16:07:30 2023
+AVRASM ver. 2.2.8  D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm Sat May 27 19:06:26 2023
 
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328Pdef.inc'
 D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm(16): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328pdef.inc'
@@ -1052,8 +1052,8 @@ D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\The
                                  
                                  ;Boot code
 000000 c02a                      .org 0x000 rjmp init
-000020 c239                      .org 0x0020 rjmp TIM0_OVF_ISR
-00002a c23b                      .org 0x002A rjmp ADC_COMPLETE 
+000020 c263                      .org 0x0020 rjmp TIM0_OVF_ISR
+00002a c265                      .org 0x002A rjmp ADC_COMPLETE 
                                  
                                  
                                  ; Interrupt address vectors
@@ -1212,666 +1212,674 @@ D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\The
                                  		// f_clk = 16 Mhz/ 256 = 62500² Hz
                                  		// f_buzzer = f_clk/r20
                                  
-000082 940e 0251                 		call get_hertz
+000082 940e 0258                 		call get_hertz // comment this id r20 is used (speeds up display)
                                  
-                                 		// result stored in r1:r0
+000084 2fe6                      		mov r30, r22 // use this to get frequency
+000085 2ff7                      		mov r31, r23
                                  
-                                 		;mov r30, r0
-                                 		;mov r31, r1
+                                 		;ldi r30, 0b00100111 ;  testers
+                                 		;ldi r31, 0b00100011
                                  
-                                 		;ldi r30, 0b11010010 ;  testers
-                                 		;ldi r31, 0b00000100
+                                 		//mov r30, r20 // use this to get register r20 value
+                                 		//ldi r31, 0
                                  
-000084 2fe4                      		mov r30, r20
-000085 e0f0                      		ldi r31, 0
-                                 
-                                 
-                                 		// new result: r24, r23, r22, r21
                                  
                                  		check22:
 000086 e080                      		ldi r24, 0
                                  		check2:
-000087 50f3                      		subi r31, 0b00000011
-000088 30f0                      		cpi r31, 0
-000089 f01a                      		brmi check33
-00008a 5ee8                      		subi r30, 0b11101000
-00008b 9583                      		inc r24  ; houdt cijfer van de eenheid bij
-00008c cffa                      		rjmp check2
+000087 30f4                      		cpi r31, 4
+000088 f038                      		brlo check33
+000089 e07f                      		ldi r23, 15
+                                 		substraction_loop:
+00008a 97ff                      		sbiw r30, 63
+00008b 957a                      		dec r23
+00008c f7e9                      		brne substraction_loop
+00008d 97f7                      		sbiw r30, 55
+00008e 9583                      		inc r24  ; houdt cijfer van de eenheid bij
+00008f cff7                      		rjmp check2
                                  
                                  		check33:
-00008d e674                      		ldi r23, 100
-00008e 0fe7                      		add r30, r23
-00008f e070                      		ldi r23, 0
+000090 96f2                      		adiw r30, 50
+000091 96f2                      		adiw r30, 50
+000092 e070                      		ldi r23, 0
                                  		check3:
-000090 56e4                      		subi r30, 100
-000091 36e4                      		cpi r30, 100
-000092 f010                      		brlo check44
-000093 9573                      		inc r23  ; houdt cijfer van de eenheid bij
-000094 cffb                      		rjmp check3
+000093 97f2                      		sbiw r30, 50
+000094 97f2                      		sbiw r30, 50
+000095 30f0                      		cpi r31, 0
+000096 f411                      		brne no_100
+000097 36e4                      		cpi r30, 100
+000098 f010                      		brlo check44
+                                 		no_100:
+000099 9573                      		inc r23  ; houdt cijfer van de eenheid bij
+00009a cff8                      		rjmp check3
+                                 
+                                 		check_double:
+                                 
                                  
                                  		check44:
-000095 e06a                      		ldi r22, 10
-000096 0fe6                      		add r30, r22
-000097 e060                      		ldi r22, 0
+00009b e06a                      		ldi r22, 10
+00009c 0fe6                      		add r30, r22
+00009d e060                      		ldi r22, 0
                                  		check4:
-000098 50ea                      		subi r30, 10
-000099 30ea                      		cpi r30, 10
-00009a f010                      		brlo check55
-00009b 9563                      		inc r22  ; houdt cijfer van de eenheid bij
-00009c cffb                      		rjmp check4
+00009e 50ea                      		subi r30, 10
+00009f 30ea                      		cpi r30, 10
+0000a0 f010                      		brlo check55
+0000a1 9563                      		inc r22  ; houdt cijfer van de eenheid bij
+0000a2 cffb                      		rjmp check4
                                  
                                  		check55:
-00009d e050                      		ldi r21, 0
+0000a3 e050                      		ldi r21, 0
+0000a4 9631                      		adiw r30, 1
                                  		check5:
-00009e 50e1                      		subi r30, 1
-00009f 30e0                      		cpi r30, 0
-0000a0 f012                      		brmi check66
-0000a1 9553                      		inc r21  ; houdt cijfer van de eenheid bij
-0000a2 cffb                      		rjmp check5
+0000a5 50e1                      		subi r30, 1
+0000a6 30e0                      		cpi r30, 0
+0000a7 f011                      		breq check66
+0000a8 9553                      		inc r21  ; houdt cijfer van de eenheid bij
+0000a9 cffb                      		rjmp check5
                                  
                                  		check66:
                                  
                                  		// ------------- DRAW NUMBERS -------------------
                                  
-0000a3 e4a6                      		ldi r26, 70
-0000a4 940e 00f5                 		call draw1
+0000aa e4a6                      		ldi r26, 70
+0000ab 940e 00fc                 		call draw1
                                  
-0000a6 30b1                      		cpi r27, 1
-0000a7 f099                      		breq temp_pixel
+0000ad 30b1                      		cpi r27, 1
+0000ae f099                      		breq temp_pixel
                                  
-0000a8 2f56                      		mov r21, r22
-0000a9 e4a1                      		ldi r26, 65
-0000aa 940e 00f5                 		call draw1
+0000af 2f56                      		mov r21, r22
+0000b0 e4a1                      		ldi r26, 65
+0000b1 940e 00fc                 		call draw1
                                  
-0000ac 30b1                      		cpi r27, 1
-0000ad f069                      		breq temp_pixel
+0000b3 30b1                      		cpi r27, 1
+0000b4 f069                      		breq temp_pixel
                                  
-0000ae 2f57                      		mov r21, r23
-0000af e3ac                      		ldi r26, 60
-0000b0 940e 00f5                 		call draw1
+0000b5 2f57                      		mov r21, r23
+0000b6 e3ac                      		ldi r26, 60
+0000b7 940e 00fc                 		call draw1
                                  
-0000b2 30b1                      		cpi r27, 1
-0000b3 f1d1                      		breq pixel
+0000b9 30b1                      		cpi r27, 1
+0000ba f1d1                      		breq pixel
                                  
-0000b4 2f58                      		mov r21, r24
-0000b5 e3a7                      		ldi r26, 55
-0000b6 940e 00f5                 		call draw1
+0000bb 2f58                      		mov r21, r24
+0000bc e3a7                      		ldi r26, 55
+0000bd 940e 00fc                 		call draw1
                                  
-0000b8 30b1                      		cpi r27, 1
-0000b9 f1a1                      		breq pixel
-0000ba c001                      		rjmp skip_pixel
+0000bf 30b1                      		cpi r27, 1
+0000c0 f1a1                      		breq pixel
+0000c1 c001                      		rjmp skip_pixel
                                  		
                                  
                                  		temp_pixel:
-0000bb c032                      		rjmp pixel
+0000c2 c032                      		rjmp pixel
                                  
                                  		skip_pixel:
                                  
                                  
                                  		// ------------ DRAW "Hz" -------------------------------------------
-0000bc 3027                      		cpi r18, 7
-0000bd f149                      		breq Hz_row_7
-0000be 3026                      		cpi r18, 6
-0000bf f101                      		breq Hz_row_6
-0000c0 3025                      		cpi r18, 5
-0000c1 f0b9                      		breq Hz_row_5
-0000c2 3024                      		cpi r18, 4
-0000c3 f071                      		breq Hz_row_4
-0000c4 3023                      		cpi r18, 3
-0000c5 f029                      		breq Hz_row_3
+0000c3 3027                      		cpi r18, 7
+0000c4 f149                      		breq Hz_row_7
+0000c5 3026                      		cpi r18, 6
+0000c6 f101                      		breq Hz_row_6
+0000c7 3025                      		cpi r18, 5
+0000c8 f0b9                      		breq Hz_row_5
+0000c9 3024                      		cpi r18, 4
+0000ca f071                      		breq Hz_row_4
+0000cb 3023                      		cpi r18, 3
+0000cc f029                      		breq Hz_row_3
                                  
                                  		Hz_row_1:
-0000c6 3417                      		cpi r17, 71
-0000c7 f131                      		breq pixel
-0000c8 341b                      		cpi r17, 75
-0000c9 f121                      		breq pixel
-0000ca c025                      		rjmp no_pixel
+0000cd 3417                      		cpi r17, 71
+0000ce f131                      		breq pixel
+0000cf 341b                      		cpi r17, 75
+0000d0 f121                      		breq pixel
+0000d1 c025                      		rjmp no_pixel
                                  
                                  		Hz_row_3:
-0000cb 3417                      		cpi r17, 71
-0000cc f109                      		breq pixel
-0000cd 3510                      		cpi r17, 80
-0000ce f109                      		breq no_pixel
-0000cf 341b                      		cpi r17, 75
-0000d0 f4ec                      		brge pixel
-0000d1 c01e                      		rjmp no_pixel
+0000d2 3417                      		cpi r17, 71
+0000d3 f109                      		breq pixel
+0000d4 3510                      		cpi r17, 80
+0000d5 f109                      		breq no_pixel
+0000d6 341b                      		cpi r17, 75
+0000d7 f4ec                      		brge pixel
+0000d8 c01e                      		rjmp no_pixel
                                  
                                  		Hz_row_4:
-0000d2 341e                      		cpi r17, 78
-0000d3 f0d1                      		breq pixel
-0000d4 341c                      		cpi r17, 76
-0000d5 f4d4                      		brge no_pixel
-0000d6 3417                      		cpi r17, 71
-0000d7 f4b4                      		brge pixel
-0000d8 c017                      		rjmp no_pixel
+0000d9 341e                      		cpi r17, 78
+0000da f0d1                      		breq pixel
+0000db 341c                      		cpi r17, 76
+0000dc f4d4                      		brge no_pixel
+0000dd 3417                      		cpi r17, 71
+0000de f4b4                      		brge pixel
+0000df c017                      		rjmp no_pixel
                                  
                                  		Hz_row_5:
-0000d9 3417                      		cpi r17, 71
-0000da f099                      		breq pixel
-0000db 341b                      		cpi r17, 75
-0000dc f089                      		breq pixel
-0000dd 341d                      		cpi r17, 77
-0000de f079                      		breq pixel
-0000df c010                      		rjmp no_pixel
+0000e0 3417                      		cpi r17, 71
+0000e1 f099                      		breq pixel
+0000e2 341b                      		cpi r17, 75
+0000e3 f089                      		breq pixel
+0000e4 341d                      		cpi r17, 77
+0000e5 f079                      		breq pixel
+0000e6 c010                      		rjmp no_pixel
                                  
                                  		Hz_row_6:
-0000e0 3417                      		cpi r17, 71
-0000e1 f061                      		breq pixel
-0000e2 341b                      		cpi r17, 75
-0000e3 f051                      		breq pixel
-0000e4 341c                      		cpi r17, 76
-0000e5 f041                      		breq pixel
-0000e6 c009                      		rjmp no_pixel
+0000e7 3417                      		cpi r17, 71
+0000e8 f061                      		breq pixel
+0000e9 341b                      		cpi r17, 75
+0000ea f051                      		breq pixel
+0000eb 341c                      		cpi r17, 76
+0000ec f041                      		breq pixel
+0000ed c009                      		rjmp no_pixel
                                  
                                  		Hz_row_7:
-0000e7 3510                      		cpi r17, 80
-0000e8 f039                      		breq no_pixel
-0000e9 3417                      		cpi r17, 71
-0000ea f019                      		breq pixel
-0000eb 341b                      		cpi r17, 75
-0000ec f40c                      		brge pixel
-0000ed c002                      		rjmp no_pixel
+0000ee 3510                      		cpi r17, 80
+0000ef f039                      		breq no_pixel
+0000f0 3417                      		cpi r17, 71
+0000f1 f019                      		breq pixel
+0000f2 341b                      		cpi r17, 75
+0000f3 f40c                      		brge pixel
+0000f4 c002                      		rjmp no_pixel
                                  
                                  		pixel:
-0000ee 9a2b                      		sbi portb, 3
-0000ef c001                      		rjmp set_pixel_value
+0000f5 9a2b                      		sbi portb, 3
+0000f6 c001                      		rjmp set_pixel_value
                                  		no_pixel:
-0000f0 982b                      		cbi portb, 3
+0000f7 982b                      		cbi portb, 3
                                  		set_pixel_value:
-0000f1 982d                      		cbi PORTB, 5
-0000f2 9a2d                      		sbi PORTB, 5
-0000f3 951a                      		dec r17
-0000f4 9518                      		reti
+0000f8 982d                      		cbi PORTB, 5
+0000f9 9a2d                      		sbi PORTB, 5
+0000fa 951a                      		dec r17
+0000fb 9518                      		reti
                                  
                                  		draw1:
-0000f5 3050                      		cpi r21, 0
-0000f6 f099                      		breq draw_0
-0000f7 3051                      		cpi r21, 1
-0000f8 f0a1                      		breq draw_1
-0000f9 3052                      		cpi r21, 2
-0000fa f0a9                      		breq draw_2
-0000fb 3053                      		cpi r21, 3
-0000fc f0b1                      		breq draw_3
-0000fd 3054                      		cpi r21, 4
-0000fe f0b9                      		breq draw_4
-0000ff 3055                      		cpi r21, 5
-000100 f0c1                      		breq draw_5
-000101 3056                      		cpi r21, 6
-000102 f0c9                      		breq draw_6
-000103 3057                      		cpi r21, 7
-000104 f0d1                      		breq draw_7
-000105 3058                      		cpi r21, 8
-000106 f0d9                      		breq draw_8
-000107 3059                      		cpi r21, 9
-000108 f0e1                      		breq draw_9
+0000fc 3050                      		cpi r21, 0
+0000fd f099                      		breq draw_0
+0000fe 3051                      		cpi r21, 1
+0000ff f0a1                      		breq draw_1
+000100 3052                      		cpi r21, 2
+000101 f0a9                      		breq draw_2
+000102 3053                      		cpi r21, 3
+000103 f0b1                      		breq draw_3
+000104 3054                      		cpi r21, 4
+000105 f0b9                      		breq draw_4
+000106 3055                      		cpi r21, 5
+000107 f0c1                      		breq draw_5
+000108 3056                      		cpi r21, 6
+000109 f0c9                      		breq draw_6
+00010a 3057                      		cpi r21, 7
+00010b f0d1                      		breq draw_7
+00010c 3058                      		cpi r21, 8
+00010d f0d9                      		breq draw_8
+00010e 3059                      		cpi r21, 9
+00010f f0e1                      		breq draw_9
                                  		//rjmp draw_0
-000109 9518                      		reti
+000110 9518                      		reti
                                  
                                  		draw_0:
-00010a 940e 0128                 		call draw_zero
-00010c 9518                      		reti
+000111 940e 012f                 		call draw_zero
+000113 9518                      		reti
                                  		draw_1:
-00010d 940e 013d                 		call draw_one
-00010f 9518                      		reti
+000114 940e 0144                 		call draw_one
+000116 9518                      		reti
                                  		draw_2:
-000110 940e 014e                 		call draw_two
-000112 9518                      		reti
+000117 940e 0155                 		call draw_two
+000119 9518                      		reti
                                  		draw_3:
-000113 940e 0178                 		call draw_three
-000115 9518                      		reti
+00011a 940e 017f                 		call draw_three
+00011c 9518                      		reti
                                  		draw_4:
-000116 940e 0193                 		call draw_four
-000118 9518                      		reti
+00011d 940e 019a                 		call draw_four
+00011f 9518                      		reti
                                  		draw_5:
-000119 940e 01b3                 		call draw_five
-00011b 9518                      		reti
+000120 940e 01ba                 		call draw_five
+000122 9518                      		reti
                                  		draw_6:
-00011c 940e 01d5                 		call draw_six
-00011e 9518                      		reti
+000123 940e 01dc                 		call draw_six
+000125 9518                      		reti
                                  		draw_7:
-00011f 940e 01f8                 		call draw_seven
-000121 9518                      		reti
+000126 940e 01ff                 		call draw_seven
+000128 9518                      		reti
                                  		draw_8:
-000122 940e 0215                 		call draw_eight
-000124 9518                      		reti
+000129 940e 021c                 		call draw_eight
+00012b 9518                      		reti
                                  		draw_9:
-000125 940e 022c                 		call draw_nine
-000127 9518                      		reti
+00012c 940e 0233                 		call draw_nine
+00012e 9518                      		reti
                                  
                                  // ------------- ZERO --------------------------
                                  draw_zero:
-000128 2f9a                      mov r25, r26
-000129 3027                      cpi r18, 7
-00012a f041                      breq hor_line
-00012b 3021                      cpi r18, 1
-00012c f031                      breq hor_line
+00012f 2f9a                      mov r25, r26
+000130 3027                      cpi r18, 7
+000131 f041                      breq hor_line
+000132 3021                      cpi r18, 1
+000133 f031                      breq hor_line
                                  
                                  vert_line:
-00012d 1719                      cp r17, r25
-00012e f051                      breq pixel0
-00012f 5094                      subi r25, 4
-000130 1719                      cp r17, r25
-000131 f039                      breq pixel0
-000132 c008                      rjmp skip_pixel0
+000134 1719                      cp r17, r25
+000135 f051                      breq pixel0
+000136 5094                      subi r25, 4
+000137 1719                      cp r17, r25
+000138 f039                      breq pixel0
+000139 c008                      rjmp skip_pixel0
                                  
                                  hor_line:
-000133 1719                      cp r17, r25
-000134 f434                      brge skip_pixel0
-000135 5093                      subi r25, 3
-000136 1719                      cp r17, r25
-000137 f40c                      brge pixel0
-000138 c002                      rjmp skip_pixel0
+00013a 1719                      cp r17, r25
+00013b f434                      brge skip_pixel0
+00013c 5093                      subi r25, 3
+00013d 1719                      cp r17, r25
+00013e f40c                      brge pixel0
+00013f c002                      rjmp skip_pixel0
                                  
                                  pixel0:
-000139 e0b1                      ldi r27, 1
-00013a c001                      rjmp set_pixel_value0
+000140 e0b1                      ldi r27, 1
+000141 c001                      rjmp set_pixel_value0
                                  skip_pixel0:
-00013b e0b2                      ldi r27, 2
+000142 e0b2                      ldi r27, 2
                                  set_pixel_value0:
-00013c 9518                      reti
+000143 9518                      reti
                                  
                                  // --------------------- ONE ----------------------------------
                                  draw_one:
-00013d 2f9a                      mov r25, r26
-00013e 5092                      subi r25, 2
-00013f 3022                      cpi r18, 2
-000140 f019                      breq part1_1
-000141 1719                      cp r17, r25
-000142 f039                      breq pixel1
-000143 c008                      rjmp skip_pixel1
+000144 2f9a                      mov r25, r26
+000145 5092                      subi r25, 2
+000146 3022                      cpi r18, 2
+000147 f019                      breq part1_1
+000148 1719                      cp r17, r25
+000149 f039                      breq pixel1
+00014a c008                      rjmp skip_pixel1
                                  
                                  part1_1:
-000144 1719                      cp r17, r25
-000145 f021                      breq pixel1
-000146 5091                      subi r25, 1
-000147 1719                      cp r17, r25
-000148 f009                      breq pixel1
-000149 c002                      rjmp skip_pixel1
+00014b 1719                      cp r17, r25
+00014c f021                      breq pixel1
+00014d 5091                      subi r25, 1
+00014e 1719                      cp r17, r25
+00014f f009                      breq pixel1
+000150 c002                      rjmp skip_pixel1
                                  
                                  pixel1:
-00014a e0b1                      ldi r27, 1
-00014b c001                      rjmp set_pixel_value1
+000151 e0b1                      ldi r27, 1
+000152 c001                      rjmp set_pixel_value1
                                  skip_pixel1:
-00014c e0b2                      ldi r27, 2
+000153 e0b2                      ldi r27, 2
                                  set_pixel_value1:
-00014d 9518                      reti
+000154 9518                      reti
                                  // --------------------- TWO ------------------------------------
                                  draw_two:
-00014e 2f9a                      mov r25, r26
-00014f 3021                      cpi r18, 1
-000150 f051                      breq topline2
-000151 3027                      cpi r18, 7
-000152 f071                      breq bottomline2
-000153 3024                      cpi r18, 4
-000154 f0e0                      brlo part2_1
-000155 3024                      cpi r18, 4
-000156 f091                      breq middleline2
+000155 2f9a                      mov r25, r26
+000156 3021                      cpi r18, 1
+000157 f051                      breq topline2
+000158 3027                      cpi r18, 7
+000159 f071                      breq bottomline2
+00015a 3024                      cpi r18, 4
+00015b f0e0                      brlo part2_1
+00015c 3024                      cpi r18, 4
+00015d f091                      breq middleline2
                                  
                                  part2_2:
-000157 5094                      subi r25, 4
-000158 1719                      cp r17, r25
-000159 f0d1                      breq pixel2
-00015a c01b                      rjmp skip_pixel2
+00015e 5094                      subi r25, 4
+00015f 1719                      cp r17, r25
+000160 f0d1                      breq pixel2
+000161 c01b                      rjmp skip_pixel2
                                  
                                  topline2:
-00015b 1719                      cp r17, r25
-00015c f4cc                      brge skip_pixel2
-00015d 5094                      subi r25, 4
-00015e 1719                      cp r17, r25
-00015f f4a4                      brge pixel2
-000160 c015                      rjmp skip_pixel2
+000162 1719                      cp r17, r25
+000163 f4cc                      brge skip_pixel2
+000164 5094                      subi r25, 4
+000165 1719                      cp r17, r25
+000166 f4a4                      brge pixel2
+000167 c015                      rjmp skip_pixel2
                                  
                                  bottomline2:
-000161 e001                      ldi r16, 1
-000162 0f90                      add r25, r16
-000163 1719                      cp r17, r25
-000164 f48c                      brge skip_pixel2
-000165 5095                      subi r25, 5
-000166 1719                      cp r17, r25
-000167 f464                      brge pixel2
-000168 c00d                      rjmp skip_pixel2
+000168 e001                      ldi r16, 1
+000169 0f90                      add r25, r16
+00016a 1719                      cp r17, r25
+00016b f48c                      brge skip_pixel2
+00016c 5095                      subi r25, 5
+00016d 1719                      cp r17, r25
+00016e f464                      brge pixel2
+00016f c00d                      rjmp skip_pixel2
                                  
                                  middleline2:
-000169 e001                      ldi r16, 1
-00016a 0f90                      add r25, r16
-00016b 1719                      cp r17, r25
-00016c f44c                      brge skip_pixel2
-00016d 5094                      subi r25, 4
-00016e 1719                      cp r17, r25
-00016f f424                      brge pixel2
-000170 c005                      rjmp skip_pixel2
+000170 e001                      ldi r16, 1
+000171 0f90                      add r25, r16
+000172 1719                      cp r17, r25
+000173 f44c                      brge skip_pixel2
+000174 5094                      subi r25, 4
+000175 1719                      cp r17, r25
+000176 f424                      brge pixel2
+000177 c005                      rjmp skip_pixel2
                                  
                                  part2_1:
-000171 1719                      cp r17, r25
-000172 f009                      breq pixel2
-000173 c002                      rjmp skip_pixel2
+000178 1719                      cp r17, r25
+000179 f009                      breq pixel2
+00017a c002                      rjmp skip_pixel2
                                  
                                  pixel2:
-000174 e0b1                      ldi r27, 1
-000175 c001                      rjmp set_pixel_value2
+00017b e0b1                      ldi r27, 1
+00017c c001                      rjmp set_pixel_value2
                                  skip_pixel2:
-000176 e0b2                      ldi r27, 2
+00017d e0b2                      ldi r27, 2
                                  set_pixel_value2:
-000177 9518                      reti
+00017e 9518                      reti
                                  
                                  // ------------------ THREE -----------------------------------------
                                  draw_three:
-000178 2f9a                      mov r25, r26
-000179 3021                      cpi r18, 1
-00017a f039                      breq vert_3
-00017b 3024                      cpi r18, 4
-00017c f059                      breq vert_3_middle
-00017d 3027                      cpi r18, 7
-00017e f019                      breq vert_3
+00017f 2f9a                      mov r25, r26
+000180 3021                      cpi r18, 1
+000181 f039                      breq vert_3
+000182 3024                      cpi r18, 4
+000183 f059                      breq vert_3_middle
+000184 3027                      cpi r18, 7
+000185 f019                      breq vert_3
                                  
                                  hor_3:
-00017f 1719                      cp r17, r25
-000180 f071                      breq pixel3
-000181 c00f                      rjmp skip_pixel3
+000186 1719                      cp r17, r25
+000187 f071                      breq pixel3
+000188 c00f                      rjmp skip_pixel3
                                  
                                  vert_3:
-000182 1719                      cp r17, r25
-000183 f46c                      brge skip_pixel3
-000184 5094                      subi r25, 4
-000185 1719                      cp r17, r25
-000186 f444                      brge pixel3
-000187 c009                      rjmp skip_pixel3
-                                 
-                                 vert_3_middle:
-000188 1719                      cp r17, r25
-000189 f029                      breq pixel3
-00018a f434                      brge skip_pixel3
+000189 1719                      cp r17, r25
+00018a f46c                      brge skip_pixel3
 00018b 5094                      subi r25, 4
 00018c 1719                      cp r17, r25
-00018d f40c                      brge pixel3
-00018e c002                      rjmp skip_pixel3
+00018d f444                      brge pixel3
+00018e c009                      rjmp skip_pixel3
+                                 
+                                 vert_3_middle:
+00018f 1719                      cp r17, r25
+000190 f029                      breq pixel3
+000191 f434                      brge skip_pixel3
+000192 5094                      subi r25, 4
+000193 1719                      cp r17, r25
+000194 f40c                      brge pixel3
+000195 c002                      rjmp skip_pixel3
                                  
                                  pixel3:
-00018f e0b1                      ldi r27, 1
-000190 c001                      rjmp set_pixel_value3
+000196 e0b1                      ldi r27, 1
+000197 c001                      rjmp set_pixel_value3
                                  skip_pixel3:
-000191 e0b2                      ldi r27, 2
+000198 e0b2                      ldi r27, 2
                                  set_pixel_value3:
-000192 9518                      reti
+000199 9518                      reti
                                  
                                  // ----------------- FOUR -------------------------------------------
                                  draw_four:
-000193 2f9a                      mov r25, r26
-000194 3025                      cpi r18, 5
-000195 f444                      brge part1_4
-000196 3024                      cpi r18, 4
-000197 f051                      breq part2_4
-000198 3023                      cpi r18, 3
-000199 f071                      breq part3_4
+00019a 2f9a                      mov r25, r26
+00019b 3025                      cpi r18, 5
+00019c f444                      brge part1_4
+00019d 3024                      cpi r18, 4
+00019e f051                      breq part2_4
+00019f 3023                      cpi r18, 3
+0001a0 f071                      breq part3_4
                                  
                                  part4_4:
-00019a 5094                      subi r25, 4
-00019b 1719                      cp r17, r25
-00019c f091                      breq pixel4
-00019d c013                      rjmp skip_pixel4
+0001a1 5094                      subi r25, 4
+0001a2 1719                      cp r17, r25
+0001a3 f091                      breq pixel4
+0001a4 c013                      rjmp skip_pixel4
                                  
                                  part1_4:
-00019e 5092                      subi r25, 2
-00019f 1719                      cp r17, r25
-0001a0 f071                      breq pixel4
-0001a1 c00f                      rjmp skip_pixel4
+0001a5 5092                      subi r25, 2
+0001a6 1719                      cp r17, r25
+0001a7 f071                      breq pixel4
+0001a8 c00f                      rjmp skip_pixel4
                                  
                                  part2_4:
-0001a2 1719                      cp r17, r25
-0001a3 f46c                      brge skip_pixel4
-0001a4 5094                      subi r25, 4
-0001a5 1719                      cp r17, r25
-0001a6 f444                      brge pixel4
-0001a7 c009                      rjmp skip_pixel4
+0001a9 1719                      cp r17, r25
+0001aa f46c                      brge skip_pixel4
+0001ab 5094                      subi r25, 4
+0001ac 1719                      cp r17, r25
+0001ad f444                      brge pixel4
+0001ae c009                      rjmp skip_pixel4
                                  
                                  part3_4:
-0001a8 5092                      subi r25, 2
-0001a9 1719                      cp r17, r25
-0001aa f021                      breq pixel4
-0001ab 5092                      subi r25, 2
-0001ac 1719                      cp r17, r25
-0001ad f009                      breq pixel4
-0001ae c002                      rjmp skip_pixel4
+0001af 5092                      subi r25, 2
+0001b0 1719                      cp r17, r25
+0001b1 f021                      breq pixel4
+0001b2 5092                      subi r25, 2
+0001b3 1719                      cp r17, r25
+0001b4 f009                      breq pixel4
+0001b5 c002                      rjmp skip_pixel4
                                  
                                  
                                  pixel4:
-0001af e0b1                      ldi r27, 1
-0001b0 c001                      rjmp set_pixel_value4
+0001b6 e0b1                      ldi r27, 1
+0001b7 c001                      rjmp set_pixel_value4
                                  skip_pixel4:
-0001b1 e0b2                      ldi r27, 2
+0001b8 e0b2                      ldi r27, 2
                                  set_pixel_value4:
-0001b2 9518                      reti
+0001b9 9518                      reti
                                  
                                  // ----------------- FIVE ------------------------------------------
                                  draw_five:
-0001b3 2f9a                      mov r25, r26
-0001b4 3021                      cpi r18, 1
-0001b5 f049                      breq topline5
-0001b6 3024                      cpi r18, 4
-0001b7 f0a8                      brlo part1_5
-0001b8 3024                      cpi r18, 4
-0001b9 f069                      breq middleline5
-0001ba 3027                      cpi r18, 7
-0001bb f059                      breq middleline5
+0001ba 2f9a                      mov r25, r26
+0001bb 3021                      cpi r18, 1
+0001bc f049                      breq topline5
+0001bd 3024                      cpi r18, 4
+0001be f0a8                      brlo part1_5
+0001bf 3024                      cpi r18, 4
+0001c0 f069                      breq middleline5
+0001c1 3027                      cpi r18, 7
+0001c2 f059                      breq middleline5
                                  
                                  part2_5:
-0001bc 1719                      cp r17, r25
-0001bd f099                      breq pixel5
-0001be c014                      rjmp skip_pixel5
+0001c3 1719                      cp r17, r25
+0001c4 f099                      breq pixel5
+0001c5 c014                      rjmp skip_pixel5
                                  
                                  topline5:
-0001bf 1719                      cp r17, r25
-0001c0 f081                      breq pixel5
-0001c1 1719                      cp r17, r25
-0001c2 f484                      brge skip_pixel5
-0001c3 5094                      subi r25, 4
-0001c4 1719                      cp r17, r25
-0001c5 f45c                      brge pixel5
-0001c6 c00c                      rjmp skip_pixel5
+0001c6 1719                      cp r17, r25
+0001c7 f081                      breq pixel5
+0001c8 1719                      cp r17, r25
+0001c9 f484                      brge skip_pixel5
+0001ca 5094                      subi r25, 4
+0001cb 1719                      cp r17, r25
+0001cc f45c                      brge pixel5
+0001cd c00c                      rjmp skip_pixel5
                                  
                                  middleline5:
-0001c7 1719                      cp r17, r25
-0001c8 f454                      brge skip_pixel5
-0001c9 5094                      subi r25, 4
-0001ca 1719                      cp r17, r25
-0001cb f42c                      brge pixel5
-0001cc c006                      rjmp skip_pixel5
+0001ce 1719                      cp r17, r25
+0001cf f454                      brge skip_pixel5
+0001d0 5094                      subi r25, 4
+0001d1 1719                      cp r17, r25
+0001d2 f42c                      brge pixel5
+0001d3 c006                      rjmp skip_pixel5
                                  
                                  part1_5:
-0001cd 5094                      subi r25, 4
-0001ce 1719                      cp r17, r25
-0001cf f009                      breq pixel5
-0001d0 c002                      rjmp skip_pixel5
+0001d4 5094                      subi r25, 4
+0001d5 1719                      cp r17, r25
+0001d6 f009                      breq pixel5
+0001d7 c002                      rjmp skip_pixel5
                                  
                                  pixel5:
-0001d1 e0b1                      ldi r27, 1
-0001d2 c001                      rjmp set_pixel_value5
+0001d8 e0b1                      ldi r27, 1
+0001d9 c001                      rjmp set_pixel_value5
                                  skip_pixel5:
-0001d3 e0b2                      ldi r27, 2
+0001da e0b2                      ldi r27, 2
                                  set_pixel_value5:
-0001d4 9518                      reti
+0001db 9518                      reti
                                  
                                  // ------------------ SIX ---------------------------------------------
                                  draw_six:
-0001d5 2f9a                      mov r25, r26
-0001d6 3021                      cpi r18, 1
-0001d7 f081                      breq horiz_6
-0001d8 3024                      cpi r18, 4
-0001d9 f0a1                      breq horizmiddle_6
-0001da 3027                      cpi r18, 7
-0001db f061                      breq horiz_6
-0001dc 3025                      cpi r18, 5
-0001dd f030                      brlo vert1_6
+0001dc 2f9a                      mov r25, r26
+0001dd 3021                      cpi r18, 1
+0001de f081                      breq horiz_6
+0001df 3024                      cpi r18, 4
+0001e0 f0a1                      breq horizmiddle_6
+0001e1 3027                      cpi r18, 7
+0001e2 f061                      breq horiz_6
+0001e3 3025                      cpi r18, 5
+0001e4 f030                      brlo vert1_6
                                  
                                  vert2_6:
-0001de 1719                      cp r17, r25
-0001df f0a1                      breq pixel6
-0001e0 5094                      subi r25, 4
-0001e1 1719                      cp r17, r25
-0001e2 f089                      breq pixel6
-0001e3 c012                      rjmp skip_pixel6
+0001e5 1719                      cp r17, r25
+0001e6 f0a1                      breq pixel6
+0001e7 5094                      subi r25, 4
+0001e8 1719                      cp r17, r25
+0001e9 f089                      breq pixel6
+0001ea c012                      rjmp skip_pixel6
                                  
                                  vert1_6:
-0001e4 5094                      subi r25, 4
-0001e5 1719                      cp r17, r25
-0001e6 f069                      breq pixel6
-0001e7 c00e                      rjmp skip_pixel6
+0001eb 5094                      subi r25, 4
+0001ec 1719                      cp r17, r25
+0001ed f069                      breq pixel6
+0001ee c00e                      rjmp skip_pixel6
                                  
                                  horiz_6:
-0001e8 1719                      cp r17, r25
-0001e9 f464                      brge skip_pixel6
-0001ea 5093                      subi r25, 3
-0001eb 1719                      cp r17, r25
-0001ec f43c                      brge pixel6
-0001ed c008                      rjmp skip_pixel6
+0001ef 1719                      cp r17, r25
+0001f0 f464                      brge skip_pixel6
+0001f1 5093                      subi r25, 3
+0001f2 1719                      cp r17, r25
+0001f3 f43c                      brge pixel6
+0001f4 c008                      rjmp skip_pixel6
                                  
                                  horizmiddle_6:
-0001ee 1719                      cp r17, r25
-0001ef f434                      brge skip_pixel6
-0001f0 5094                      subi r25, 4
-0001f1 1719                      cp r17, r25
-0001f2 f40c                      brge pixel6
-0001f3 c002                      rjmp skip_pixel6
+0001f5 1719                      cp r17, r25
+0001f6 f434                      brge skip_pixel6
+0001f7 5094                      subi r25, 4
+0001f8 1719                      cp r17, r25
+0001f9 f40c                      brge pixel6
+0001fa c002                      rjmp skip_pixel6
                                  
                                  
                                  pixel6:
-0001f4 e0b1                      ldi r27, 1
-0001f5 c001                      rjmp set_pixel_value6
+0001fb e0b1                      ldi r27, 1
+0001fc c001                      rjmp set_pixel_value6
                                  skip_pixel6:
-0001f6 e0b2                      ldi r27, 2
+0001fd e0b2                      ldi r27, 2
                                  set_pixel_value6:
-0001f7 9518                      reti
+0001fe 9518                      reti
                                  // ------------------- SEVEN --------------------------------------------
                                  draw_seven:
-0001f8 2f9a                      mov r25, r26
-0001f9 3021                      cpi r18, 1
-0001fa f041                      breq top7
-0001fb 3022                      cpi r18, 2
-0001fc f069                      breq part6_7
-0001fd 3024                      cpi r18, 4
-0001fe f070                      brlo part5_7
+0001ff 2f9a                      mov r25, r26
+000200 3021                      cpi r18, 1
+000201 f041                      breq top7
+000202 3022                      cpi r18, 2
+000203 f069                      breq part6_7
+000204 3024                      cpi r18, 4
+000205 f070                      brlo part5_7
                                  
                                  part4_7:
-0001ff 5092                      subi r25, 2
-000200 1719                      cp r17, r25
-000201 f079                      breq pixel7
-000202 c010                      rjmp skip_pixel7
+000206 5092                      subi r25, 2
+000207 1719                      cp r17, r25
+000208 f079                      breq pixel7
+000209 c010                      rjmp skip_pixel7
                                  
                                  top7:
-000203 1719                      cp r17, r25
-000204 f061                      breq pixel7
-000205 f46c                      brge skip_pixel7
-000206 5094                      subi r25, 4
-000207 1719                      cp r17, r25
-000208 f444                      brge pixel7
-000209 c009                      rjmp skip_pixel7
+00020a 1719                      cp r17, r25
+00020b f061                      breq pixel7
+00020c f46c                      brge skip_pixel7
+00020d 5094                      subi r25, 4
+00020e 1719                      cp r17, r25
+00020f f444                      brge pixel7
+000210 c009                      rjmp skip_pixel7
                                  
                                  part6_7:
-00020a 1719                      cp r17, r25
-00020b f029                      breq pixel7
-00020c c006                      rjmp skip_pixel7
+000211 1719                      cp r17, r25
+000212 f029                      breq pixel7
+000213 c006                      rjmp skip_pixel7
                                  
                                  part5_7:
-00020d 5091                      subi r25, 1
-00020e 1719                      cp r17, r25
-00020f f009                      breq pixel7
-000210 c002                      rjmp skip_pixel7
+000214 5091                      subi r25, 1
+000215 1719                      cp r17, r25
+000216 f009                      breq pixel7
+000217 c002                      rjmp skip_pixel7
                                  
                                  pixel7:
-000211 e0b1                      ldi r27, 1
-000212 c001                      rjmp set_pixel_value7
+000218 e0b1                      ldi r27, 1
+000219 c001                      rjmp set_pixel_value7
                                  skip_pixel7:
-000213 e0b2                      ldi r27, 2
+00021a e0b2                      ldi r27, 2
                                  set_pixel_value7:
-000214 9518                      reti
+00021b 9518                      reti
                                  
                                  // ---------------------- EIGHT ----------------------------------------
                                  draw_eight:
-000215 2f9a                      mov r25, r26
-000216 3021                      cpi r18, 1
-000217 f051                      breq horiz_8
-000218 3027                      cpi r18, 7
-000219 f041                      breq horiz_8
-00021a 3024                      cpi r18, 4
-00021b f031                      breq horiz_8
+00021c 2f9a                      mov r25, r26
+00021d 3021                      cpi r18, 1
+00021e f051                      breq horiz_8
+00021f 3027                      cpi r18, 7
+000220 f041                      breq horiz_8
+000221 3024                      cpi r18, 4
+000222 f031                      breq horiz_8
                                  
                                  vert_8:
-00021c 1719                      cp r17, r25
-00021d f051                      breq pixel8
-00021e 5094                      subi r25, 4
-00021f 1719                      cp r17, r25
-000220 f039                      breq pixel8
-000221 c008                      rjmp skip_pixel8
+000223 1719                      cp r17, r25
+000224 f051                      breq pixel8
+000225 5094                      subi r25, 4
+000226 1719                      cp r17, r25
+000227 f039                      breq pixel8
+000228 c008                      rjmp skip_pixel8
                                  
                                  horiz_8:
-000222 1719                      cp r17, r25
-000223 f434                      brge skip_pixel8
-000224 5093                      subi r25, 3
-000225 1719                      cp r17, r25
-000226 f40c                      brge pixel8
-000227 c002                      rjmp skip_pixel8
+000229 1719                      cp r17, r25
+00022a f434                      brge skip_pixel8
+00022b 5093                      subi r25, 3
+00022c 1719                      cp r17, r25
+00022d f40c                      brge pixel8
+00022e c002                      rjmp skip_pixel8
                                  
                                  pixel8:
-000228 e0b1                      ldi r27, 1
-000229 c001                      rjmp set_pixel_value8
+00022f e0b1                      ldi r27, 1
+000230 c001                      rjmp set_pixel_value8
                                  skip_pixel8:
-00022a e0b2                      ldi r27, 2
+000231 e0b2                      ldi r27, 2
                                  set_pixel_value8:
-00022b 9518                      reti
+000232 9518                      reti
                                  
                                  // ---------------------- NINE ---------------------------------------
                                  draw_nine:
                                  
-00022c 2f9a                      mov r25, r26
-00022d 3021                      cpi r18, 1
-00022e f089                      breq horiz_9
-00022f 3027                      cpi r18, 7
-000230 f079                      breq horiz_9
-000231 3024                      cpi r18, 4
-000232 f099                      breq horiz_middle_9
-000233 3025                      cpi r18, 5
-000234 f028                      brlo vert_top_9
-000235 3026                      cpi r18, 6
-000236 f019                      breq vert_top_9
+000233 2f9a                      mov r25, r26
+000234 3021                      cpi r18, 1
+000235 f089                      breq horiz_9
+000236 3027                      cpi r18, 7
+000237 f079                      breq horiz_9
+000238 3024                      cpi r18, 4
+000239 f099                      breq horiz_middle_9
+00023a 3025                      cpi r18, 5
+00023b f028                      brlo vert_top_9
+00023c 3026                      cpi r18, 6
+00023d f019                      breq vert_top_9
                                  
                                  vert_bottom_9:
-000237 1719                      cp r17, r25
-000238 f0a1                      breq pixel9
-000239 c015                      rjmp skip_pixel9
+00023e 1719                      cp r17, r25
+00023f f0a1                      breq pixel9
+000240 c015                      rjmp skip_pixel9
                                  
                                  vert_top_9:
-00023a 1719                      cp r17, r25
-00023b f089                      breq pixel9
-00023c 5094                      subi r25, 4
-00023d 1719                      cp r17, r25
-00023e f071                      breq pixel9
-00023f c00f                      rjmp skip_pixel9
+000241 1719                      cp r17, r25
+000242 f089                      breq pixel9
+000243 5094                      subi r25, 4
+000244 1719                      cp r17, r25
+000245 f071                      breq pixel9
+000246 c00f                      rjmp skip_pixel9
                                  
                                  horiz_9:
-000240 1719                      cp r17, r25
-000241 f46c                      brge skip_pixel9
-000242 5093                      subi r25, 3
-000243 1719                      cp r17, r25
-000244 f444                      brge pixel9
-000245 c009                      rjmp skip_pixel9
-                                 
-                                 horiz_middle_9:
-000246 1719                      cp r17, r25
-000247 f029                      breq pixel9
-000248 f434                      brge skip_pixel9
+000247 1719                      cp r17, r25
+000248 f46c                      brge skip_pixel9
 000249 5093                      subi r25, 3
 00024a 1719                      cp r17, r25
-00024b f40c                      brge pixel9
-00024c c002                      rjmp skip_pixel9
+00024b f444                      brge pixel9
+00024c c009                      rjmp skip_pixel9
+                                 
+                                 horiz_middle_9:
+00024d 1719                      cp r17, r25
+00024e f029                      breq pixel9
+00024f f434                      brge skip_pixel9
+000250 5093                      subi r25, 3
+000251 1719                      cp r17, r25
+000252 f40c                      brge pixel9
+000253 c002                      rjmp skip_pixel9
                                  
                                  
                                  pixel9:
-00024d e0b1                      ldi r27, 1
-00024e c001                      rjmp set_pixel_value9
+000254 e0b1                      ldi r27, 1
+000255 c001                      rjmp set_pixel_value9
                                  skip_pixel9:
-00024f e0b2                      ldi r27, 2
+000256 e0b2                      ldi r27, 2
                                  set_pixel_value9:
-000250 9518                      reti
+000257 9518                      reti
                                  	
                                  // -------------- GET HERZ VALUE FROM REGISTER -----------------
                                  
@@ -1880,52 +1888,114 @@ D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\The
                                  		// f_buzzer = f_clk/r20
                                  
                                  get_hertz:
-000251 2f54                      mov r21, r20
-000252 9550                      com r21
-000253 9551                      neg r21
-                                 
-000254 ef7a                      ldi r23, 250
-                                 
-000255 9f57                      mul r21, r23
-000256 9401                      neg r0
-000257 9411                      neg r1
-000258 9d90                      mul r25, r0 // result in frequency stored across 2 registers
                                  
                                  
+000258 e070                      ldi r23, 0
+000259 e080                      ldi r24, 0
+00025a 3040                      cpi r20, 0
+00025b f139                      breq end_Hz
                                  
+                                 ;ldi r22, 0b01111010 ; 62500/2 = 31250
+00025c e061                      ldi r22, 0b00000001 ; reduced for better display performance
+00025d e152                      ldi r21, 0b00010010
+00025e 2f74                      mov r23, r20
+00025f 9570                      com r23
+000260 e090                      ldi r25, 0
+000261 e0a0                      ldi r26, 0
                                  
+                                 faster_loop:
+000262 1767                      cp r22, r23
+000263 f018                      brlo devision_loop
+000264 1b67                      sub r22, r23
+000265 9593                      inc r25
+000266 cffb                      rjmp faster_loop
                                  
+                                 devision_loop:
+000267 3060                      cpi r22, 0
+000268 f061                      breq maybe_done
+                                 not_done:
+000269 1b57                      sub r21, r23
+00026a f020                      brcs sub_from_r22
+                                 done_subbing:
+00026b 9488                      clc
+00026c 9583                      inc r24
+00026d f028                      brcs add_to_r25
+                                 done_adding:
+00026e cff8                      rjmp devision_loop
                                  
-000259 9518                      reti
+                                 sub_from_r22:
+00026f 30a1                      cpi r26, 1
+000270 f031                      breq done
+000271 956a                      dec r22
+000272 cff8                      rjmp done_subbing
+                                 
+                                 add_to_r25:
+000273 9593                      inc r25
+000274 cff9                      rjmp done_adding
+                                 
+                                 maybe_done:
+000275 e0a1                      ldi r26, 1
+000276 cff2                      rjmp not_done
+                                 
+                                 done:
+000277 2f68                      mov r22, r24
+000278 2f79                      mov r23, r25
+                                 
+000279 e0a8                      ldi r26, 8 // comment this section if working with real value of 62500
+00027a e091                      ldi r25, 1
+                                 shifts:
+00027b 95aa                      dec r26
+00027c f031                      breq end_Hz
+00027d 0f77                      lsl r23
+00027e 0f66                      lsl r22
+00027f f7d8                      brcc shifts
+000280 0f79                      add r23, r25
+000281 9488                      clc
+000282 cff8                      rjmp shifts
+                                 
+                                 end_Hz:
+                                 
+000283 9518                      reti
                                  
                                  
                                  // ------------ TIMER INTERRUPT ----------------------------
                                  TIM0_OVF_ISR:
-00025a 9858                      	CBI PORTD, 0 //check row 0
-00025b 9a59                      	SBI PORTD, 1
-00025c 9a5a                      	SBI PORTD, 2
-00025d 9a5b                      	SBI PORTD, 3
-00025e 9b4c                      		SBIS PIND, 4
-00025f c002                      		rjmp output_C
-000260 9a43                      		sbi portc, 3
-                                 
-                                 
-000261 9518                      	reti
+000284 9858                      	CBI PORTD, 0 //check row 0
+000285 9a59                      	SBI PORTD, 1
+000286 9a5a                      	SBI PORTD, 2
+000287 9a5b                      	SBI PORTD, 3
+000288 9b4c                      		SBIS PIND, 4
+000289 c002                      		rjmp output_C
+00028a 9a43                      		sbi portc, 3
+00028b 9518                      	reti
                                  
                                  	output_C:
-000262 9843                      	CBI portc, 3
+00028c 9843                      	CBI portc, 3
                                  		
-000263 bd46                      	out TCNT0, R20
-000264 9a19                      	SBI PINB, 1
-000265 9518                      	reti
+00028d bd46                      	out TCNT0, R20
+00028e 9a19                      	SBI PINB, 1
+00028f 9518                      	reti
                                  
                                  // --------------------- ADC CONVERSION INTERRUPT ---------------------
                                  
                                  ADC_COMPLETE:
                                  /*	CBI PORTC, 3 ;led 3 on
                                  	CBI PORTC, 2 ; led 2 on*/
-000266 9140 0078                 	lds r20, ADCL
-000268 9140 0079                 	lds r20, ADCH
+                                 
+000290 9858                      	CBI PORTD, 0 //check row 0
+000291 9a59                      	SBI PORTD, 1
+000292 9a5a                      	SBI PORTD, 2
+000293 9a5b                      	SBI PORTD, 3
+000294 9b4c                      		SBIS PIND, 4
+000295 c003                      		rjmp output_C_ADC
+000296 9a43                      		sbi portc, 3
+                                 
+000297 e040                      	ldi r20, 0
+000298 9518                      	reti
+                                 	output_C_ADC:
+000299 9843                      	CBI portc, 3
+00029a 9140 0078                 	lds r20, ADCL
+00029c 9140 0079                 	lds r20, ADCH
                                  
                                  	
                                  	
@@ -1949,39 +2019,39 @@ counted separately from r26..r31 here.
 .dseg memory usage only counts static data declared with .byte
 
 "ATmega328P" register use summary:
-x  :   0 y  :   0 z  :   0 r0 :   2 r1 :   1 r2 :   0 r3 :   0 r4 :   0 
+x  :   0 y  :   0 z  :   0 r0 :   0 r1 :   0 r2 :   0 r3 :   0 r4 :   0 
 r5 :   0 r6 :   0 r7 :   0 r8 :   0 r9 :   0 r10:   0 r11:   0 r12:   0 
-r13:   0 r14:   0 r15:   0 r16:  22 r17:  78 r18:  41 r19:   2 r20:   7 
-r21:  19 r22:   5 r23:   7 r24:   3 r25:  99 r26:  14 r27:  24 r28:   0 
-r29:   0 r30:  10 r31:   3 
-Registers used: 16 out of 35 (45.7%)
+r13:   0 r14:   0 r15:   0 r16:  22 r17:  78 r18:  41 r19:   2 r20:   8 
+r21:  17 r22:  13 r23:  15 r24:   6 r25: 104 r26:  19 r27:  24 r28:   0 
+r29:   0 r30:  14 r31:   3 
+Registers used: 14 out of 35 (40.0%)
 
 "ATmega328P" instruction use summary:
-.lds  :   0 .sts  :   0 adc   :   0 add   :   4 adiw  :   0 and   :   0 
+.lds  :   0 .sts  :   0 adc   :   0 add   :   4 adiw  :   3 and   :   0 
 andi  :   0 asr   :   0 bclr  :   0 bld   :   0 brbc  :   0 brbs  :   0 
-brcc  :   0 brcs  :   0 break :   0 breq  :  87 brge  :  35 brhc  :   0 
-brhs  :   0 brid  :   0 brie  :   0 brlo  :   7 brlt  :   0 brmi  :   2 
-brne  :   5 brpl  :   0 brsh  :   0 brtc  :   0 brts  :   0 brvc  :   0 
-brvs  :   0 bset  :   0 bst   :   0 call  :  16 cbi   :  15 cbr   :   0 
-clc   :   0 clh   :   0 cli   :   0 cln   :   0 clr   :   0 cls   :   0 
-clt   :   0 clv   :   0 clz   :   0 com   :   1 cp    :  57 cpc   :   0 
-cpi   :  72 cpse  :   0 dec   :   4 eor   :   0 fmul  :   0 fmuls :   0 
-fmulsu:   0 icall :   0 ijmp  :   0 in    :   0 inc   :   4 jmp   :   0 
-ld    :   0 ldd   :   0 ldi   :  47 lds   :   2 lpm   :   0 lsl   :   0 
-lsr   :   0 mov   :  16 movw  :   0 mul   :   2 muls  :   0 mulsu :   0 
-neg   :   3 nop   :   0 or    :   0 ori   :   0 out   :   4 pop   :   0 
-push  :   0 rcall :   0 ret   :   0 reti  :  26 rjmp  :  64 rol   :   0 
-ror   :   0 sbc   :   0 sbci  :   0 sbi   :  37 sbic  :   0 sbis  :   1 
-sbiw  :   0 sbr   :   0 sbrc  :   0 sbrs  :   0 sec   :   0 seh   :   0 
+brcc  :   1 brcs  :   2 break :   0 breq  :  92 brge  :  35 brhc  :   0 
+brhs  :   0 brid  :   0 brie  :   0 brlo  :   9 brlt  :   0 brmi  :   0 
+brne  :   7 brpl  :   0 brsh  :   0 brtc  :   0 brts  :   0 brvc  :   0 
+brvs  :   0 bset  :   0 bst   :   0 call  :  16 cbi   :  17 cbr   :   0 
+clc   :   2 clh   :   0 cli   :   0 cln   :   0 clr   :   0 cls   :   0 
+clt   :   0 clv   :   0 clz   :   0 com   :   1 cp    :  58 cpc   :   0 
+cpi   :  76 cpse  :   0 dec   :   7 eor   :   0 fmul  :   0 fmuls :   0 
+fmulsu:   0 icall :   0 ijmp  :   0 in    :   0 inc   :   7 jmp   :   0 
+ld    :   0 ldd   :   0 ldi   :  55 lds   :   2 lpm   :   0 lsl   :   2 
+lsr   :   0 mov   :  19 movw  :   0 mul   :   0 muls  :   0 mulsu :   0 
+neg   :   0 nop   :   0 or    :   0 ori   :   0 out   :   4 pop   :   0 
+push  :   0 rcall :   0 ret   :   0 reti  :  27 rjmp  :  71 rol   :   0 
+ror   :   0 sbc   :   0 sbci  :   0 sbi   :  41 sbic  :   0 sbis  :   2 
+sbiw  :   4 sbr   :   0 sbrc  :   0 sbrs  :   0 sec   :   0 seh   :   0 
 sei   :   1 sen   :   0 ser   :   0 ses   :   0 set   :   0 sev   :   0 
 sez   :   0 sleep :   0 spm   :   0 st    :   0 std   :   0 sts   :   7 
-sub   :   0 subi  :  35 swap  :   0 tst   :   0 wdr   :   0 
-Instructions used: 26 out of 113 (23.0%)
+sub   :   2 subi  :  32 swap  :   0 tst   :   0 wdr   :   0 
+Instructions used: 30 out of 113 (26.5%)
 
 "ATmega328P" memory use summary [bytes]:
 Segment   Begin    End      Code   Data   Used    Size   Use%
 ---------------------------------------------------------------
-[.cseg] 0x000000 0x0004d6   1158      0   1158   32768   3.5%
+[.cseg] 0x000000 0x00053e   1262      0   1262   32768   3.9%
 [.dseg] 0x000100 0x000100      0      0      0    2048   0.0%
 [.eseg] 0x000000 0x000000      0      0      0    1024   0.0%
 
