@@ -176,56 +176,94 @@ main:
 	drawing:
 
 	// ---------- TURN VALUE FROM BUZZER INTO DISPLAYABLE VALUE ----------------------
-		//mov r21, r20
 
 		//how to get get frequency:
-		// f_clk = 16 Mhz/ 256 = 62500 Hz
+		// f_clk = 16 Mhz/ 256 = 62500² Hz
 		// f_buzzer = f_clk/r20
 
-		call get_hertz ; output r22, r23, r24
+		call get_hertz
 
-		mov r21, r22
-		//ldi r21, 35 ;temp input
+		// result stored in r1:r0
+
+		;mov r30, r0
+		;mov r31, r1
+
+		;ldi r30, 0b11010010 ;  testers
+		;ldi r31, 0b00000100
+
+		mov r30, r20
+		ldi r31, 0
+
+
+		// new result: r24, r23, r22, r21
 
 		check22:
-		ldi r24, 0; compensates for 1 substraction not taken into accout becausebreq check3 is before dec
+		ldi r24, 0
 		check2:
-		subi r21, 10
-		cpi r21, 0
+		subi r31, 0b00000011
+		cpi r31, 0
 		brmi check33
+		subi r30, 0b11101000
 		inc r24  ; houdt cijfer van de eenheid bij
 		rjmp check2
 
 		check33:
-		ldi r22, 0
-		ldi r23, 11 ; compensates for 1 substraction not taken into accout becausebreq check3 is before dec
-		add r21, r23 ; zo heb je en kel uw eenheid (want hier staat het op een negatief getal)
+		ldi r23, 100
+		add r30, r23
+		ldi r23, 0
 		check3:
-		subi r21, 1
-		cpi r21, 0
-		breq check4
-		inc r22  ; houdt cijfer van de eenheid bij
+		subi r30, 100
+		cpi r30, 100
+		brlo check44
+		inc r23  ; houdt cijfer van de eenheid bij
 		rjmp check3
 
+		check44:
+		ldi r22, 10
+		add r30, r22
+		ldi r22, 0
 		check4:
+		subi r30, 10
+		cpi r30, 10
+		brlo check55
+		inc r22  ; houdt cijfer van de eenheid bij
+		rjmp check4
+
+		check55:
+		ldi r21, 0
+		check5:
+		subi r30, 1
+		cpi r30, 0
+		brmi check66
+		inc r21  ; houdt cijfer van de eenheid bij
+		rjmp check5
+
+		check66:
 
 		// ------------- DRAW NUMBERS -------------------
 
-		ldi r26, 60
+		ldi r26, 70
 		call draw1
 
 		cpi r27, 1
 		breq temp_pixel
 
-		mov r22, r24
-		ldi r26, 55
+		mov r21, r22
+		ldi r26, 65
+		call draw1
+
+		cpi r27, 1
+		breq temp_pixel
+
+		mov r21, r23
+		ldi r26, 60
 		call draw1
 
 		cpi r27, 1
 		breq pixel
 
-		mov r22, r28
-		ldi r26, 50
+		mov r21, r24
+		ldi r26, 55
 		call draw1
 
 		cpi r27, 1
@@ -315,25 +353,25 @@ main:
 		reti
 
 		draw1:
-		cpi r22, 0
+		cpi r21, 0
 		breq draw_0
-		cpi r22, 1
+		cpi r21, 1
 		breq draw_1
-		cpi r22, 2
+		cpi r21, 2
 		breq draw_2
-		cpi r22, 3
+		cpi r21, 3
 		breq draw_3
-		cpi r22, 4
+		cpi r21, 4
 		breq draw_4
-		cpi r22, 5
+		cpi r21, 5
 		breq draw_5
-		cpi r22, 6
+		cpi r21, 6
 		breq draw_6
-		cpi r22, 7
+		cpi r21, 7
 		breq draw_7
-		cpi r22, 8
+		cpi r21, 8
 		breq draw_8
-		cpi r22, 9
+		cpi r21, 9
 		breq draw_9
 		//rjmp draw_0
 		reti
@@ -811,40 +849,21 @@ reti
 		// f_buzzer = f_clk/r20
 
 get_hertz:
-mov r28, r20
-ldi r29, 255
-sub r29, r28
-neg r29
+mov r21, r20
+com r21
+neg r21
 
-ldi r25, 0b11110100 ; most significant bits; 62500 spread over 2 registers 
-ldi r26, 0b00100100
-ldi r21, 1
+ldi r23, 250
 
-ldi r22, 0 ; least significant
-ldi r23, 0
-ldi r24, 0
+mul r21, r23
+neg r0
+neg r1
+mul r25, r0 // result in frequency stored across 2 registers
 
-loopp1:
-cpi r29, 0
-breq next_step
-add r26, r29
-cpi r26, 36
-brcs add_to_r24
-rjmp loopp1
-add_to_r24:
-add r25, r21
-brcc loopp1
-add r22, r21
-cpi r22, 100
-brlo loopp1
-add r23, r21
-ldi r22, 0
-cpi r23, 100
-brlo loopp1
-ldi r23, 0
-add r24, r21
-rjmp loopp1
-next_step:
+
+
+
+
 
 reti
 
