@@ -132,6 +132,7 @@ init:
 // configs: r16
 // for showing number on display: r21
 // number display: r25, r26, r22, r24, r23, r27
+// herz calculator: r10 -> r15
 
 main:
 // ------------------ DISPLAY --------------------------
@@ -175,22 +176,19 @@ main:
 	drawing:
 
 	// ---------- TURN VALUE FROM BUZZER INTO DISPLAYABLE VALUE ----------------------
-		mov r21, r20
+		//mov r21, r20
 
+		//how to get get frequency:
+		// f_clk = 16 Mhz/ 256 = 62500 Hz
+		// f_buzzer = f_clk/r20
+
+		call get_hertz ; output r22, r23, r24
+
+		mov r21, r22
 		//ldi r21, 35 ;temp input
 
-		ldi r28, 0
-		check1:
-		subi r21, 100
-		cpi r21, -9
-		brmi check22
-		inc r28   ; houdt cijfer van de tiental bij
-		rjmp check1
-
 		check22:
-		ldi r24, 0
-		ldi r23, 110 ; compensates for 1 substraction not taken into accout becausebreq check3 is before dec
-		add r21, r23 ; zo heb je en kel uw eenheid (want hier staat het op een negatief getal)
+		ldi r24, 0; compensates for 1 substraction not taken into accout becausebreq check3 is before dec
 		check2:
 		subi r21, 10
 		cpi r21, 0
@@ -209,27 +207,36 @@ main:
 		inc r22  ; houdt cijfer van de eenheid bij
 		rjmp check3
 
-		// ------------- DRAW NUMBERS -------------------
 		check4:
-		ldi r26, 70
+
+		// ------------- DRAW NUMBERS -------------------
+
+		ldi r26, 60
 		call draw1
 
 		cpi r27, 1
-		breq pixel
+		breq temp_pixel
 
 		mov r22, r24
-		ldi r26, 65
+		ldi r26, 55
 		call draw1
 
 		cpi r27, 1
 		breq pixel
 
 		mov r22, r28
-		ldi r26, 60
+		ldi r26, 50
 		call draw1
 
 		cpi r27, 1
 		breq pixel
+		rjmp skip_pixel
+		
+
+		temp_pixel:
+		rjmp pixel
+
+		skip_pixel:
 
 
 		// ------------ DRAW "Hz" -------------------------------------------
@@ -797,8 +804,49 @@ ldi r27, 2
 set_pixel_value9:
 reti
 	
+// -------------- GET HERZ VALUE FROM REGISTER -----------------
 
+		//how to get get frequency:
+		// f_clk = 16 Mhz/ 256 = 62500 Hz
+		// f_buzzer = f_clk/r20
 
+get_hertz:
+mov r28, r20
+ldi r29, 255
+sub r29, r28
+neg r29
+
+ldi r25, 0b11110100 ; most significant bits; 62500 spread over 2 registers 
+ldi r26, 0b00100100
+ldi r21, 1
+
+ldi r22, 0 ; least significant
+ldi r23, 0
+ldi r24, 0
+
+loopp1:
+cpi r29, 0
+breq next_step
+add r26, r29
+cpi r26, 36
+brcs add_to_r24
+rjmp loopp1
+add_to_r24:
+add r25, r21
+brcc loopp1
+add r22, r21
+cpi r22, 100
+brlo loopp1
+add r23, r21
+ldi r22, 0
+cpi r23, 100
+brlo loopp1
+ldi r23, 0
+add r24, r21
+rjmp loopp1
+next_step:
+
+reti
 
 
 // ------------ TIMER INTERRUPT ----------------------------
