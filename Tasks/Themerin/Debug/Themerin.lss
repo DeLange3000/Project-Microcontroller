@@ -1,5 +1,5 @@
 
-AVRASM ver. 2.2.8  D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm Sat May 27 20:07:20 2023
+AVRASM ver. 2.2.8  D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm Sat May 27 20:36:31 2023
 
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328Pdef.inc'
 D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm(16): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328pdef.inc'
@@ -1291,28 +1291,28 @@ D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\The
                                  		// ------------- DRAW NUMBERS -------------------
                                  
 0000b1 2f5c                      		mov r21, r28
-0000b2 e4a6                      		ldi r26, 70
+0000b2 e4a5                      		ldi r26, 69
 0000b3 940e 0104                 		call draw1
                                  
 0000b5 30b1                      		cpi r27, 1
 0000b6 f099                      		breq temp_pixel
                                  
 0000b7 2f56                      		mov r21, r22
-0000b8 e4a1                      		ldi r26, 65
+0000b8 e3af                      		ldi r26, 63
 0000b9 940e 0104                 		call draw1
                                  
 0000bb 30b1                      		cpi r27, 1
 0000bc f069                      		breq temp_pixel
                                  
 0000bd 2f57                      		mov r21, r23
-0000be e3ac                      		ldi r26, 60
+0000be e3a9                      		ldi r26, 57
 0000bf 940e 0104                 		call draw1
                                  
 0000c1 30b1                      		cpi r27, 1
 0000c2 f1d1                      		breq pixel
                                  
 0000c3 2f58                      		mov r21, r24
-0000c4 e3a7                      		ldi r26, 55
+0000c4 e3a3                      		ldi r26, 51
 0000c5 940e 0104                 		call draw1
                                  
 0000c7 30b1                      		cpi r27, 1

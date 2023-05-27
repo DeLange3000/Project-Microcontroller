@@ -260,28 +260,28 @@ main:
 		// ------------- DRAW NUMBERS -------------------
 
 		mov r21, r28
-		ldi r26, 70
+		ldi r26, 69
 		call draw1
 
 		cpi r27, 1
 		breq temp_pixel
 
 		mov r21, r22
-		ldi r26, 65
+		ldi r26, 63
 		call draw1
 
 		cpi r27, 1
 		breq temp_pixel
 
 		mov r21, r23
-		ldi r26, 60
+		ldi r26, 57
 		call draw1
 
 		cpi r27, 1
 		breq pixel
 
 		mov r21, r24
-		ldi r26, 55
+		ldi r26, 51
 		call draw1
 
 		cpi r27, 1
