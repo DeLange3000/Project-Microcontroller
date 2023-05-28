@@ -1,5 +1,5 @@
 
-AVRASM ver. 2.2.8  D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm Sat May 27 20:36:31 2023
+AVRASM ver. 2.2.8  D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm Sun May 28 11:18:41 2023
 
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328Pdef.inc'
 D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm(16): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328pdef.inc'
@@ -1052,13 +1052,14 @@ D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\The
                                  
                                  ;Boot code
 000000 c02a                      .org 0x000 rjmp init
-000020 c267                      .org 0x0020 rjmp TIM0_OVF_ISR
-00002a c269                      .org 0x002A rjmp ADC_COMPLETE 
+000020 c260                      .org 0x0020 rjmp TIM0_OVF_ISR
+00002a c262                      .org 0x002A rjmp ADC_COMPLETE 
                                  
                                  
                                  ; Interrupt address vectors
                                  
                                  init:
+                                 // ------------------ SETUP ---------------------------
                                  	//keyboard
 00002b 9a50                      	SBI DDRD, 0
 00002c 9a58                      	SBI PORTD, 0
@@ -1084,127 +1085,117 @@ D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\The
 000039 9857                      	CBI DDRD, 7
 00003a 9a5f                      	SBI PORTD, 7
                                  
-00003b 9a21                      	SBI DDRB, 1 ; activate buzzer
+                                 	// buzzer
+00003b 9a21                      	SBI DDRB, 1
 00003c 9a29                      	SBI PORTB, 1
                                  
-00003d 9822                      	CBI DDRB, 2 ; set up joystick button
-00003e 9a2a                      	SBI PORTB, 2
+                                 	// joystick button
+                                 /*	CBI DDRB, 2
+                                 	SBI PORTB, 2*/
                                  
                                  	// display
-00003f 9a23                      	sbi DDRB, 3
-000040 9a2b                      	sbi PORTB, 3
+00003d 9a23                      	sbi DDRB, 3
+00003e 9a2b                      	sbi PORTB, 3
                                  
-000041 9a25                      	sbi DDRB, 5
-000042 9a2d                      	sbi PORTB, 5
+00003f 9a25                      	sbi DDRB, 5
+000040 9a2d                      	sbi PORTB, 5
                                  
-000043 9a24                      	sbi DDRB, 4
-000044 9a2c                      	sbi PORTB, 4
+000041 9a24                      	sbi DDRB, 4
+000042 9a2c                      	sbi PORTB, 4
                                  
-                                 /*	CBI DDRC, 0 ; set ADC input
+                                 	// adc input
+                                 /*	CBI DDRC, 0
                                  	CBI PORTC, 0
                                  
                                  	CBI DDRC, 1
                                  	CBI PORTC, 1*/
                                  
-000045 9a3a                      	SBI DDRC, 2
-000046 9a42                      	SBI PORTC, 2
+                                 	// leds
+000043 9a3a                      	SBI DDRC, 2
+000044 9a42                      	SBI PORTC, 2
                                  
-000047 9a3b                      	SBI DDRC, 3
-000048 9a43                      	SBI PORTC, 3
+000045 9a3b                      	SBI DDRC, 3
+000046 9a43                      	SBI PORTC, 3
                                  
-                                 	;set c pins as input
-000049 9839                      	cbi ddrc, 1
-00004a 9838                      	cbi ddrc ,0
-                                 
-                                 
+                                 	//set c pins as input
+000047 9839                      	cbi ddrc, 1
+000048 9838                      	cbi ddrc ,0
                                  
                                  
-00004b eb49                      	LDI R20, 185 ; register 31 controls frequency
-00004c bd46                      	out TCNT0, R20
+                                 	// buzzer setup
+000049 eb49                      	LDI R20, 185 ; register 20 controls frequency
+00004a bd46                      	out TCNT0, R20
                                  
-00004d e004                      	ldi r16, 0b00000100
-00004e bd05                      	out TCCR0B,r16 ; Timer clock = system clock / 256
-00004f e001                      	ldi r16,1<<TOV0
-000050 bb05                      	out TIFR0,r16 ; Clear TOV0/ Clear pending interrupts
-000051 e001                      	ldi r16,1<<TOIE0
-000052 9300 006e                 	sts TIMSK0,r16 ; Enable Timer/Counter0 Overflow Interrupt
+00004b e004                      	ldi r16, 0b00000100
+00004c bd05                      	out TCCR0B,r16 ; Timer clock = system clock / 256
+00004d e001                      	ldi r16,1<<TOV0
+00004e bb05                      	out TIFR0,r16 ; Clear TOV0/ Clear pending interrupts
+00004f e001                      	ldi r16,1<<TOIE0
+000050 9300 006e                 	sts TIMSK0,r16 ; Enable Timer/Counter0 Overflow Interrupt
                                  
-000054 ef0f                      	ldi r16, 0b11111111
-000055 9300 007e                 	sts didr0, r16
+                                 	// ADC setup
+000052 ef0f                      	ldi r16, 0b11111111
+000053 9300 007e                 	sts didr0, r16
                                  
-000057 ef0f                      	ldi r16, 0b11111111
-000058 9300 007f                 	sts didr1, r16
+000055 ef0f                      	ldi r16, 0b11111111
+000056 9300 007f                 	sts didr1, r16
                                  
-00005a e000                      	ldi r16, 0b00000000
-00005b 9300 0064                 	sts prr, r16
+000058 e000                      	ldi r16, 0b00000000
+000059 9300 0064                 	sts prr, r16
                                  
-00005d ee0a                      	ldi r16, 0b11101010
-00005e 9300 007a                 	sts ADCSRA, r16
+00005b ee0a                      	ldi r16, 0b11101010
+00005c 9300 007a                 	sts ADCSRA, r16
                                  
-000060 e600                      	ldi r16, 0b01100000 ; last 0011 for adc3
-000061 9300 007c                 	sts ADMUX, r16
+00005e e600                      	ldi r16, 0b01100000 ; last 0000 for adc0
+00005f 9300 007c                 	sts ADMUX, r16
                                  	
-000063 e000                      	ldi r16, 0b00000000
-000064 9300 007b                 	sts ADCSRB, r16
+000061 e000                      	ldi r16, 0b00000000
+000062 9300 007b                 	sts ADCSRB, r16
                                  
                                  
-                                 
-000066 9478                      	SEI
-                                 
-                                 
-000067 c000                      	rjmp main
-                                 
-                                 
-                                 
-                                 // register use:
-                                 
-                                 // display: r19, r18, r17
-                                 // buzzer: r20
-                                 // configs: r16
-                                 // for showing number on display: r21
-                                 // number display: r25, r26, r22, r24, r23, r27
-                                 // herz calculator: r10 -> r15
+000064 9478                      	SEI ; enable interrupts
+000065 c000                      	rjmp main
                                  
                                  main:
                                  // ------------------ DISPLAY --------------------------
-000068 e028                      	ldi r18, 8
+                                 
+                                 ; runs through all lines of display and checks wether a pixel should be on
+000066 e028                      	ldi r18, 8 ;select row
                                  	outer_loop:
-000069 e510                      		ldi r17, 80
-00006a 9a2b                      		SBI PORTB, 3
-00006b 2f32                      		mov r19, r18
+000067 e510                      		ldi r17, 80 ;select column
+000068 9a2b                      		SBI PORTB, 3
                                  		loop:
-00006c 9a1b                      			sbi PINB, 3
-00006d 953a                      			dec r19
-00006e f7e9                      			brne loop
-                                 
+000069 9a1b                      			sbi PINB, 3
+00006a 953a                      			dec r19
+00006b f7e9                      			brne loop
                                  		loop1:
-00006f 940e 0082                 			call drawing
-000071 f7e9                      			brne loop1
+00006c 940e 007f                 			call drawing ; function draws numbers and "Hz" on display
+00006e f7e9                      			brne loop1
+                                 
                                  		next_loop:
-000072 e018                      		ldi r17, 8
+00006f e018                      		ldi r17, 8
                                  		loop2:
-000073 1712                      			cp r17, r18
-000074 f411                      			brne skip
-000075 9a2b                      			sbi PORTB, 3
-000076 c001                      			rjmp setrow
+000070 1712                      			cp r17, r18
+000071 f411                      			brne skip
+000072 9a2b                      			sbi PORTB, 3
+000073 c001                      			rjmp setrow
                                  			skip:
-000077 982b                      			cbi PORTB, 3
+000074 982b                      			cbi PORTB, 3
                                  			setrow:
-000078 982d                      			cbi PORTB, 5
-000079 9a2d                      			sbi PORTB, 5
-00007a 951a                      			dec r17
-00007b f7b9                      			brne loop2
+000075 982d                      			cbi PORTB, 5
+000076 9a2d                      			sbi PORTB, 5
+000077 951a                      			dec r17
+000078 f7b9                      			brne loop2
                                  
-00007c 982c                      		CBI PORTB, 4
-00007d 9a2c                      		SBI PORTB, 4
-00007e 982c                      		CBI PORTB, 4
-00007f 952a                      		dec r18
-000080 f741                      	brne outer_loop
+000079 982c                      		CBI PORTB, 4 // enable each row
+00007a 9a2c                      		SBI PORTB, 4
+00007b 982c                      		CBI PORTB, 4
+00007c 952a                      		dec r18
+00007d f749                      	brne outer_loop
+00007e cfe7                          rjmp main
                                  
-000081 cfe6                          rjmp main
                                  
-                                 
-                                 	drawing:
+                                 	drawing: // IS CALLED FOR EVERY PIXEL
                                  
                                  	// ---------- TURN VALUE FROM BUZZER INTO DISPLAYABLE VALUE ----------------------
                                  
@@ -1212,753 +1203,829 @@ D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\The
                                  		// f_clk = 16 Mhz/ 256 = 62500² Hz
                                  		// f_buzzer = f_clk/r20
                                  
-000082 3028                      		cpi r18, 8
-000083 f569                      		brne check66
-000084 940e 0260                 		call get_hertz // comment this id r20 is used (speeds up display)
+00007f 3028                      		cpi r18, 8 ; only calculate what number needs to be shown, when the row of the screen is equal to 8
+000080 f561                      		brne check66
+000081 940e 025c                 		call get_hertz // transforms register value to frequency value in r22 (LSB) and r23 (MSB); values: 0-9999
                                  
-000086 2fe6                      		mov r30, r22 // use this to get frequency
-000087 2ff7                      		mov r31, r23
+000083 2fe8                      		mov r30, r24 // copy result from r25:r24 to r31:30 so SBIW can be used
+000084 2ff9                      		mov r31, r25
                                  
                                  		;ldi r30, 0b11010010 ;  testers
                                  		;ldi r31, 0b00000100
                                  
-                                 		//mov r30, r20 // use this to get register r20 value
+                                 		//mov r30, r20 // use this to display buzzer register value
                                  		//ldi r31, 0
                                  
+                                 		// --------------- extract digits from register r30 (LSB) and r31 (MSB) to show on display --------------
                                  
+                                 		// factor 1000
                                  		check22:
-000088 e080                      		ldi r24, 0
+000085 e080                      		ldi r24, 0 //r24 counts how many times 1000 fits in word r31:r30
                                  		check2:
-000089 30f3                      		cpi r31, 3
-00008a f060                      		brlo check33
-00008b 30f4                      		cpi r31, 4
-00008c f038                      		brlo extra_check
+000086 30f3                      		cpi r31, 3 
+000087 f060                      		brlo check33 // if lower value in r31:r30 < 1000
+000088 30f4                      		cpi r31, 4 
+000089 f038                      		brlo extra_check // if lower value in r31:r30 MIGHT be < 1000
                                  		not_yet:
-00008d e07f                      		ldi r23, 15
-                                 		substraction_loop:
-00008e 97ff                      		sbiw r30, 63
-00008f 957a                      		dec r23
-000090 f7e9                      		brne substraction_loop
-000091 97f7                      		sbiw r30, 55
-000092 9583                      		inc r24  ; houdt cijfer van de eenheid bij
-000093 cff5                      		rjmp check2
+00008a e07f                      		ldi r23, 15 //load loop index
+                                 		substraction_loop: //substracts 945 from r31:r30 in steps of 63 since 63 is max value for SBIW
+00008b 97ff                      		sbiw r30, 63 // 63 is max value for SBIW
+00008c 957a                      		dec r23 // decrease loop index
+00008d f7e9                      		brne substraction_loop
+00008e 97f7                      		sbiw r30, 55 //substract another 55 to get 1000 substracted from r31:r30
+00008f 9583                      		inc r24  // keeps track of how many 1000's are in r31:r30
+000090 cff5                      		rjmp check2  // keep looping if value in r31:r30 >= 1000
                                  
-                                 		extra_check:
-000094 3ee8                      		cpi r30, 0b11101000
-000095 f008                      		brlo check33
-000096 cff6                      		rjmp not_yet
+                                 		extra_check: //check if r31:r30 is actually < 1000
+000091 3ee8                      		cpi r30, 0b11101000 // checks if r30 < 232
+000092 f008                      		brlo check33 // if r30 < 232, move to factor 100
+000093 cff6                      		rjmp not_yet //jump back inf r30 >= 232 (since r31:r30 >= 1000)
                                  
+                                 		// factor 100
                                  		check33:
-000097 96f2                      		adiw r30, 50
-000098 96f2                      		adiw r30, 50
-000099 e070                      		ldi r23, 0
+000094 96f2                      		adiw r30, 50 // add 100 to r30 to compensate for jumping to factor 100 without increasing r23 in last loop
+000095 96f2                      		adiw r30, 50 // done in two steps since 63 is max value for ADIW
+000096 e070                      		ldi r23, 0 // r23 keeps track of how many 100's are in r31:r30
                                  		check3:
-00009a 97f2                      		sbiw r30, 50
-00009b 97f2                      		sbiw r30, 50
-00009c 30f0                      		cpi r31, 0
-00009d f411                      		brne no_100
-00009e 36e4                      		cpi r30, 100
-00009f f010                      		brlo check44
+000097 97f2                      		sbiw r30, 50 // substract 100 from r31:r30
+000098 97f2                      		sbiw r30, 50
+000099 30f0                      		cpi r31, 0 // check if r31 is zero (means max value in r31:r30 is now 255 since everything is now in r30)
+00009a f411                      		brne no_100 // jump to increase r23 without checking r30
+00009b 36e4                      		cpi r30, 100 // check if r30 < 100
+00009c f010                      		brlo check44 // if r30 < 100 no more 100's present in r31:r30
                                  		no_100:
-0000a0 9573                      		inc r23  ; houdt cijfer van de eenheid bij
-0000a1 cff8                      		rjmp check3
+00009d 9573                      		inc r23  // keeps track of how many 100's are in r31:r30
+00009e cff8                      		rjmp check3 // loop as long as r30 >= 100
                                  
-                                 		check_double:
-                                 
+                                 		// factor 10
                                  		check44:
-0000a2 e06a                      		ldi r22, 10
-0000a3 0fe6                      		add r30, r22
-0000a4 e060                      		ldi r22, 0
+00009f 963a                      		adiw r30, 10 // add 10 to r30 to compensate for jumping to factor 10 without increasing r23 in last loop
+0000a0 e060                      		ldi r22, 0 // r22 keeps track of how many 10's are in r30 ( r31 is empty now)
                                  		check4:
-0000a5 50ea                      		subi r30, 10
-0000a6 30ea                      		cpi r30, 10
-0000a7 f010                      		brlo check55
-0000a8 9563                      		inc r22  ; houdt cijfer van de eenheid bij
-0000a9 cffb                      		rjmp check4
+0000a1 50ea                      		subi r30, 10 // substract 10 from r30
+0000a2 30ea                      		cpi r30, 10 // if r30 < 10 jump to factor 1 (no more 10's present in r30)
+0000a3 f010                      		brlo check55
+0000a4 9563                      		inc r22  // keeps track of how many 10's are in r30
+0000a5 cffb                      		rjmp check4
                                  
+                                 		// factor 1
                                  		check55:
-0000aa e0c0                      		ldi r28, 0
-0000ab 9631                      		adiw r30, 1
+0000a6 e0c0                      		ldi r28, 0 // r28 keeps track of how many 10's are in r30 ( r31 is empty now)
+0000a7 9631                      		adiw r30, 1 // add 1 to r30 to compensate for jumping to factor 1 without increasing r23 in last loop
                                  		check5:
-0000ac 50e1                      		subi r30, 1
-0000ad 30e0                      		cpi r30, 0
-0000ae f011                      		breq check66
-0000af 95c3                      		inc r28  ; houdt cijfer van de eenheid bij
-0000b0 cffb                      		rjmp check5
+0000a8 50e1                      		subi r30, 1 // substract 1 from r30
+0000a9 30e0                      		cpi r30, 0 // if r30 = 0 jump to check66 (no more 1's present in r30) => conversion to digits is complete
+0000aa f011                      		breq check66
+0000ab 95c3                      		inc r28  // keeps track of how many 1's are in r30
+0000ac cffb                      		rjmp check5
                                  
                                  		check66:
-                                 
                                  		// ------------- DRAW NUMBERS -------------------
+                                 		// draws 1's first and 1000's last since everything has to be pushed on display stack
                                  
-0000b1 2f5c                      		mov r21, r28
-0000b2 e4a5                      		ldi r26, 69
-0000b3 940e 0104                 		call draw1
+                                 		// r31 is used to check wich number needs to be drawn
+                                 		// r26 is the offset that determines where the number is drawn on the screen
                                  
-0000b5 30b1                      		cpi r27, 1
-0000b6 f099                      		breq temp_pixel
+                                 		// 1's
+0000ad 2f5c                      		mov r21, r28
+0000ae e4a5                      		ldi r26, 69
+0000af 940e 0100                 		call draw1 // checks wich pixel needs to be drawn
                                  
-0000b7 2f56                      		mov r21, r22
-0000b8 e3af                      		ldi r26, 63
-0000b9 940e 0104                 		call draw1
+0000b1 30b1                      		cpi r27, 1 // only draws pixel if r27 is set to 1 else check other digits
+0000b2 f099                      		breq temp_pixel // inbetween jump (branch out of reach)
                                  
-0000bb 30b1                      		cpi r27, 1
-0000bc f069                      		breq temp_pixel
+                                 		// 10's
+0000b3 2f56                      		mov r21, r22
+0000b4 e3af                      		ldi r26, 63
+0000b5 940e 0100                 		call draw1
                                  
-0000bd 2f57                      		mov r21, r23
-0000be e3a9                      		ldi r26, 57
-0000bf 940e 0104                 		call draw1
+0000b7 30b1                      		cpi r27, 1
+0000b8 f069                      		breq temp_pixel
                                  
-0000c1 30b1                      		cpi r27, 1
-0000c2 f1d1                      		breq pixel
+                                 		// 100's
+0000b9 2f57                      		mov r21, r23
+0000ba e3a9                      		ldi r26, 57
+0000bb 940e 0100                 		call draw1
                                  
-0000c3 2f58                      		mov r21, r24
-0000c4 e3a3                      		ldi r26, 51
-0000c5 940e 0104                 		call draw1
+0000bd 30b1                      		cpi r27, 1
+0000be f1d1                      		breq pixel
                                  
-0000c7 30b1                      		cpi r27, 1
-0000c8 f1a1                      		breq pixel
-0000c9 c001                      		rjmp skip_pixel
+                                 		// 1000's
+0000bf 2f58                      		mov r21, r24
+0000c0 e3a3                      		ldi r26, 51
+0000c1 940e 0100                 		call draw1
+                                 
+0000c3 30b1                      		cpi r27, 1
+0000c4 f1a1                      		breq pixel
+0000c5 c001                      		rjmp skip_pixel // so inbetween jump label is not used
                                  		
-                                 
+                                 		// inbetween jump label
                                  		temp_pixel:
-0000ca c032                      		rjmp pixel
+0000c6 c032                      		rjmp pixel
                                  
                                  		skip_pixel:
                                  
                                  
                                  		// ------------ DRAW "Hz" -------------------------------------------
-0000cb 3027                      		cpi r18, 7
-0000cc f149                      		breq Hz_row_7
-0000cd 3026                      		cpi r18, 6
-0000ce f101                      		breq Hz_row_6
-0000cf 3025                      		cpi r18, 5
-0000d0 f0b9                      		breq Hz_row_5
-0000d1 3024                      		cpi r18, 4
-0000d2 f071                      		breq Hz_row_4
-0000d3 3023                      		cpi r18, 3
-0000d4 f029                      		breq Hz_row_3
+                                 		
+                                 		// checks which row is selected and pushes bits on stack to draw "Hz"
+0000c7 3027                      		cpi r18, 7
+0000c8 f149                      		breq Hz_row_7
+0000c9 3026                      		cpi r18, 6
+0000ca f101                      		breq Hz_row_6
+0000cb 3025                      		cpi r18, 5
+0000cc f0b9                      		breq Hz_row_5
+0000cd 3024                      		cpi r18, 4
+0000ce f071                      		breq Hz_row_4
+0000cf 3023                      		cpi r18, 3
+0000d0 f029                      		breq Hz_row_3
                                  
                                  		Hz_row_1:
-0000d5 3417                      		cpi r17, 71
-0000d6 f131                      		breq pixel
-0000d7 341b                      		cpi r17, 75
-0000d8 f121                      		breq pixel
-0000d9 c025                      		rjmp no_pixel
+0000d1 3417                      		cpi r17, 71
+0000d2 f131                      		breq pixel
+0000d3 341b                      		cpi r17, 75
+0000d4 f121                      		breq pixel
+0000d5 c025                      		rjmp no_pixel
                                  
                                  		Hz_row_3:
-0000da 3417                      		cpi r17, 71
-0000db f109                      		breq pixel
-0000dc 3510                      		cpi r17, 80
-0000dd f109                      		breq no_pixel
-0000de 341b                      		cpi r17, 75
-0000df f4ec                      		brge pixel
-0000e0 c01e                      		rjmp no_pixel
+0000d6 3417                      		cpi r17, 71
+0000d7 f109                      		breq pixel
+0000d8 3510                      		cpi r17, 80
+0000d9 f109                      		breq no_pixel
+0000da 341b                      		cpi r17, 75
+0000db f4ec                      		brge pixel
+0000dc c01e                      		rjmp no_pixel
                                  
                                  		Hz_row_4:
-0000e1 341e                      		cpi r17, 78
-0000e2 f0d1                      		breq pixel
-0000e3 341c                      		cpi r17, 76
-0000e4 f4d4                      		brge no_pixel
-0000e5 3417                      		cpi r17, 71
-0000e6 f4b4                      		brge pixel
-0000e7 c017                      		rjmp no_pixel
+0000dd 341e                      		cpi r17, 78
+0000de f0d1                      		breq pixel
+0000df 341c                      		cpi r17, 76
+0000e0 f4d4                      		brge no_pixel
+0000e1 3417                      		cpi r17, 71
+0000e2 f4b4                      		brge pixel
+0000e3 c017                      		rjmp no_pixel
                                  
                                  		Hz_row_5:
-0000e8 3417                      		cpi r17, 71
-0000e9 f099                      		breq pixel
-0000ea 341b                      		cpi r17, 75
-0000eb f089                      		breq pixel
-0000ec 341d                      		cpi r17, 77
-0000ed f079                      		breq pixel
-0000ee c010                      		rjmp no_pixel
+0000e4 3417                      		cpi r17, 71
+0000e5 f099                      		breq pixel
+0000e6 341b                      		cpi r17, 75
+0000e7 f089                      		breq pixel
+0000e8 341d                      		cpi r17, 77
+0000e9 f079                      		breq pixel
+0000ea c010                      		rjmp no_pixel
                                  
                                  		Hz_row_6:
-0000ef 3417                      		cpi r17, 71
-0000f0 f061                      		breq pixel
-0000f1 341b                      		cpi r17, 75
-0000f2 f051                      		breq pixel
-0000f3 341c                      		cpi r17, 76
-0000f4 f041                      		breq pixel
-0000f5 c009                      		rjmp no_pixel
+0000eb 3417                      		cpi r17, 71
+0000ec f061                      		breq pixel
+0000ed 341b                      		cpi r17, 75
+0000ee f051                      		breq pixel
+0000ef 341c                      		cpi r17, 76
+0000f0 f041                      		breq pixel
+0000f1 c009                      		rjmp no_pixel
                                  
                                  		Hz_row_7:
-0000f6 3510                      		cpi r17, 80
-0000f7 f039                      		breq no_pixel
-0000f8 3417                      		cpi r17, 71
-0000f9 f019                      		breq pixel
-0000fa 341b                      		cpi r17, 75
-0000fb f40c                      		brge pixel
-0000fc c002                      		rjmp no_pixel
+0000f2 3510                      		cpi r17, 80
+0000f3 f039                      		breq no_pixel
+0000f4 3417                      		cpi r17, 71
+0000f5 f019                      		breq pixel
+0000f6 341b                      		cpi r17, 75
+0000f7 f40c                      		brge pixel
+0000f8 c002                      		rjmp no_pixel
                                  
-                                 		pixel:
-0000fd 9a2b                      		sbi portb, 3
-0000fe c001                      		rjmp set_pixel_value
-                                 		no_pixel:
-0000ff 982b                      		cbi portb, 3
-                                 		set_pixel_value:
-000100 982d                      		cbi PORTB, 5
-000101 9a2d                      		sbi PORTB, 5
-000102 951a                      		dec r17
-000103 9518                      		reti
+                                 		pixel: // turn pixel on
+0000f9 9a2b                      		sbi portb, 3
+0000fa c001                      		rjmp set_pixel_value
+                                 		no_pixel: // turn pixel off
+0000fb 982b                      		cbi portb, 3
+                                 		set_pixel_value: // push pixel on stack
+0000fc 982d                      		cbi PORTB, 5
+0000fd 9a2d                      		sbi PORTB, 5
+0000fe 951a                      		dec r17 // decrease column counter
+0000ff 9518                      		reti
                                  
+                                 		// ----------- NUMBER SELECTOR -------------------------
+                                 		
+                                 		// uses branching and then function call since function call cannot be made in branching condition
                                  		draw1:
-000104 3050                      		cpi r21, 0
-000105 f099                      		breq draw_0
-000106 3051                      		cpi r21, 1
-000107 f0a1                      		breq draw_1
-000108 3052                      		cpi r21, 2
-000109 f0a9                      		breq draw_2
-00010a 3053                      		cpi r21, 3
-00010b f0b1                      		breq draw_3
-00010c 3054                      		cpi r21, 4
-00010d f0b9                      		breq draw_4
-00010e 3055                      		cpi r21, 5
-00010f f0c1                      		breq draw_5
-000110 3056                      		cpi r21, 6
-000111 f0c9                      		breq draw_6
-000112 3057                      		cpi r21, 7
-000113 f0d1                      		breq draw_7
-000114 3058                      		cpi r21, 8
-000115 f0d9                      		breq draw_8
-000116 3059                      		cpi r21, 9
-000117 f0e1                      		breq draw_9
-                                 		//rjmp draw_0
-000118 9518                      		reti
+000100 3050                      		cpi r21, 0
+000101 f099                      		breq draw_0
+000102 3051                      		cpi r21, 1
+000103 f0a1                      		breq draw_1
+000104 3052                      		cpi r21, 2
+000105 f0a9                      		breq draw_2
+000106 3053                      		cpi r21, 3
+000107 f0b1                      		breq draw_3
+000108 3054                      		cpi r21, 4
+000109 f0b9                      		breq draw_4
+00010a 3055                      		cpi r21, 5
+00010b f0c1                      		breq draw_5
+00010c 3056                      		cpi r21, 6
+00010d f0c9                      		breq draw_6
+00010e 3057                      		cpi r21, 7
+00010f f0d1                      		breq draw_7
+000110 3058                      		cpi r21, 8
+000111 f0d9                      		breq draw_8
+000112 3059                      		cpi r21, 9
+000113 f0e1                      		breq draw_9
+                                 		//rjmp draw_0 // could draw zero if value in register is bigger then 9
+000114 9518                      		reti
                                  
+                                 		// calls correct function to draw number
                                  		draw_0:
-000119 940e 0137                 		call draw_zero
-00011b 9518                      		reti
+000115 940e 0133                 		call draw_zero
+000117 9518                      		reti
                                  		draw_1:
-00011c 940e 014c                 		call draw_one
-00011e 9518                      		reti
+000118 940e 0148                 		call draw_one
+00011a 9518                      		reti
                                  		draw_2:
-00011f 940e 015d                 		call draw_two
-000121 9518                      		reti
+00011b 940e 0159                 		call draw_two
+00011d 9518                      		reti
                                  		draw_3:
-000122 940e 0187                 		call draw_three
-000124 9518                      		reti
+00011e 940e 0183                 		call draw_three
+000120 9518                      		reti
                                  		draw_4:
-000125 940e 01a2                 		call draw_four
-000127 9518                      		reti
+000121 940e 019e                 		call draw_four
+000123 9518                      		reti
                                  		draw_5:
-000128 940e 01c2                 		call draw_five
-00012a 9518                      		reti
+000124 940e 01be                 		call draw_five
+000126 9518                      		reti
                                  		draw_6:
-00012b 940e 01e4                 		call draw_six
-00012d 9518                      		reti
+000127 940e 01e0                 		call draw_six
+000129 9518                      		reti
                                  		draw_7:
-00012e 940e 0207                 		call draw_seven
-000130 9518                      		reti
+00012a 940e 0203                 		call draw_seven
+00012c 9518                      		reti
                                  		draw_8:
-000131 940e 0224                 		call draw_eight
-000133 9518                      		reti
+00012d 940e 0220                 		call draw_eight
+00012f 9518                      		reti
                                  		draw_9:
-000134 940e 023b                 		call draw_nine
-000136 9518                      		reti
+000130 940e 0237                 		call draw_nine
+000132 9518                      		reti
                                  
                                  // ------------- ZERO --------------------------
+                                 
+                                 // r26 is offset in column of screen
+                                 // r25 is used to calculate correct pixel positions based on r26
+                                 // r18 is used to check which row needs to be drawn
+                                 // r17 is used to check if selected column pixel matches one of the pixels that needs to be drawn for the number
                                  draw_zero:
-000137 2f9a                      mov r25, r26
-000138 3027                      cpi r18, 7
-000139 f041                      breq hor_line
-00013a 3021                      cpi r18, 1
-00013b f031                      breq hor_line
+000133 2f9a                      mov r25, r26
+000134 3027                      cpi r18, 7
+000135 f041                      breq hor_line
+000136 3021                      cpi r18, 1
+000137 f031                      breq hor_line
                                  
-                                 vert_line:
-00013c 1719                      cp r17, r25
-00013d f051                      breq pixel0
-00013e 5094                      subi r25, 4
-00013f 1719                      cp r17, r25
-000140 f039                      breq pixel0
-000141 c008                      rjmp skip_pixel0
+                                 vert_line: // draws vertical lines of zero
+000138 1719                      cp r17, r25
+000139 f051                      breq pixel0
+00013a 5094                      subi r25, 4
+00013b 1719                      cp r17, r25
+00013c f039                      breq pixel0
+00013d c008                      rjmp skip_pixel0
                                  
-                                 hor_line:
-000142 1719                      cp r17, r25
-000143 f434                      brge skip_pixel0
-000144 5093                      subi r25, 3
-000145 1719                      cp r17, r25
-000146 f40c                      brge pixel0
-000147 c002                      rjmp skip_pixel0
+                                 hor_line: // draws horizontal lines of zero
+00013e 1719                      cp r17, r25
+00013f f434                      brge skip_pixel0
+000140 5093                      subi r25, 3
+000141 1719                      cp r17, r25
+000142 f40c                      brge pixel0
+000143 c002                      rjmp skip_pixel0
                                  
-                                 pixel0:
-000148 e0b1                      ldi r27, 1
-000149 c001                      rjmp set_pixel_value0
+                                 pixel0: // sets r27 to 1 if pixel needs to be on (pixel drawing is done by drawing function
+000144 e0b1                      ldi r27, 1
+000145 c001                      rjmp set_pixel_value0
                                  skip_pixel0:
-00014a e0b2                      ldi r27, 2
+000146 e0b2                      ldi r27, 2 // make sure that r27 is not 1 if piwel has to be off
                                  set_pixel_value0:
-00014b 9518                      reti
+000147 9518                      reti
                                  
                                  // --------------------- ONE ----------------------------------
+                                 
+                                 // r26 is offset in column of screen
+                                 // r25 is used to calculate correct pixel positions based on r26
+                                 // r18 is used to check which row needs to be drawn
+                                 // r17 is used to check if selected column pixel matches one of the pixels that needs to be drawn for the number
+                                 
                                  draw_one:
-00014c 2f9a                      mov r25, r26
-00014d 5092                      subi r25, 2
-00014e 3022                      cpi r18, 2
-00014f f019                      breq part1_1
-000150 1719                      cp r17, r25
-000151 f039                      breq pixel1
-000152 c008                      rjmp skip_pixel1
+000148 2f9a                      mov r25, r26
+000149 5092                      subi r25, 2
+00014a 3022                      cpi r18, 2
+00014b f019                      breq part1_1
+00014c 1719                      cp r17, r25
+00014d f039                      breq pixel1
+00014e c008                      rjmp skip_pixel1
                                  
                                  part1_1:
-000153 1719                      cp r17, r25
-000154 f021                      breq pixel1
-000155 5091                      subi r25, 1
-000156 1719                      cp r17, r25
-000157 f009                      breq pixel1
-000158 c002                      rjmp skip_pixel1
+00014f 1719                      cp r17, r25
+000150 f021                      breq pixel1
+000151 5091                      subi r25, 1
+000152 1719                      cp r17, r25
+000153 f009                      breq pixel1
+000154 c002                      rjmp skip_pixel1
                                  
                                  pixel1:
-000159 e0b1                      ldi r27, 1
-00015a c001                      rjmp set_pixel_value1
+000155 e0b1                      ldi r27, 1 // sets r27 to 1 if pixel needs to be drawn (pixel drawing is done by drawing function
+000156 c001                      rjmp set_pixel_value1
                                  skip_pixel1:
-00015b e0b2                      ldi r27, 2
+000157 e0b2                      ldi r27, 2 // make sure that r27 is not 1 if piwel has to be off
                                  set_pixel_value1:
-00015c 9518                      reti
+000158 9518                      reti
                                  // --------------------- TWO ------------------------------------
+                                 
+                                 // r26 is offset in column of screen
+                                 // r25 is used to calculate correct pixel positions based on r26
+                                 // r18 is used to check which row needs to be drawn
+                                 // r17 is used to check if selected column pixel matches one of the pixels that needs to be drawn for the number
+                                 
                                  draw_two:
-00015d 2f9a                      mov r25, r26
-00015e 3021                      cpi r18, 1
-00015f f051                      breq topline2
-000160 3027                      cpi r18, 7
-000161 f071                      breq bottomline2
-000162 3024                      cpi r18, 4
-000163 f0e0                      brlo part2_1
-000164 3024                      cpi r18, 4
-000165 f091                      breq middleline2
+000159 2f9a                      mov r25, r26
+00015a 3021                      cpi r18, 1
+00015b f051                      breq topline2
+00015c 3027                      cpi r18, 7
+00015d f071                      breq bottomline2
+00015e 3024                      cpi r18, 4
+00015f f0e0                      brlo part2_1
+000160 3024                      cpi r18, 4
+000161 f091                      breq middleline2
                                  
                                  part2_2:
-000166 5094                      subi r25, 4
-000167 1719                      cp r17, r25
-000168 f0d1                      breq pixel2
-000169 c01b                      rjmp skip_pixel2
+000162 5094                      subi r25, 4
+000163 1719                      cp r17, r25
+000164 f0d1                      breq pixel2
+000165 c01b                      rjmp skip_pixel2
                                  
                                  topline2:
-00016a 1719                      cp r17, r25
-00016b f4cc                      brge skip_pixel2
-00016c 5094                      subi r25, 4
-00016d 1719                      cp r17, r25
-00016e f4a4                      brge pixel2
-00016f c015                      rjmp skip_pixel2
+000166 1719                      cp r17, r25
+000167 f4cc                      brge skip_pixel2
+000168 5094                      subi r25, 4
+000169 1719                      cp r17, r25
+00016a f4a4                      brge pixel2
+00016b c015                      rjmp skip_pixel2
                                  
                                  bottomline2:
-000170 e001                      ldi r16, 1
-000171 0f90                      add r25, r16
-000172 1719                      cp r17, r25
-000173 f48c                      brge skip_pixel2
-000174 5095                      subi r25, 5
-000175 1719                      cp r17, r25
-000176 f464                      brge pixel2
-000177 c00d                      rjmp skip_pixel2
+00016c e001                      ldi r16, 1
+00016d 0f90                      add r25, r16
+00016e 1719                      cp r17, r25
+00016f f48c                      brge skip_pixel2
+000170 5095                      subi r25, 5
+000171 1719                      cp r17, r25
+000172 f464                      brge pixel2
+000173 c00d                      rjmp skip_pixel2
                                  
                                  middleline2:
-000178 e001                      ldi r16, 1
-000179 0f90                      add r25, r16
-00017a 1719                      cp r17, r25
-00017b f44c                      brge skip_pixel2
-00017c 5094                      subi r25, 4
-00017d 1719                      cp r17, r25
-00017e f424                      brge pixel2
-00017f c005                      rjmp skip_pixel2
+000174 e001                      ldi r16, 1
+000175 0f90                      add r25, r16
+000176 1719                      cp r17, r25
+000177 f44c                      brge skip_pixel2
+000178 5094                      subi r25, 4
+000179 1719                      cp r17, r25
+00017a f424                      brge pixel2
+00017b c005                      rjmp skip_pixel2
                                  
                                  part2_1:
-000180 1719                      cp r17, r25
-000181 f009                      breq pixel2
-000182 c002                      rjmp skip_pixel2
+00017c 1719                      cp r17, r25
+00017d f009                      breq pixel2
+00017e c002                      rjmp skip_pixel2
                                  
                                  pixel2:
-000183 e0b1                      ldi r27, 1
-000184 c001                      rjmp set_pixel_value2
+00017f e0b1                      ldi r27, 1 // sets r27 to 1 if pixel needs to be drawn (pixel drawing is done by drawing function
+000180 c001                      rjmp set_pixel_value2
                                  skip_pixel2:
-000185 e0b2                      ldi r27, 2
+000181 e0b2                      ldi r27, 2 // make sure that r27 is not 1 if piwel has to be off
                                  set_pixel_value2:
-000186 9518                      reti
+000182 9518                      reti
                                  
                                  // ------------------ THREE -----------------------------------------
+                                 
+                                 // r26 is offset in column of screen
+                                 // r25 is used to calculate correct pixel positions based on r26
+                                 // r18 is used to check which row needs to be drawn
+                                 // r17 is used to check if selected column pixel matches one of the pixels that needs to be drawn for the number
+                                 
                                  draw_three:
-000187 2f9a                      mov r25, r26
-000188 3021                      cpi r18, 1
-000189 f039                      breq vert_3
-00018a 3024                      cpi r18, 4
-00018b f059                      breq vert_3_middle
-00018c 3027                      cpi r18, 7
-00018d f019                      breq vert_3
+000183 2f9a                      mov r25, r26
+000184 3021                      cpi r18, 1
+000185 f039                      breq vert_3
+000186 3024                      cpi r18, 4
+000187 f059                      breq vert_3_middle
+000188 3027                      cpi r18, 7
+000189 f019                      breq vert_3
                                  
                                  hor_3:
-00018e 1719                      cp r17, r25
-00018f f071                      breq pixel3
-000190 c00f                      rjmp skip_pixel3
+00018a 1719                      cp r17, r25
+00018b f071                      breq pixel3
+00018c c00f                      rjmp skip_pixel3
                                  
                                  vert_3:
-000191 1719                      cp r17, r25
-000192 f46c                      brge skip_pixel3
-000193 5094                      subi r25, 4
-000194 1719                      cp r17, r25
-000195 f444                      brge pixel3
-000196 c009                      rjmp skip_pixel3
+00018d 1719                      cp r17, r25
+00018e f46c                      brge skip_pixel3
+00018f 5094                      subi r25, 4
+000190 1719                      cp r17, r25
+000191 f444                      brge pixel3
+000192 c009                      rjmp skip_pixel3
                                  
                                  vert_3_middle:
+000193 1719                      cp r17, r25
+000194 f029                      breq pixel3
+000195 f434                      brge skip_pixel3
+000196 5094                      subi r25, 4
 000197 1719                      cp r17, r25
-000198 f029                      breq pixel3
-000199 f434                      brge skip_pixel3
-00019a 5094                      subi r25, 4
-00019b 1719                      cp r17, r25
-00019c f40c                      brge pixel3
-00019d c002                      rjmp skip_pixel3
+000198 f40c                      brge pixel3
+000199 c002                      rjmp skip_pixel3
                                  
                                  pixel3:
-00019e e0b1                      ldi r27, 1
-00019f c001                      rjmp set_pixel_value3
+00019a e0b1                      ldi r27, 1 // sets r27 to 1 if pixel needs to be drawn (pixel drawing is done by drawing function
+00019b c001                      rjmp set_pixel_value3
                                  skip_pixel3:
-0001a0 e0b2                      ldi r27, 2
+00019c e0b2                      ldi r27, 2 // make sure that r27 is not 1 if piwel has to be off
                                  set_pixel_value3:
-0001a1 9518                      reti
+00019d 9518                      reti
                                  
                                  // ----------------- FOUR -------------------------------------------
+                                 
+                                 // r26 is offset in column of screen
+                                 // r25 is used to calculate correct pixel positions based on r26
+                                 // r18 is used to check which row needs to be drawn
+                                 // r17 is used to check if selected column pixel matches one of the pixels that needs to be drawn for the number
+                                 
                                  draw_four:
-0001a2 2f9a                      mov r25, r26
-0001a3 3025                      cpi r18, 5
-0001a4 f444                      brge part1_4
-0001a5 3024                      cpi r18, 4
-0001a6 f051                      breq part2_4
-0001a7 3023                      cpi r18, 3
-0001a8 f071                      breq part3_4
+00019e 2f9a                      mov r25, r26
+00019f 3025                      cpi r18, 5
+0001a0 f444                      brge part1_4
+0001a1 3024                      cpi r18, 4
+0001a2 f051                      breq part2_4
+0001a3 3023                      cpi r18, 3
+0001a4 f071                      breq part3_4
                                  
                                  part4_4:
-0001a9 5094                      subi r25, 4
-0001aa 1719                      cp r17, r25
-0001ab f091                      breq pixel4
-0001ac c013                      rjmp skip_pixel4
+0001a5 5094                      subi r25, 4
+0001a6 1719                      cp r17, r25
+0001a7 f091                      breq pixel4
+0001a8 c013                      rjmp skip_pixel4
                                  
                                  part1_4:
-0001ad 5092                      subi r25, 2
-0001ae 1719                      cp r17, r25
-0001af f071                      breq pixel4
-0001b0 c00f                      rjmp skip_pixel4
+0001a9 5092                      subi r25, 2
+0001aa 1719                      cp r17, r25
+0001ab f071                      breq pixel4
+0001ac c00f                      rjmp skip_pixel4
                                  
                                  part2_4:
-0001b1 1719                      cp r17, r25
-0001b2 f46c                      brge skip_pixel4
-0001b3 5094                      subi r25, 4
-0001b4 1719                      cp r17, r25
-0001b5 f444                      brge pixel4
-0001b6 c009                      rjmp skip_pixel4
+0001ad 1719                      cp r17, r25
+0001ae f46c                      brge skip_pixel4
+0001af 5094                      subi r25, 4
+0001b0 1719                      cp r17, r25
+0001b1 f444                      brge pixel4
+0001b2 c009                      rjmp skip_pixel4
                                  
                                  part3_4:
-0001b7 5092                      subi r25, 2
-0001b8 1719                      cp r17, r25
-0001b9 f021                      breq pixel4
-0001ba 5092                      subi r25, 2
-0001bb 1719                      cp r17, r25
-0001bc f009                      breq pixel4
-0001bd c002                      rjmp skip_pixel4
+0001b3 5092                      subi r25, 2
+0001b4 1719                      cp r17, r25
+0001b5 f021                      breq pixel4
+0001b6 5092                      subi r25, 2
+0001b7 1719                      cp r17, r25
+0001b8 f009                      breq pixel4
+0001b9 c002                      rjmp skip_pixel4
                                  
                                  
                                  pixel4:
-0001be e0b1                      ldi r27, 1
-0001bf c001                      rjmp set_pixel_value4
+0001ba e0b1                      ldi r27, 1 // sets r27 to 1 if pixel needs to be drawn (pixel drawing is done by drawing function
+0001bb c001                      rjmp set_pixel_value4
                                  skip_pixel4:
-0001c0 e0b2                      ldi r27, 2
+0001bc e0b2                      ldi r27, 2 // make sure that r27 is not 1 if piwel has to be off
                                  set_pixel_value4:
-0001c1 9518                      reti
+0001bd 9518                      reti
                                  
                                  // ----------------- FIVE ------------------------------------------
+                                 
+                                 // r26 is offset in column of screen
+                                 // r25 is used to calculate correct pixel positions based on r26
+                                 // r18 is used to check which row needs to be drawn
+                                 // r17 is used to check if selected column pixel matches one of the pixels that needs to be drawn for the number
+                                 
                                  draw_five:
-0001c2 2f9a                      mov r25, r26
-0001c3 3021                      cpi r18, 1
-0001c4 f049                      breq topline5
-0001c5 3024                      cpi r18, 4
-0001c6 f0a8                      brlo part1_5
-0001c7 3024                      cpi r18, 4
-0001c8 f069                      breq middleline5
-0001c9 3027                      cpi r18, 7
-0001ca f059                      breq middleline5
+0001be 2f9a                      mov r25, r26
+0001bf 3021                      cpi r18, 1
+0001c0 f049                      breq topline5
+0001c1 3024                      cpi r18, 4
+0001c2 f0a8                      brlo part1_5
+0001c3 3024                      cpi r18, 4
+0001c4 f069                      breq middleline5
+0001c5 3027                      cpi r18, 7
+0001c6 f059                      breq middleline5
                                  
                                  part2_5:
-0001cb 1719                      cp r17, r25
-0001cc f099                      breq pixel5
-0001cd c014                      rjmp skip_pixel5
+0001c7 1719                      cp r17, r25
+0001c8 f099                      breq pixel5
+0001c9 c014                      rjmp skip_pixel5
                                  
                                  topline5:
-0001ce 1719                      cp r17, r25
-0001cf f081                      breq pixel5
-0001d0 1719                      cp r17, r25
-0001d1 f484                      brge skip_pixel5
-0001d2 5094                      subi r25, 4
-0001d3 1719                      cp r17, r25
-0001d4 f45c                      brge pixel5
-0001d5 c00c                      rjmp skip_pixel5
+0001ca 1719                      cp r17, r25
+0001cb f081                      breq pixel5
+0001cc 1719                      cp r17, r25
+0001cd f484                      brge skip_pixel5
+0001ce 5094                      subi r25, 4
+0001cf 1719                      cp r17, r25
+0001d0 f45c                      brge pixel5
+0001d1 c00c                      rjmp skip_pixel5
                                  
                                  middleline5:
-0001d6 1719                      cp r17, r25
-0001d7 f454                      brge skip_pixel5
-0001d8 5094                      subi r25, 4
-0001d9 1719                      cp r17, r25
-0001da f42c                      brge pixel5
-0001db c006                      rjmp skip_pixel5
+0001d2 1719                      cp r17, r25
+0001d3 f454                      brge skip_pixel5
+0001d4 5094                      subi r25, 4
+0001d5 1719                      cp r17, r25
+0001d6 f42c                      brge pixel5
+0001d7 c006                      rjmp skip_pixel5
                                  
                                  part1_5:
-0001dc 5094                      subi r25, 4
-0001dd 1719                      cp r17, r25
-0001de f009                      breq pixel5
-0001df c002                      rjmp skip_pixel5
+0001d8 5094                      subi r25, 4
+0001d9 1719                      cp r17, r25
+0001da f009                      breq pixel5
+0001db c002                      rjmp skip_pixel5
                                  
                                  pixel5:
-0001e0 e0b1                      ldi r27, 1
-0001e1 c001                      rjmp set_pixel_value5
+0001dc e0b1                      ldi r27, 1 // sets r27 to 1 if pixel needs to be drawn (pixel drawing is done by drawing function
+0001dd c001                      rjmp set_pixel_value5
                                  skip_pixel5:
-0001e2 e0b2                      ldi r27, 2
+0001de e0b2                      ldi r27, 2 // make sure that r27 is not 1 if piwel has to be off
                                  set_pixel_value5:
-0001e3 9518                      reti
+0001df 9518                      reti
                                  
                                  // ------------------ SIX ---------------------------------------------
+                                 
+                                 // r26 is offset in column of screen
+                                 // r25 is used to calculate correct pixel positions based on r26
+                                 // r18 is used to check which row needs to be drawn
+                                 // r17 is used to check if selected column pixel matches one of the pixels that needs to be drawn for the number
+                                 
                                  draw_six:
-0001e4 2f9a                      mov r25, r26
-0001e5 3021                      cpi r18, 1
-0001e6 f081                      breq horiz_6
-0001e7 3024                      cpi r18, 4
-0001e8 f0a1                      breq horizmiddle_6
-0001e9 3027                      cpi r18, 7
-0001ea f061                      breq horiz_6
-0001eb 3025                      cpi r18, 5
-0001ec f030                      brlo vert1_6
+0001e0 2f9a                      mov r25, r26
+0001e1 3021                      cpi r18, 1
+0001e2 f081                      breq horiz_6
+0001e3 3024                      cpi r18, 4
+0001e4 f0a1                      breq horizmiddle_6
+0001e5 3027                      cpi r18, 7
+0001e6 f061                      breq horiz_6
+0001e7 3025                      cpi r18, 5
+0001e8 f030                      brlo vert1_6
                                  
                                  vert2_6:
-0001ed 1719                      cp r17, r25
-0001ee f0a1                      breq pixel6
-0001ef 5094                      subi r25, 4
-0001f0 1719                      cp r17, r25
-0001f1 f089                      breq pixel6
-0001f2 c012                      rjmp skip_pixel6
+0001e9 1719                      cp r17, r25
+0001ea f0a1                      breq pixel6
+0001eb 5094                      subi r25, 4
+0001ec 1719                      cp r17, r25
+0001ed f089                      breq pixel6
+0001ee c012                      rjmp skip_pixel6
                                  
                                  vert1_6:
-0001f3 5094                      subi r25, 4
-0001f4 1719                      cp r17, r25
-0001f5 f069                      breq pixel6
-0001f6 c00e                      rjmp skip_pixel6
+0001ef 5094                      subi r25, 4
+0001f0 1719                      cp r17, r25
+0001f1 f069                      breq pixel6
+0001f2 c00e                      rjmp skip_pixel6
                                  
                                  horiz_6:
-0001f7 1719                      cp r17, r25
-0001f8 f464                      brge skip_pixel6
-0001f9 5093                      subi r25, 3
-0001fa 1719                      cp r17, r25
-0001fb f43c                      brge pixel6
-0001fc c008                      rjmp skip_pixel6
+0001f3 1719                      cp r17, r25
+0001f4 f464                      brge skip_pixel6
+0001f5 5093                      subi r25, 3
+0001f6 1719                      cp r17, r25
+0001f7 f43c                      brge pixel6
+0001f8 c008                      rjmp skip_pixel6
                                  
                                  horizmiddle_6:
-0001fd 1719                      cp r17, r25
-0001fe f434                      brge skip_pixel6
-0001ff 5094                      subi r25, 4
-000200 1719                      cp r17, r25
-000201 f40c                      brge pixel6
-000202 c002                      rjmp skip_pixel6
+0001f9 1719                      cp r17, r25
+0001fa f434                      brge skip_pixel6
+0001fb 5094                      subi r25, 4
+0001fc 1719                      cp r17, r25
+0001fd f40c                      brge pixel6
+0001fe c002                      rjmp skip_pixel6
                                  
                                  
                                  pixel6:
-000203 e0b1                      ldi r27, 1
-000204 c001                      rjmp set_pixel_value6
+0001ff e0b1                      ldi r27, 1 // sets r27 to 1 if pixel needs to be drawn (pixel drawing is done by drawing function
+000200 c001                      rjmp set_pixel_value6
                                  skip_pixel6:
-000205 e0b2                      ldi r27, 2
+000201 e0b2                      ldi r27, 2 // make sure that r27 is not 1 if piwel has to be off
                                  set_pixel_value6:
-000206 9518                      reti
+000202 9518                      reti
                                  // ------------------- SEVEN --------------------------------------------
+                                 
+                                 // r26 is offset in column of screen
+                                 // r25 is used to calculate correct pixel positions based on r26
+                                 // r18 is used to check which row needs to be drawn
+                                 // r17 is used to check if selected column pixel matches one of the pixels that needs to be drawn for the number
+                                 
                                  draw_seven:
-000207 2f9a                      mov r25, r26
-000208 3021                      cpi r18, 1
-000209 f041                      breq top7
-00020a 3022                      cpi r18, 2
-00020b f069                      breq part6_7
-00020c 3024                      cpi r18, 4
-00020d f070                      brlo part5_7
+000203 2f9a                      mov r25, r26
+000204 3021                      cpi r18, 1
+000205 f041                      breq top7
+000206 3022                      cpi r18, 2
+000207 f069                      breq part6_7
+000208 3024                      cpi r18, 4
+000209 f070                      brlo part5_7
                                  
                                  part4_7:
-00020e 5092                      subi r25, 2
-00020f 1719                      cp r17, r25
-000210 f079                      breq pixel7
-000211 c010                      rjmp skip_pixel7
+00020a 5092                      subi r25, 2
+00020b 1719                      cp r17, r25
+00020c f079                      breq pixel7
+00020d c010                      rjmp skip_pixel7
                                  
                                  top7:
+00020e 1719                      cp r17, r25
+00020f f061                      breq pixel7
+000210 f46c                      brge skip_pixel7
+000211 5094                      subi r25, 4
 000212 1719                      cp r17, r25
-000213 f061                      breq pixel7
-000214 f46c                      brge skip_pixel7
-000215 5094                      subi r25, 4
-000216 1719                      cp r17, r25
-000217 f444                      brge pixel7
-000218 c009                      rjmp skip_pixel7
+000213 f444                      brge pixel7
+000214 c009                      rjmp skip_pixel7
                                  
                                  part6_7:
-000219 1719                      cp r17, r25
-00021a f029                      breq pixel7
-00021b c006                      rjmp skip_pixel7
+000215 1719                      cp r17, r25
+000216 f029                      breq pixel7
+000217 c006                      rjmp skip_pixel7
                                  
                                  part5_7:
-00021c 5091                      subi r25, 1
-00021d 1719                      cp r17, r25
-00021e f009                      breq pixel7
-00021f c002                      rjmp skip_pixel7
+000218 5091                      subi r25, 1
+000219 1719                      cp r17, r25
+00021a f009                      breq pixel7
+00021b c002                      rjmp skip_pixel7
                                  
                                  pixel7:
-000220 e0b1                      ldi r27, 1
-000221 c001                      rjmp set_pixel_value7
+00021c e0b1                      ldi r27, 1 // sets r27 to 1 if pixel needs to be drawn (pixel drawing is done by drawing function
+00021d c001                      rjmp set_pixel_value7
                                  skip_pixel7:
-000222 e0b2                      ldi r27, 2
+00021e e0b2                      ldi r27, 2 // make sure that r27 is not 1 if piwel has to be off
                                  set_pixel_value7:
-000223 9518                      reti
+00021f 9518                      reti
                                  
                                  // ---------------------- EIGHT ----------------------------------------
+                                 
+                                 // r26 is offset in column of screen
+                                 // r25 is used to calculate correct pixel positions based on r26
+                                 // r18 is used to check which row needs to be drawn
+                                 // r17 is used to check if selected column pixel matches one of the pixels that needs to be drawn for the number
+                                 
                                  draw_eight:
-000224 2f9a                      mov r25, r26
-000225 3021                      cpi r18, 1
-000226 f051                      breq horiz_8
-000227 3027                      cpi r18, 7
-000228 f041                      breq horiz_8
-000229 3024                      cpi r18, 4
-00022a f031                      breq horiz_8
+000220 2f9a                      mov r25, r26
+000221 3021                      cpi r18, 1
+000222 f051                      breq horiz_8
+000223 3027                      cpi r18, 7
+000224 f041                      breq horiz_8
+000225 3024                      cpi r18, 4
+000226 f031                      breq horiz_8
                                  
                                  vert_8:
-00022b 1719                      cp r17, r25
-00022c f051                      breq pixel8
-00022d 5094                      subi r25, 4
-00022e 1719                      cp r17, r25
-00022f f039                      breq pixel8
-000230 c008                      rjmp skip_pixel8
+000227 1719                      cp r17, r25
+000228 f051                      breq pixel8
+000229 5094                      subi r25, 4
+00022a 1719                      cp r17, r25
+00022b f039                      breq pixel8
+00022c c008                      rjmp skip_pixel8
                                  
                                  horiz_8:
-000231 1719                      cp r17, r25
-000232 f434                      brge skip_pixel8
-000233 5093                      subi r25, 3
-000234 1719                      cp r17, r25
-000235 f40c                      brge pixel8
-000236 c002                      rjmp skip_pixel8
+00022d 1719                      cp r17, r25
+00022e f434                      brge skip_pixel8
+00022f 5093                      subi r25, 3
+000230 1719                      cp r17, r25
+000231 f40c                      brge pixel8
+000232 c002                      rjmp skip_pixel8
                                  
                                  pixel8:
-000237 e0b1                      ldi r27, 1
-000238 c001                      rjmp set_pixel_value8
+000233 e0b1                      ldi r27, 1 // sets r27 to 1 if pixel needs to be drawn (pixel drawing is done by drawing function
+000234 c001                      rjmp set_pixel_value8
                                  skip_pixel8:
-000239 e0b2                      ldi r27, 2
+000235 e0b2                      ldi r27, 2 // make sure that r27 is not 1 if piwel has to be off
                                  set_pixel_value8:
-00023a 9518                      reti
+000236 9518                      reti
                                  
                                  // ---------------------- NINE ---------------------------------------
-                                 draw_nine:
                                  
-00023b 2f9a                      mov r25, r26
-00023c 3021                      cpi r18, 1
-00023d f089                      breq horiz_9
-00023e 3027                      cpi r18, 7
-00023f f079                      breq horiz_9
-000240 3024                      cpi r18, 4
-000241 f099                      breq horiz_middle_9
-000242 3025                      cpi r18, 5
-000243 f028                      brlo vert_top_9
-000244 3026                      cpi r18, 6
-000245 f019                      breq vert_top_9
+                                 // r26 is offset in column of screen
+                                 // r25 is used to calculate correct pixel positions based on r26
+                                 // r18 is used to check which row needs to be drawn
+                                 // r17 is used to check if selected column pixel matches one of the pixels that needs to be drawn for the number
+                                 
+                                 draw_nine:
+000237 2f9a                      mov r25, r26
+000238 3021                      cpi r18, 1
+000239 f089                      breq horiz_9
+00023a 3027                      cpi r18, 7
+00023b f079                      breq horiz_9
+00023c 3024                      cpi r18, 4
+00023d f099                      breq horiz_middle_9
+00023e 3025                      cpi r18, 5
+00023f f028                      brlo vert_top_9
+000240 3026                      cpi r18, 6
+000241 f019                      breq vert_top_9
                                  
                                  vert_bottom_9:
-000246 1719                      cp r17, r25
-000247 f0a1                      breq pixel9
-000248 c015                      rjmp skip_pixel9
+000242 1719                      cp r17, r25
+000243 f0a1                      breq pixel9
+000244 c015                      rjmp skip_pixel9
                                  
                                  vert_top_9:
-000249 1719                      cp r17, r25
-00024a f089                      breq pixel9
-00024b 5094                      subi r25, 4
-00024c 1719                      cp r17, r25
-00024d f071                      breq pixel9
-00024e c00f                      rjmp skip_pixel9
+000245 1719                      cp r17, r25
+000246 f089                      breq pixel9
+000247 5094                      subi r25, 4
+000248 1719                      cp r17, r25
+000249 f071                      breq pixel9
+00024a c00f                      rjmp skip_pixel9
                                  
                                  horiz_9:
-00024f 1719                      cp r17, r25
-000250 f46c                      brge skip_pixel9
-000251 5093                      subi r25, 3
-000252 1719                      cp r17, r25
-000253 f444                      brge pixel9
-000254 c009                      rjmp skip_pixel9
+00024b 1719                      cp r17, r25
+00024c f46c                      brge skip_pixel9
+00024d 5093                      subi r25, 3
+00024e 1719                      cp r17, r25
+00024f f444                      brge pixel9
+000250 c009                      rjmp skip_pixel9
                                  
                                  horiz_middle_9:
+000251 1719                      cp r17, r25
+000252 f029                      breq pixel9
+000253 f434                      brge skip_pixel9
+000254 5093                      subi r25, 3
 000255 1719                      cp r17, r25
-000256 f029                      breq pixel9
-000257 f434                      brge skip_pixel9
-000258 5093                      subi r25, 3
-000259 1719                      cp r17, r25
-00025a f40c                      brge pixel9
-00025b c002                      rjmp skip_pixel9
+000256 f40c                      brge pixel9
+000257 c002                      rjmp skip_pixel9
                                  
                                  
                                  pixel9:
-00025c e0b1                      ldi r27, 1
-00025d c001                      rjmp set_pixel_value9
+000258 e0b1                      ldi r27, 1 // sets r27 to 1 if pixel needs to be drawn (pixel drawing is done by drawing function
+000259 c001                      rjmp set_pixel_value9
                                  skip_pixel9:
-00025e e0b2                      ldi r27, 2
+00025a e0b2                      ldi r27, 2 // make sure that r27 is not 1 if piwel has to be off
                                  set_pixel_value9:
-00025f 9518                      reti
+00025b 9518                      reti
                                  	
                                  // -------------- GET HERZ VALUE FROM REGISTER -----------------
                                  
-                                 		//how to get get frequency:
-                                 		// f_clk = 16 Mhz/ 256 = 62500 Hz
-                                 		// f_buzzer = f_clk/r20
+                                 //how to get get frequency:
+                                 // f_clk = 16 Mhz/ 256 = 62500 Hz
+                                 // f_buzzer = f_clk/r20
                                  
-                                 get_hertz:
+                                 // THIS SECTION NEEDS LOTS OF CYCLES TO CALCULATE FREQUENCY -> LEADS TO SCREEN FLICKER AND BRIGHT TOP LINE OF SCREEN
+                                 // note no substraction/addition using words since no K only r23
+                                 
+                                 get_hertz: // tranforms register r20 value into frequency
                                  
                                  
-000260 e070                      ldi r23, 0
-000261 e080                      ldi r24, 0
-000262 3040                      cpi r20, 0
-000263 f119                      breq end_Hz
+00025c e080                      ldi r24, 0 // r25:r24 is where frequency result is stored
+00025d e090                      ldi r25, 0 
+00025e 3040                      cpi r20, 0 // no need to do conversion if r20 is zero (is set to zero if button is not pressed)
+00025f f101                      breq end_Hz
                                  
-000264 e76a                      ldi r22, 0b01111010 ; 62500/2 = 31250
+000260 e76a                      ldi r22, 0b01111010 ; 62500/2 = 31250 stored in r22:r21
+000261 e152                      ldi r21, 0b00010010
                                  ;ldi r22, 0b00000001 ; reduced for better display performance
-000265 e152                      ldi r21, 0b00010010
-000266 2f74                      mov r23, r20
-000267 9570                      com r23
-000268 e090                      ldi r25, 0
-000269 e0a0                      ldi r26, 0
-00026a e0b1                      ldi r27, 1
+000262 2f74                      mov r23, r20 // copy r20 to r23
+000263 9570                      com r23 // 255 - r23
+000264 e0a0                      ldi r26, 0 // used as flag
+000265 e0b1                      ldi r27, 1 // used as counter
                                  
+                                 // loop used to speed up calculation process (might lose accuracy in calculation)
                                  faster_loop:
-00026b 1767                      cp r22, r23
-00026c f040                      brlo devision_loop
-00026d 1b67                      sub r22, r23
-00026e 9593                      inc r25
-00026f cffb                      rjmp faster_loop
+000266 1767                      cp r22, r23 // r22 < r23 skip this loop
+000267 f040                      brlo devision_loop
+000268 1b67                      sub r22, r23 // substract r23 from r22
+000269 9593                      inc r25 // increase r25 immediantly instead of r24
+00026a cffb                      rjmp faster_loop
                                  
+                                 // another loop used to speed up calculation process (might lose accuracy in calculation)
                                  faster_calc:
-000270 3470                      cpi r23, 0b01000000
-000271 f41c                      brge devision_loop
-000272 0f77                      lsl r23
-000273 0fbb                      lsl r27
-000274 cffb                      rjmp faster_calc
+00026b 3470                      cpi r23, 0b01000000 // keep shifting r23 to left as long as it is smaller then 0b01000000
+00026c f41c                      brge devision_loop
+00026d 0f77                      lsl r23
+00026e 0fbb                      lsl r27 // also left shift r27 such that correct amount is added to r24
+00026f cffb                      rjmp faster_calc
                                  
                                  devision_loop:
-000275 3060                      cpi r22, 0
-000276 f061                      breq maybe_done
+000270 3060                      cpi r22, 0 // check r22 in r22:21. It should be zero to say loop is done since r23 is only 8 bits and r22 contains 8 MSB from r22:r21
+000271 f061                      breq maybe_done // it is not necessarly done if only r22 is zero
                                  not_done:
-000277 1b57                      sub r21, r23
-000278 f020                      brcs sub_from_r22
-                                 done_subbing:
-000279 9488                      clc
-00027a 0f8b                      add r24, r27
-00027b f028                      brcs add_to_r25
+000272 1b57                      sub r21, r23 // keep substracting r23 from r21
+000273 f020                      brcs sub_from_r22 // if carry flag is set, also substract 1 from r22
+                                 done_subbing: 
+000274 9488                      clc
+000275 0f8b                      add r24, r27 // add r27 to r24 since r24 contains how many times r23 fits in r22:r21
+000276 f028                      brcs add_to_r25 // if carry flag is set add 1 to r25 since frequency result is stored in r25:r24
                                  done_adding:
-00027c cff8                      rjmp devision_loop
+000277 cff8                      rjmp devision_loop // keep looping
                                  
-                                 sub_from_r22:
-00027d 30a1                      cpi r26, 1
-00027e f031                      breq done
-00027f 956a                      dec r22
-000280 cff8                      rjmp done_subbing
+                                 sub_from_r22: // if carry flag is set, substract 1 from r22
+000278 30a1                      cpi r26, 1 // if carry flag is set and r26 = 1 (means that r22 is 0) calculaton is done
+000279 f031                      breq done
+00027a 956a                      dec r22 // sub 1 from r22
+00027b cff8                      rjmp done_subbing // jump back to main loop when substration is done
                                  
-                                 add_to_r25:
-000281 9593                      inc r25
-000282 cff9                      rjmp done_adding
+                                 add_to_r25: // if carry flag is set add 1 to r25 since frequency result is stored in r25:r24
+00027c 9593                      inc r25
+00027d cff9                      rjmp done_adding // jump back to main loop
                                  
-                                 maybe_done:
-000283 e0a1                      ldi r26, 1
-000284 cff2                      rjmp not_done
+                                 maybe_done: // if r22 is zero set r26 to 1
+00027e e0a1                      ldi r26, 1 // r26 axts as a flag here
+00027f cff2                      rjmp not_done
                                  
                                  done:
-000285 2f68                      mov r22, r24
-000286 2f79                      mov r23, r25
                                  
+                                 //this part shifts the result to the left if a simplefied version if 62500 is used
                                  /*ldi r26, 8 // comment this section if working with real value of 62500
                                  ldi r25, 1
                                  shifts:
@@ -1972,48 +2039,43 @@ D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\The
                                  rjmp shifts*/
                                  
                                  end_Hz:
-                                 
-000287 9518                      reti
+000280 9518                      reti
                                  
                                  
                                  // ------------ TIMER INTERRUPT ----------------------------
                                  TIM0_OVF_ISR:
-000288 9858                      	CBI PORTD, 0 //check row 0
-000289 9a59                      	SBI PORTD, 1
-00028a 9a5a                      	SBI PORTD, 2
-00028b 9a5b                      	SBI PORTD, 3
-00028c 9b4c                      		SBIS PIND, 4
-00028d c002                      		rjmp output_C
-00028e 9a43                      		sbi portc, 3
-00028f 9518                      	reti
+                                 	// checks just row 0 since only button C is used
+000281 9858                      	CBI PORTD, 0 //check row 0
+000282 9a59                      	SBI PORTD, 1
+000283 9a5a                      	SBI PORTD, 2
+000284 9a5b                      	SBI PORTD, 3
+000285 9b4c                      		SBIS PIND, 4 // if C is pressed, jump to output_C
+000286 c002                      		rjmp output_C
+000287 9a43                      		sbi portc, 3 // turn led off if C is not pressed
+000288 9518                      	reti
                                  
                                  	output_C:
-000290 9843                      	CBI portc, 3
-                                 		
-000291 bd46                      	out TCNT0, R20
-000292 9a19                      	SBI PINB, 1
-000293 9518                      	reti
+000289 9843                      	CBI portc, 3 // turn led on if C is pressed
+00028a bd46                      	out TCNT0, R20 // set value of buzzer
+00028b 9a19                      	SBI PINB, 1 // make buzzer go bzzzzzzzzzzzz
+00028c 9518                      	reti
                                  
                                  // --------------------- ADC CONVERSION INTERRUPT ---------------------
                                  
-                                 ADC_COMPLETE:
-                                 /*	CBI PORTC, 3 ;led 3 on
-                                 	CBI PORTC, 2 ; led 2 on*/
+                                 ADC_COMPLETE: // runs if conversion is done
+                                 	// checks just row 0 since only button C is used
+00028d 9858                      	CBI PORTD, 0 //check row 0
+00028e 9a59                      	SBI PORTD, 1
+00028f 9a5a                      	SBI PORTD, 2
+000290 9a5b                      	SBI PORTD, 3
+000291 9b4c                      		SBIS PIND, 4  // if C is pressed, jump to output_C_ADC
+000292 c002                      		rjmp output_C_ADC
                                  
-000294 9858                      	CBI PORTD, 0 //check row 0
-000295 9a59                      	SBI PORTD, 1
-000296 9a5a                      	SBI PORTD, 2
-000297 9a5b                      	SBI PORTD, 3
-000298 9b4c                      		SBIS PIND, 4
-000299 c003                      		rjmp output_C_ADC
-00029a 9a43                      		sbi portc, 3
-                                 
-00029b e040                      	ldi r20, 0
-00029c 9518                      	reti
-                                 	output_C_ADC:
-00029d 9843                      	CBI portc, 3
-00029e 9140 0078                 	lds r20, ADCL
-0002a0 9140 0079                 	lds r20, ADCH
+000293 e040                      	ldi r20, 0 // if C is not pressed, load 0 in register 0 (displays 0000 HZ on screen then)
+000294 9518                      	reti
+                                 	output_C_ADC: // load new value from ADC in register r20 to determine buzzer frequency
+                                 	//lds r20, ADCL
+000295 9140 0079                 	lds r20, ADCH
                                  
                                  	
                                  	
@@ -2039,27 +2101,27 @@ counted separately from r26..r31 here.
 "ATmega328P" register use summary:
 x  :   0 y  :   0 z  :   0 r0 :   0 r1 :   0 r2 :   0 r3 :   0 r4 :   0 
 r5 :   0 r6 :   0 r7 :   0 r8 :   0 r9 :   0 r10:   0 r11:   0 r12:   0 
-r13:   0 r14:   0 r15:   0 r16:  22 r17:  78 r18:  42 r19:   2 r20:   8 
-r21:  16 r22:  12 r23:  15 r24:   6 r25: 102 r26:  17 r27:  27 r28:   3 
+r13:   0 r14:   0 r15:   0 r16:  22 r17:  78 r18:  41 r19:   1 r20:   7 
+r21:  16 r22:   8 r23:  12 r24:   6 r25: 102 r26:  17 r27:  27 r28:   3 
 r29:   0 r30:  15 r31:   4 
 Registers used: 15 out of 35 (42.9%)
 
 "ATmega328P" instruction use summary:
-.lds  :   0 .sts  :   0 adc   :   0 add   :   4 adiw  :   3 and   :   0 
+.lds  :   0 .sts  :   0 adc   :   0 add   :   3 adiw  :   4 and   :   0 
 andi  :   0 asr   :   0 bclr  :   0 bld   :   0 brbc  :   0 brbs  :   0 
 brcc  :   0 brcs  :   2 break :   0 breq  :  91 brge  :  36 brhc  :   0 
 brhs  :   0 brid  :   0 brie  :   0 brlo  :  11 brlt  :   0 brmi  :   0 
 brne  :   8 brpl  :   0 brsh  :   0 brtc  :   0 brts  :   0 brvc  :   0 
-brvs  :   0 bset  :   0 bst   :   0 call  :  16 cbi   :  17 cbr   :   0 
+brvs  :   0 bset  :   0 bst   :   0 call  :  16 cbi   :  15 cbr   :   0 
 clc   :   1 clh   :   0 cli   :   0 cln   :   0 clr   :   0 cls   :   0 
 clt   :   0 clv   :   0 clz   :   0 com   :   1 cp    :  58 cpc   :   0 
 cpi   :  80 cpse  :   0 dec   :   6 eor   :   0 fmul  :   0 fmuls :   0 
 fmulsu:   0 icall :   0 ijmp  :   0 in    :   0 inc   :   6 jmp   :   0 
-ld    :   0 ldd   :   0 ldi   :  54 lds   :   2 lpm   :   0 lsl   :   2 
-lsr   :   0 mov   :  20 movw  :   0 mul   :   0 muls  :   0 mulsu :   0 
+ld    :   0 ldd   :   0 ldi   :  52 lds   :   1 lpm   :   0 lsl   :   2 
+lsr   :   0 mov   :  17 movw  :   0 mul   :   0 muls  :   0 mulsu :   0 
 neg   :   0 nop   :   0 or    :   0 ori   :   0 out   :   4 pop   :   0 
 push  :   0 rcall :   0 ret   :   0 reti  :  27 rjmp  :  72 rol   :   0 
-ror   :   0 sbc   :   0 sbci  :   0 sbi   :  41 sbic  :   0 sbis  :   2 
+ror   :   0 sbc   :   0 sbci  :   0 sbi   :  39 sbic  :   0 sbis  :   2 
 sbiw  :   4 sbr   :   0 sbrc  :   0 sbrs  :   0 sec   :   0 seh   :   0 
 sei   :   1 sen   :   0 ser   :   0 ses   :   0 set   :   0 sev   :   0 
 sez   :   0 sleep :   0 spm   :   0 st    :   0 std   :   0 sts   :   7 
@@ -2069,7 +2131,7 @@ Instructions used: 29 out of 113 (25.7%)
 "ATmega328P" memory use summary [bytes]:
 Segment   Begin    End      Code   Data   Used    Size   Use%
 ---------------------------------------------------------------
-[.cseg] 0x000000 0x000546   1270      0   1270   32768   3.9%
+[.cseg] 0x000000 0x000530   1248      0   1248   32768   3.8%
 [.dseg] 0x000100 0x000100      0      0      0    2048   0.0%
 [.eseg] 0x000000 0x000000      0      0      0    1024   0.0%
 
