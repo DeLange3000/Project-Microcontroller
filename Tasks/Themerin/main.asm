@@ -20,8 +20,10 @@
 ; constants
 
 ;Boot code
-.org 0x000 rjmp init
+.org 0x0000 rjmp init //ORDER IS IMPORTANT (smallest adress first)	A
+.org 0x001A rjmp TIM1_OVF
 .org 0x0020 rjmp TIM0_OVF_ISR
+
 
 
 ; Interrupt address vectors
@@ -95,11 +97,26 @@ init:
 	out TCNT0, R21
 
 	ldi r16, 0b00000011
-	out TCCR0B,r16 ; Timer clock = system clock / 256
+	out TCCR0B,r16 ; Timer clock = system clock / 64
 	ldi r16,1<<TOV0
 	out TIFR0,r16 ; Clear TOV0/ Clear pending interrupts
 	ldi r16,1<<TOIE0
 	sts TIMSK0,r16 ; Enable Timer/Counter0 Overflow Interrupt
+
+	// timer1 setup (used to refresh screen)
+	// only overflow is used
+	ldi r16, 0xEF; register 21 controls frequency
+	sts TCNT1H, r16
+	ldi r16, 0xFF
+	sts TCNT1L, r16
+	ldi r16, 0b00000101
+	sts TCCR1B,r16 ; Timer clock = system clock / 1024
+	ldi r16,1<<TOV1
+	sts TIFR1,r16 ; Clear TOV1/ Clear pending interrupts
+	ldi r16,1<<TOIE1
+	sts TIMSK1,r16 ; Enable Timer/Counter1 Overflow Interrupt
+
+
 
 	// ADC setup
 	ldi r16, 0b11111111
@@ -123,7 +140,10 @@ init:
 
 	SEI ; enable interrupts
 	ldi r20, 0
+	ldi r23, 1
 	rjmp main
+
+// used global registers: r20, r21, r23
 
 main:
 // ------------------ DISPLAY --------------------------
@@ -308,4 +328,19 @@ TIM0_OVF_ISR:
 	cbi portc, 3
 	out TCNT0, R21 // set value of buzzer
 	SBI PINB, 1 // make buzzer go bzzzzzzzzzzzz
+	reti
+
+TIM1_OVF: // higher r22 => faster
+	ldi r22, 0xDF
+	sts TCNT1H, r22
+	ldi r22, 0xFF
+	sts TCNT1L, r22
+	subi r23, 1
+	cpi r23, 0
+	breq LED2_on
+	sbi portc, 2
+	reti
+	LED2_on:
+	ldi r23, 2
+	cbi portc, 2
 	reti

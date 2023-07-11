@@ -1,5 +1,5 @@
 
-AVRASM ver. 2.2.8  D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm Tue Jul 11 19:07:30 2023
+AVRASM ver. 2.2.8  D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm Tue Jul 11 20:26:40 2023
 
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328Pdef.inc'
 D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm(16): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328pdef.inc'
@@ -1051,8 +1051,10 @@ D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\The
                                  ; constants
                                  
                                  ;Boot code
-000000 c020                      .org 0x000 rjmp init
-000020 c0a8                      .org 0x0020 rjmp TIM0_OVF_ISR
+000000 c020                      .org 0x0000 rjmp init //ORDER IS IMPORTANT (smallest adress first)	A
+00001a c0ca                      .org 0x001A rjmp TIM1_OVF
+000020 c0b8                      .org 0x0020 rjmp TIM0_OVF_ISR
+                                 
                                  
                                  
                                  ; Interrupt address vectors
@@ -1126,73 +1128,91 @@ D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\The
 000040 bd56                      	out TCNT0, R21
                                  
 000041 e003                      	ldi r16, 0b00000011
-000042 bd05                      	out TCCR0B,r16 ; Timer clock = system clock / 256
+000042 bd05                      	out TCCR0B,r16 ; Timer clock = system clock / 64
 000043 e001                      	ldi r16,1<<TOV0
 000044 bb05                      	out TIFR0,r16 ; Clear TOV0/ Clear pending interrupts
 000045 e001                      	ldi r16,1<<TOIE0
 000046 9300 006e                 	sts TIMSK0,r16 ; Enable Timer/Counter0 Overflow Interrupt
                                  
+                                 	// timer1 setup (used to refresh screen)
+                                 	// only overflow is used
+000048 ee0f                      	ldi r16, 0xEF; register 21 controls frequency
+000049 9300 0085                 	sts TCNT1H, r16
+00004b ef0f                      	ldi r16, 0xFF
+00004c 9300 0084                 	sts TCNT1L, r16
+00004e e005                      	ldi r16, 0b00000101
+00004f 9300 0081                 	sts TCCR1B,r16 ; Timer clock = system clock / 1024
+000051 e001                      	ldi r16,1<<TOV1
+000052 9300 0016                 	sts TIFR1,r16 ; Clear TOV1/ Clear pending interrupts
+000054 e001                      	ldi r16,1<<TOIE1
+000055 9300 006f                 	sts TIMSK1,r16 ; Enable Timer/Counter1 Overflow Interrupt
+                                 
+                                 
+                                 
                                  	// ADC setup
-000048 ef0f                      	ldi r16, 0b11111111
-000049 9300 007e                 	sts didr0, r16
+000057 ef0f                      	ldi r16, 0b11111111
+000058 9300 007e                 	sts didr0, r16
                                  
-00004b ef0f                      	ldi r16, 0b11111111
-00004c 9300 007f                 	sts didr1, r16
+00005a ef0f                      	ldi r16, 0b11111111
+00005b 9300 007f                 	sts didr1, r16
                                  
-00004e e000                      	ldi r16, 0b00000000
-00004f 9300 0064                 	sts prr, r16
+00005d e000                      	ldi r16, 0b00000000
+00005e 9300 0064                 	sts prr, r16
                                  
-000051 ee02                      	ldi r16, 0b11100010
-000052 9300 007a                 	sts ADCSRA, r16
+000060 ee02                      	ldi r16, 0b11100010
+000061 9300 007a                 	sts ADCSRA, r16
                                  
-000054 e601                      	ldi r16, 0b01100001 ; last 0000 for adc0
-000055 9300 007c                 	sts ADMUX, r16
+000063 e601                      	ldi r16, 0b01100001 ; last 0000 for adc0
+000064 9300 007c                 	sts ADMUX, r16
                                  	
-000057 e000                      	ldi r16, 0b00000000
-000058 9300 007b                 	sts ADCSRB, r16
+000066 e000                      	ldi r16, 0b00000000
+000067 9300 007b                 	sts ADCSRB, r16
                                  
                                  
-00005a 9478                      	SEI ; enable interrupts
-00005b e040                      	ldi r20, 0
-00005c c000                      	rjmp main
+000069 9478                      	SEI ; enable interrupts
+00006a e040                      	ldi r20, 0
+00006b e071                      	ldi r23, 1
+00006c c000                      	rjmp main
+                                 
+                                 // used global registers: r20, r21, r23
                                  
                                  main:
                                  // ------------------ DISPLAY --------------------------
                                  
                                  ; runs through all lines of display and checks wether a pixel should be on
-00005d e028                      	ldi r18, 8 ;select row
+00006d e028                      	ldi r18, 8 ;select row
                                  	outer_loop:
-00005e e510                      		ldi r17, 80 ;select column
+00006e e510                      		ldi r17, 80 ;select column
                                  		loop1:
-00005f 3028                      			cpi r18, 8
-000060 f411                      			brne continue
-000061 940e 0077                 			call get_tone
+00006f 3028                      			cpi r18, 8
+000070 f411                      			brne continue
+000071 940e 0087                 			call get_tone
                                  			continue:
-000063 940e 00b3                 			call drawing 
-000065 951a                      			dec r17 // decrease column counter
-000066 f7c1                      			brne loop1
+000073 940e 00c3                 			call drawing 
+000075 951a                      			dec r17 // decrease column counter
+000076 f7c1                      			brne loop1
                                  
                                  		next_loop:
-000067 e018                      		ldi r17, 8
+000077 e018                      		ldi r17, 8
                                  		loop2:
-000068 1712                      			cp r17, r18
-000069 f411                      			brne skip
-00006a 9a2b                      			sbi PORTB, 3
-00006b c001                      			rjmp setrow
+000078 1712                      			cp r17, r18
+000079 f411                      			brne skip
+00007a 9a2b                      			sbi PORTB, 3
+00007b c001                      			rjmp setrow
                                  			skip:
-00006c 982b                      			cbi PORTB, 3
+00007c 982b                      			cbi PORTB, 3
                                  			setrow:
-00006d 982d                      			cbi PORTB, 5
-00006e 9a2d                      			sbi PORTB, 5
-00006f 951a                      			dec r17
-000070 f7b9                      			brne loop2
+00007d 982d                      			cbi PORTB, 5
+00007e 9a2d                      			sbi PORTB, 5
+00007f 951a                      			dec r17
+000080 f7b9                      			brne loop2
                                  
-000071 982c                      		CBI PORTB, 4 // enable each row
-000072 9a2c                      		SBI PORTB, 4
-000073 982c                      		CBI PORTB, 4
-000074 952a                      		dec r18
-000075 f741                      	brne outer_loop
-000076 cfe6                          rjmp main
+000081 982c                      		CBI PORTB, 4 // enable each row
+000082 9a2c                      		SBI PORTB, 4
+000083 982c                      		CBI PORTB, 4
+000084 952a                      		dec r18
+000085 f741                      	brne outer_loop
+000086 cfe6                          rjmp main
                                  
                                  
                                  //------------------------------ GET TONE ----------------------------------
@@ -1201,91 +1221,91 @@ D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\The
                                  //also gets the height of the tone for the display
                                  	get_tone:
                                  
-000077 9140 0079                 	lds r20, ADCH // MSB stored in ADCH due to values set in ADC setup
-000079 3e46                      	cpi r20, 230
-00007a f4b8                      	brsh note_C
-00007b 3d4c                      	cpi r20, 220
-00007c f4c0                      	brsh note_Csharp
-00007d 3c46                      	cpi r20, 198
-00007e f4c8                      	brsh note_D
-00007f 3b40                      	cpi r20, 176
-000080 f4d0                      	brsh note_Dsharp
-000081 394a                      	cpi r20, 154
-000082 f4d8                      	brsh note_E
-000083 3844                      	cpi r20, 132
-000084 f4e0                      	brsh note_F
-000085 364e                      	cpi r20, 110
-000086 f4e8                      	brsh note_Fsharp
-000087 3548                      	cpi r20, 88
-000088 f4f0                      	brsh note_G
-000089 3442                      	cpi r20, 66
-00008a f4f8                      	brsh note_Gsharp
-00008b 324c                      	cpi r20, 44
-00008c f500                      	brsh note_A
-00008d 314e                      	cpi r20, 30
-00008e f508                      	brsh note_Asharp
+000087 9140 0079                 	lds r20, ADCH // MSB stored in ADCH due to values set in ADC setup
+000089 3e46                      	cpi r20, 230
+00008a f4b8                      	brsh note_C
+00008b 3d4c                      	cpi r20, 220
+00008c f4c0                      	brsh note_Csharp
+00008d 3c46                      	cpi r20, 198
+00008e f4c8                      	brsh note_D
+00008f 3b40                      	cpi r20, 176
+000090 f4d0                      	brsh note_Dsharp
+000091 394a                      	cpi r20, 154
+000092 f4d8                      	brsh note_E
+000093 3844                      	cpi r20, 132
+000094 f4e0                      	brsh note_F
+000095 364e                      	cpi r20, 110
+000096 f4e8                      	brsh note_Fsharp
+000097 3548                      	cpi r20, 88
+000098 f4f0                      	brsh note_G
+000099 3442                      	cpi r20, 66
+00009a f4f8                      	brsh note_Gsharp
+00009b 324c                      	cpi r20, 44
+00009c f500                      	brsh note_A
+00009d 314e                      	cpi r20, 30
+00009e f508                      	brsh note_Asharp
                                  
                                  	//display: top is 1 bottom is 7 (0 is not on display)
                                  
                                  	// note B
-00008f e851                      	ldi r21, 129
-000090 e042                      	ldi r20, 2
-000091 9508                      	ret
+00009f e851                      	ldi r21, 129
+0000a0 e042                      	ldi r20, 2
+0000a1 9508                      	ret
                                  
                                  	note_C:
-000092 e151                      	ldi r21, 17
-000093 e04d                      	ldi r20, 13
-000094 9508                          ret
+0000a2 e151                      	ldi r21, 17
+0000a3 e04d                      	ldi r20, 13
+0000a4 9508                          ret
                                  
                                  	note_Csharp:
-000095 e15e                      	ldi r21, 30
-000096 e04c                      	ldi r20, 12
-000097 9508                      	ret
+0000a5 e15e                      	ldi r21, 30
+0000a6 e04c                      	ldi r20, 12
+0000a7 9508                      	ret
                                  
                                  	note_D:
-000098 e25b                      	ldi r21, 43
-000099 e04b                      	ldi r20, 11
-00009a 9508                      	ret
+0000a8 e25b                      	ldi r21, 43
+0000a9 e04b                      	ldi r20, 11
+0000aa 9508                      	ret
                                  
                                  	note_Dsharp:
-00009b e357                      	ldi r21, 55
-00009c e04a                      	ldi r20, 10
-00009d 9508                      	ret
+0000ab e357                      	ldi r21, 55
+0000ac e04a                      	ldi r20, 10
+0000ad 9508                      	ret
                                  
                                  	note_E:
-00009e e452                      	ldi r21, 66
-00009f e049                      	ldi r20, 9
-0000a0 9508                      	ret
+0000ae e452                      	ldi r21, 66
+0000af e049                      	ldi r20, 9
+0000b0 9508                      	ret
                                  
                                  	note_F:
-0000a1 e45d                      	ldi r21, 77
-0000a2 e048                      	ldi r20, 8
-0000a3 9508                      	ret
+0000b1 e45d                      	ldi r21, 77
+0000b2 e048                      	ldi r20, 8
+0000b3 9508                      	ret
                                  
                                  	note_Fsharp:
-0000a4 e557                      	ldi r21, 87
-0000a5 e047                      	ldi r20, 7
-0000a6 9508                      	ret
+0000b4 e557                      	ldi r21, 87
+0000b5 e047                      	ldi r20, 7
+0000b6 9508                      	ret
                                  
                                  	note_G:
-0000a7 e651                      	ldi r21, 97
-0000a8 e046                      	ldi r20, 6
-0000a9 9508                      	ret
+0000b7 e651                      	ldi r21, 97
+0000b8 e046                      	ldi r20, 6
+0000b9 9508                      	ret
                                  
                                  	note_Gsharp:
-0000aa e65a                      	ldi r21, 106
-0000ab e045                      	ldi r20, 5
-0000ac 9508                      	ret
+0000ba e65a                      	ldi r21, 106
+0000bb e045                      	ldi r20, 5
+0000bc 9508                      	ret
                                  
                                  	note_A:
-0000ad e752                      	ldi r21, 114
-0000ae e044                      	ldi r20, 4
-0000af 9508                      	ret
+0000bd e752                      	ldi r21, 114
+0000be e044                      	ldi r20, 4
+0000bf 9508                      	ret
                                  
                                  	note_Asharp:
-0000b0 e75a                      	ldi r21, 122
-0000b1 e043                      	ldi r20, 3
-0000b2 9508                      	ret
+0000c0 e75a                      	ldi r21, 122
+0000c1 e043                      	ldi r20, 3
+0000c2 9508                      	ret
                                  
                                  //-------------------------- DRAWING ---------------------------------
                                  
@@ -1293,53 +1313,68 @@ D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\The
                                  
                                  	drawing: // IS CALLED FOR EVERY PIXEL
                                  
-0000b3 2f64                      	mov r22, r20 // copy r20 to r21
-0000b4 3068                      	cpi r22, 8
-0000b5 f428                      	brsh top_row
-0000b6 1726                      	cp r18, r22
-0000b7 f469                      	brne no_pixel
-0000b8 3016                      	cpi r17, 6
-0000b9 f048                      	brlo pixel
-0000ba c00a                      	rjmp no_pixel
+0000c3 2f64                      	mov r22, r20 // copy r20 to r21
+0000c4 3068                      	cpi r22, 8
+0000c5 f428                      	brsh top_row
+0000c6 1726                      	cp r18, r22
+0000c7 f469                      	brne no_pixel
+0000c8 3016                      	cpi r17, 6
+0000c9 f048                      	brlo pixel
+0000ca c00a                      	rjmp no_pixel
                                  
                                  	top_row: //(7->11)
-0000bb 5067                      	subi r22, 7
-0000bc 1726                      	cp r18, r22
-0000bd f439                      	brne no_pixel
-0000be 3219                      	cpi r17, 41
-0000bf f028                      	brlo no_pixel
-0000c0 321e                      	cpi r17, 46
-0000c1 f008                      	brlo pixel
-0000c2 c002                      	rjmp no_pixel
+0000cb 5067                      	subi r22, 7
+0000cc 1726                      	cp r18, r22
+0000cd f439                      	brne no_pixel
+0000ce 3219                      	cpi r17, 41
+0000cf f028                      	brlo no_pixel
+0000d0 321e                      	cpi r17, 46
+0000d1 f008                      	brlo pixel
+0000d2 c002                      	rjmp no_pixel
                                  
                                  	pixel: // turn pixel on
-0000c3 9a2b                      	sbi portb, 3
-0000c4 c001                      	rjmp set_pixel_value
+0000d3 9a2b                      	sbi portb, 3
+0000d4 c001                      	rjmp set_pixel_value
                                  	no_pixel: // turn pixel off
-0000c5 982b                      	cbi portb, 3
+0000d5 982b                      	cbi portb, 3
                                  	set_pixel_value: // push pixel on stack
-0000c6 982d                      	cbi PORTB, 5
-0000c7 9a2d                      	sbi PORTB, 5
-0000c8 9508                      	ret
+0000d6 982d                      	cbi PORTB, 5
+0000d7 9a2d                      	sbi PORTB, 5
+0000d8 9508                      	ret
                                  
                                  // ------------ TIMER INTERRUPT ----------------------------
                                  TIM0_OVF_ISR:
                                  
                                  	// checks just row 0 since only button C is used
-0000c9 9858                      	CBI PORTD, 0 //check row 0
-0000ca 9a59                      	SBI PORTD, 1
-0000cb 9a5a                      	SBI PORTD, 2
-0000cc 9a5b                      	SBI PORTD, 3
-0000cd 9b4c                      		SBIS PIND, 4 // if C is pressed, jump to output_C
-0000ce c002                      		rjmp buzzz
-0000cf 9a43                      		sbi portc, 3 // turn led off if C is not pressed
-0000d0 9518                      	reti
+0000d9 9858                      	CBI PORTD, 0 //check row 0
+0000da 9a59                      	SBI PORTD, 1
+0000db 9a5a                      	SBI PORTD, 2
+0000dc 9a5b                      	SBI PORTD, 3
+0000dd 9b4c                      		SBIS PIND, 4 // if C is pressed, jump to output_C
+0000de c002                      		rjmp buzzz
+0000df 9a43                      		sbi portc, 3 // turn led off if C is not pressed
+0000e0 9518                      	reti
                                  
                                  	buzzz:
-0000d1 9843                      	cbi portc, 3
-0000d2 bd56                      	out TCNT0, R21 // set value of buzzer
-0000d3 9a19                      	SBI PINB, 1 // make buzzer go bzzzzzzzzzzzz
-0000d4 9518                      	reti
+0000e1 9843                      	cbi portc, 3
+0000e2 bd56                      	out TCNT0, R21 // set value of buzzer
+0000e3 9a19                      	SBI PINB, 1 // make buzzer go bzzzzzzzzzzzz
+0000e4 9518                      	reti
+                                 
+                                 TIM1_OVF: // higher r22 => faster
+0000e5 ed6f                      	ldi r22, 0xDF
+0000e6 9360 0085                 	sts TCNT1H, r22
+0000e8 ef6f                      	ldi r22, 0xFF
+0000e9 9360 0084                 	sts TCNT1L, r22
+0000eb 5071                      	subi r23, 1
+0000ec 3070                      	cpi r23, 0
+0000ed f011                      	breq LED2_on
+0000ee 9a42                      	sbi portc, 2
+0000ef 9518                      	reti
+                                 	LED2_on:
+0000f0 e072                      	ldi r23, 2
+0000f1 9842                      	cbi portc, 2
+0000f2 9518                      	reti
 
 
 RESOURCE USE INFORMATION
@@ -1359,37 +1394,37 @@ counted separately from r26..r31 here.
 "ATmega328P" register use summary:
 x  :   0 y  :   0 z  :   0 r0 :   0 r1 :   0 r2 :   0 r3 :   0 r4 :   0 
 r5 :   0 r6 :   0 r7 :   0 r8 :   0 r9 :   0 r10:   0 r11:   0 r12:   0 
-r13:   0 r14:   0 r15:   0 r16:  18 r17:   8 r18:   6 r19:   0 r20:  26 
-r21:  15 r22:   5 r23:   0 r24:   0 r25:   0 r26:   0 r27:   0 r28:   0 
+r13:   0 r14:   0 r15:   0 r16:  28 r17:   8 r18:   6 r19:   0 r20:  26 
+r21:  15 r22:   9 r23:   4 r24:   0 r25:   0 r26:   0 r27:   0 r28:   0 
 r29:   0 r30:   0 r31:   0 
-Registers used: 6 out of 35 (17.1%)
+Registers used: 7 out of 35 (20.0%)
 
 "ATmega328P" instruction use summary:
 .lds  :   0 .sts  :   0 adc   :   0 add   :   0 adiw  :   0 and   :   0 
 andi  :   0 asr   :   0 bclr  :   0 bld   :   0 brbc  :   0 brbs  :   0 
-brcc  :   0 brcs  :   0 break :   0 breq  :   0 brge  :   0 brhc  :   0 
+brcc  :   0 brcs  :   0 break :   0 breq  :   1 brge  :   0 brhc  :   0 
 brhs  :   0 brid  :   0 brie  :   0 brlo  :   3 brlt  :   0 brmi  :   0 
 brne  :   7 brpl  :   0 brsh  :  12 brtc  :   0 brts  :   0 brvc  :   0 
-brvs  :   0 bset  :   0 bst   :   0 call  :   2 cbi   :  14 cbr   :   0 
+brvs  :   0 bset  :   0 bst   :   0 call  :   2 cbi   :  15 cbr   :   0 
 clc   :   0 clh   :   0 cli   :   0 cln   :   0 clr   :   0 cls   :   0 
 clt   :   0 clv   :   0 clz   :   0 com   :   0 cp    :   3 cpc   :   0 
-cpi   :  16 cpse  :   0 dec   :   3 eor   :   0 fmul  :   0 fmuls :   0 
+cpi   :  17 cpse  :   0 dec   :   3 eor   :   0 fmul  :   0 fmuls :   0 
 fmulsu:   0 icall :   0 ijmp  :   0 in    :   0 inc   :   0 jmp   :   0 
-ld    :   0 ldd   :   0 ldi   :  38 lds   :   1 lpm   :   0 lsl   :   0 
+ld    :   0 ldd   :   0 ldi   :  47 lds   :   1 lpm   :   0 lsl   :   0 
 lsr   :   0 mov   :   1 movw  :   0 mul   :   0 muls  :   0 mulsu :   0 
 neg   :   0 nop   :   0 or    :   0 ori   :   0 out   :   4 pop   :   0 
-push  :   0 rcall :   0 ret   :  13 reti  :   2 rjmp  :   9 rol   :   0 
-ror   :   0 sbc   :   0 sbci  :   0 sbi   :  34 sbic  :   0 sbis  :   1 
+push  :   0 rcall :   0 ret   :  13 reti  :   4 rjmp  :  10 rol   :   0 
+ror   :   0 sbc   :   0 sbci  :   0 sbi   :  35 sbic  :   0 sbis  :   1 
 sbiw  :   0 sbr   :   0 sbrc  :   0 sbrs  :   0 sec   :   0 seh   :   0 
 sei   :   1 sen   :   0 ser   :   0 ses   :   0 set   :   0 sev   :   0 
-sez   :   0 sleep :   0 spm   :   0 st    :   0 std   :   0 sts   :   7 
-sub   :   0 subi  :   1 swap  :   0 tst   :   0 wdr   :   0 
-Instructions used: 20 out of 113 (17.7%)
+sez   :   0 sleep :   0 spm   :   0 st    :   0 std   :   0 sts   :  14 
+sub   :   0 subi  :   2 swap  :   0 tst   :   0 wdr   :   0 
+Instructions used: 21 out of 113 (18.6%)
 
 "ATmega328P" memory use summary [bytes]:
 Segment   Begin    End      Code   Data   Used    Size   Use%
 ---------------------------------------------------------------
-[.cseg] 0x000000 0x0001aa    364      0    364   32768   1.1%
+[.cseg] 0x000000 0x0001e6    426      0    426   32768   1.3%
 [.dseg] 0x000100 0x000100      0      0      0    2048   0.0%
 [.eseg] 0x000000 0x000000      0      0      0    1024   0.0%
 
