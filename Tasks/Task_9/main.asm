@@ -39,13 +39,13 @@ main:
 		ldi r17, 80
 		SBI PORTB, 3
 		mov r19, r18
-		loop:
+/*		loop:
 			sbi PINB, 3
 			dec r19
-			brne loop
+			brne loop*/
 
 		loop1:
-			sbi PINB, 3
+			cbi PortB, 3
 			cbi PORTB, 5
 			sbi PORTB, 5
 			cpi r17, 41

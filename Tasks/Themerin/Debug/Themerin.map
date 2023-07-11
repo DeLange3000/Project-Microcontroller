@@ -1,5 +1,5 @@
 
-AVRASM ver. 2.2.8  D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm Tue Jul 11 15:27:46 2023
+AVRASM ver. 2.2.8  D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm Tue Jul 11 19:07:30 2023
 
 
 EQU  SIGNATURE_000 0000001e
@@ -696,29 +696,30 @@ EQU  TWIaddr      00000030
 EQU  SPMRaddr     00000032
 EQU  INT_VECTORS_SIZE 00000034
 CSEG init         00000021
-CSEG TIM0_OVF_ISR 00000082
+CSEG TIM0_OVF_ISR 000000c9
 CSEG main         0000005d
 CSEG outer_loop   0000005e
-CSEG loop         00000060
-CSEG loop1        00000063
-CSEG drawing      00000076
-CSEG next_loop    00000066
-CSEG loop2        00000067
-CSEG skip         0000006b
-CSEG setrow       0000006c
-CSEG no_pixel     0000007d
-CSEG pixel        0000007b
-CSEG set_pixel_value 0000007e
-CSEG output_C     0000008b
-CSEG note_C       000000a9
-CSEG note_Csharp  000000ae
-CSEG note_D       000000b3
-CSEG note_Dsharp  000000b8
-CSEG note_E       000000bd
-CSEG note_F       000000c2
-CSEG note_Fsharp  000000c7
-CSEG note_G       000000cc
-CSEG note_Gsharp  000000d1
-CSEG note_A       000000d6
-CSEG note_Asharp  000000db
-CSEG buzzz        000000e0
+CSEG loop1        0000005f
+CSEG continue     00000063
+CSEG get_tone     00000077
+CSEG drawing      000000b3
+CSEG next_loop    00000067
+CSEG loop2        00000068
+CSEG skip         0000006c
+CSEG setrow       0000006d
+CSEG note_C       00000092
+CSEG note_Csharp  00000095
+CSEG note_D       00000098
+CSEG note_Dsharp  0000009b
+CSEG note_E       0000009e
+CSEG note_F       000000a1
+CSEG note_Fsharp  000000a4
+CSEG note_G       000000a7
+CSEG note_Gsharp  000000aa
+CSEG note_A       000000ad
+CSEG note_Asharp  000000b0
+CSEG top_row      000000bb
+CSEG no_pixel     000000c5
+CSEG pixel        000000c3
+CSEG set_pixel_value 000000c6
+CSEG buzzz        000000d1

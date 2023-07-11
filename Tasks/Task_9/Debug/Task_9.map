@@ -1,5 +1,5 @@
 
-AVRASM ver. 2.2.8  D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Task_9\main.asm Tue Jul 11 14:49:03 2023
+AVRASM ver. 2.2.8  D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Task_9\main.asm Tue Jul 11 18:03:09 2023
 
 
 EQU  SIGNATURE_000 0000001e
@@ -698,10 +698,9 @@ EQU  INT_VECTORS_SIZE 00000034
 CSEG init         00000001
 CSEG main         00000007
 CSEG outer_loop   00000008
-CSEG loop         0000000b
-CSEG loop1        0000000e
-CSEG continue     00000014
-CSEG next_loop    00000016
-CSEG loop2        00000017
-CSEG skip         0000001b
-CSEG setrow       0000001c
+CSEG loop1        0000000b
+CSEG continue     00000011
+CSEG next_loop    00000013
+CSEG loop2        00000014
+CSEG skip         00000018
+CSEG setrow       00000019

@@ -91,10 +91,10 @@ init:
 
 
 	// buzzer setup
-	LDI R20, 185 ; register 20 controls frequency
-	out TCNT0, R20
+	LDI R21, 185 ; register 21 controls frequency
+	out TCNT0, R21
 
-	ldi r16, 0b00000100
+	ldi r16, 0b00000011
 	out TCCR0B,r16 ; Timer clock = system clock / 256
 	ldi r16,1<<TOV0
 	out TIFR0,r16 ; Clear TOV0/ Clear pending interrupts
@@ -114,7 +114,7 @@ init:
 	ldi r16, 0b11100010
 	sts ADCSRA, r16
 
-	ldi r16, 0b01100000 ; last 0000 for adc0
+	ldi r16, 0b01100001 ; last 0000 for adc0
 	sts ADMUX, r16
 	
 	ldi r16, 0b00000000
@@ -132,13 +132,13 @@ main:
 	ldi r18, 8 ;select row
 	outer_loop:
 		ldi r17, 80 ;select column
-		SBI PORTB, 3
-		loop:
-			sbi PINB, 3
-			dec r19
-			brne loop
 		loop1:
-			call drawing ; function draws numbers and "Hz" on display
+			cpi r18, 8
+			brne continue
+			call get_tone
+			continue:
+			call drawing 
+			dec r17 // decrease column counter
 			brne loop1
 
 		next_loop:
@@ -164,11 +164,120 @@ main:
     rjmp main
 
 
+//------------------------------ GET TONE ----------------------------------
+
+//converts regions of the ADC value of the joysytick into tones
+//also gets the height of the tone for the display
+	get_tone:
+
+	lds r20, ADCH // MSB stored in ADCH due to values set in ADC setup
+	cpi r20, 230
+	brsh note_C
+	cpi r20, 220
+	brsh note_Csharp
+	cpi r20, 198
+	brsh note_D
+	cpi r20, 176
+	brsh note_Dsharp
+	cpi r20, 154
+	brsh note_E
+	cpi r20, 132
+	brsh note_F
+	cpi r20, 110
+	brsh note_Fsharp
+	cpi r20, 88
+	brsh note_G
+	cpi r20, 66
+	brsh note_Gsharp
+	cpi r20, 44
+	brsh note_A
+	cpi r20, 30
+	brsh note_Asharp
+
+	//display: top is 1 bottom is 7 (0 is not on display)
+
+	// note B
+	ldi r21, 129
+	ldi r20, 2
+	ret
+
+	note_C:
+	ldi r21, 17
+	ldi r20, 13
+    ret
+
+	note_Csharp:
+	ldi r21, 30
+	ldi r20, 12
+	ret
+
+	note_D:
+	ldi r21, 43
+	ldi r20, 11
+	ret
+
+	note_Dsharp:
+	ldi r21, 55
+	ldi r20, 10
+	ret
+
+	note_E:
+	ldi r21, 66
+	ldi r20, 9
+	ret
+
+	note_F:
+	ldi r21, 77
+	ldi r20, 8
+	ret
+
+	note_Fsharp:
+	ldi r21, 87
+	ldi r20, 7
+	ret
+
+	note_G:
+	ldi r21, 97
+	ldi r20, 6
+	ret
+
+	note_Gsharp:
+	ldi r21, 106
+	ldi r20, 5
+	ret
+
+	note_A:
+	ldi r21, 114
+	ldi r20, 4
+	ret
+
+	note_Asharp:
+	ldi r21, 122
+	ldi r20, 3
+	ret
+
+//-------------------------- DRAWING ---------------------------------
+
+// decides where a pixel should be on or off
+
 	drawing: // IS CALLED FOR EVERY PIXEL
 
-	cp r18, r20
+	mov r22, r20 // copy r20 to r21
+	cpi r22, 8
+	brsh top_row
+	cp r18, r22
 	brne no_pixel
-	cpi r17, 40
+	cpi r17, 6
+	brlo pixel
+	rjmp no_pixel
+
+	top_row: //(7->11)
+	subi r22, 7
+	cp r18, r22
+	brne no_pixel
+	cpi r17, 41
+	brlo no_pixel
+	cpi r17, 46
 	brlo pixel
 	rjmp no_pixel
 
@@ -180,109 +289,23 @@ main:
 	set_pixel_value: // push pixel on stack
 	cbi PORTB, 5
 	sbi PORTB, 5
-	dec r17 // decrease column counter
 	ret
 
 // ------------ TIMER INTERRUPT ----------------------------
 TIM0_OVF_ISR:
+
 	// checks just row 0 since only button C is used
 	CBI PORTD, 0 //check row 0
 	SBI PORTD, 1
 	SBI PORTD, 2
 	SBI PORTD, 3
 		SBIS PIND, 4 // if C is pressed, jump to output_C
-		rjmp output_C
+		rjmp buzzz
 		sbi portc, 3 // turn led off if C is not pressed
-		ldi r20, 0
 	reti
 
-	output_C:
-	CBI portc, 3 // turn led on if C is pressed
-	lds r20, ADCH // MSB stored in ADCH due to values set in ADC setup
-	cpi r20, 22
-	brlo note_C
-	cpi r20, 44
-	brlo note_Csharp
-	cpi r20, 66
-	brlo note_D
-	cpi r20, 88
-	brlo note_Dsharp
-	cpi r20, 110
-	brlo note_E
-	cpi r20, 132
-	brlo note_F
-	cpi r20, 154
-	brlo note_Fsharp
-	cpi r20, 176
-	brlo note_G
-	cpi r20, 198
-	brlo note_Gsharp
-	cpi r20, 220
-	brlo note_A
-	cpi r20, 242
-	brlo note_Asharp
-
-	// note B
-	lds r21, 129
-	lds r20, 13
-	rjmp buzzz
-
-	note_C:
-	lds r21, 17
-	lds r20, 1
-	rjmp buzzz
-
-	note_Csharp:
-	lds r21, 30
-	lds r20, 2
-	rjmp buzzz
-
-	note_D:
-	lds r21, 43
-	lds r20, 3
-	rjmp buzzz
-
-	note_Dsharp:
-	lds r21, 55
-	lds r20, 4
-	rjmp buzzz
-
-	note_E:
-	lds r21, 66
-	lds r20, 5
-	rjmp buzzz
-
-	note_F:
-	lds r21, 77
-	lds r20, 6
-	rjmp buzzz
-
-	note_Fsharp:
-	lds r21, 87
-	lds r20, 7
-	rjmp buzzz
-
-	note_G:
-	lds r21, 97
-	lds r20, 8
-	rjmp buzzz
-
-	note_Gsharp:
-	lds r21, 106
-	lds r20, 10
-	rjmp buzzz
-
-	note_A:
-	lds r21, 114
-	lds r20, 11
-	rjmp buzzz
-
-	note_Asharp:
-	lds r21, 122
-	lds r20, 12
-	rjmp buzzz
-
 	buzzz:
+	cbi portc, 3
 	out TCNT0, R21 // set value of buzzer
 	SBI PINB, 1 // make buzzer go bzzzzzzzzzzzz
 	reti
