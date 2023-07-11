@@ -94,7 +94,7 @@ init:
 	LDI R20, 185 ; register 20 controls frequency
 	out TCNT0, R20
 
-	ldi r16, 0b00000011
+	ldi r16, 0b00000100
 	out TCCR0B,r16 ; Timer clock = system clock / 256
 	ldi r16,1<<TOV0
 	out TIFR0,r16 ; Clear TOV0/ Clear pending interrupts
@@ -167,17 +167,9 @@ main:
 	drawing: // IS CALLED FOR EVERY PIXEL
 
 	cp r18, r20
-	brne next_row
-	cpi r17, 40
-	brlo pixel
-	rjmp no_pixel
-
-	next_row:
-	subi r20, 8
-	cp r18, r20
 	brne no_pixel
 	cpi r17, 40
-	brge pixel
+	brlo pixel
 	rjmp no_pixel
 
 	pixel: // turn pixel on
@@ -237,42 +229,42 @@ TIM0_OVF_ISR:
 
 	note_C:
 	lds r21, 17
-	lds r20, 2
+	lds r20, 1
 	rjmp buzzz
 
 	note_Csharp:
 	lds r21, 30
-	lds r20, 3
+	lds r20, 2
 	rjmp buzzz
 
 	note_D:
 	lds r21, 43
-	lds r20, 4
+	lds r20, 3
 	rjmp buzzz
 
 	note_Dsharp:
 	lds r21, 55
-	lds r20, 5
+	lds r20, 4
 	rjmp buzzz
 
 	note_E:
 	lds r21, 66
-	lds r20, 6
+	lds r20, 5
 	rjmp buzzz
 
 	note_F:
 	lds r21, 77
-	lds r20, 7
+	lds r20, 6
 	rjmp buzzz
 
 	note_Fsharp:
 	lds r21, 87
-	lds r20, 8
+	lds r20, 7
 	rjmp buzzz
 
 	note_G:
 	lds r21, 97
-	lds r20, 9
+	lds r20, 8
 	rjmp buzzz
 
 	note_Gsharp:
@@ -291,6 +283,6 @@ TIM0_OVF_ISR:
 	rjmp buzzz
 
 	buzzz:
-	out TCNT0, R20 // set value of buzzer
+	out TCNT0, R21 // set value of buzzer
 	SBI PINB, 1 // make buzzer go bzzzzzzzzzzzz
 	reti
