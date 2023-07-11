@@ -22,7 +22,6 @@
 ;Boot code
 .org 0x000 rjmp init
 .org 0x0020 rjmp TIM0_OVF_ISR
-.org 0x002A rjmp ADC_COMPLETE 
 
 
 ; Interrupt address vectors
@@ -112,7 +111,7 @@ init:
 	ldi r16, 0b00000000
 	sts prr, r16
 
-	ldi r16, 0b11101010
+	ldi r16, 0b11100010
 	sts ADCSRA, r16
 
 	ldi r16, 0b01100000 ; last 0000 for adc0
@@ -370,7 +369,7 @@ main:
 		cbi PORTB, 5
 		sbi PORTB, 5
 		dec r17 // decrease column counter
-		reti
+		ret
 
 		// ----------- NUMBER SELECTOR -------------------------
 		
@@ -397,39 +396,39 @@ main:
 		cpi r21, 9
 		breq draw_9
 		//rjmp draw_0 // could draw zero if value in register is bigger then 9
-		reti
+		ret
 
 		// calls correct function to draw number
 		draw_0:
 		call draw_zero
-		reti
+		ret
 		draw_1:
 		call draw_one
-		reti
+		ret
 		draw_2:
 		call draw_two
-		reti
+		ret
 		draw_3:
 		call draw_three
-		reti
+		ret
 		draw_4:
 		call draw_four
-		reti
+		ret
 		draw_5:
 		call draw_five
-		reti
+		ret
 		draw_6:
 		call draw_six
-		reti
+		ret
 		draw_7:
 		call draw_seven
-		reti
+		ret
 		draw_8:
 		call draw_eight
-		reti
+		ret
 		draw_9:
 		call draw_nine
-		reti
+		ret
 
 // ------------- ZERO --------------------------
 
@@ -466,7 +465,7 @@ rjmp set_pixel_value0
 skip_pixel0:
 ldi r27, 2 // make sure that r27 is not 1 if piwel has to be off
 set_pixel_value0:
-reti
+ret
 
 // --------------------- ONE ----------------------------------
 
@@ -498,7 +497,7 @@ rjmp set_pixel_value1
 skip_pixel1:
 ldi r27, 2 // make sure that r27 is not 1 if piwel has to be off
 set_pixel_value1:
-reti
+ret
 // --------------------- TWO ------------------------------------
 
 // r26 is offset in column of screen
@@ -562,7 +561,7 @@ rjmp set_pixel_value2
 skip_pixel2:
 ldi r27, 2 // make sure that r27 is not 1 if piwel has to be off
 set_pixel_value2:
-reti
+ret
 
 // ------------------ THREE -----------------------------------------
 
@@ -608,7 +607,7 @@ rjmp set_pixel_value3
 skip_pixel3:
 ldi r27, 2 // make sure that r27 is not 1 if piwel has to be off
 set_pixel_value3:
-reti
+ret
 
 // ----------------- FOUR -------------------------------------------
 
@@ -662,7 +661,7 @@ rjmp set_pixel_value4
 skip_pixel4:
 ldi r27, 2 // make sure that r27 is not 1 if piwel has to be off
 set_pixel_value4:
-reti
+ret
 
 // ----------------- FIVE ------------------------------------------
 
@@ -717,7 +716,7 @@ rjmp set_pixel_value5
 skip_pixel5:
 ldi r27, 2 // make sure that r27 is not 1 if piwel has to be off
 set_pixel_value5:
-reti
+ret
 
 // ------------------ SIX ---------------------------------------------
 
@@ -774,7 +773,7 @@ rjmp set_pixel_value6
 skip_pixel6:
 ldi r27, 2 // make sure that r27 is not 1 if piwel has to be off
 set_pixel_value6:
-reti
+ret
 // ------------------- SEVEN --------------------------------------------
 
 // r26 is offset in column of screen
@@ -823,7 +822,7 @@ rjmp set_pixel_value7
 skip_pixel7:
 ldi r27, 2 // make sure that r27 is not 1 if piwel has to be off
 set_pixel_value7:
-reti
+ret
 
 // ---------------------- EIGHT ----------------------------------------
 
@@ -863,7 +862,7 @@ rjmp set_pixel_value8
 skip_pixel8:
 ldi r27, 2 // make sure that r27 is not 1 if piwel has to be off
 set_pixel_value8:
-reti
+ret
 
 // ---------------------- NINE ---------------------------------------
 
@@ -922,7 +921,7 @@ rjmp set_pixel_value9
 skip_pixel9:
 ldi r27, 2 // make sure that r27 is not 1 if piwel has to be off
 set_pixel_value9:
-reti
+ret
 	
 // -------------- GET HERZ VALUE FROM REGISTER -----------------
 
@@ -1008,7 +1007,7 @@ clc
 rjmp shifts*/
 
 end_Hz:
-reti
+ret
 
 
 // ------------ TIMER INTERRUPT ----------------------------
@@ -1021,29 +1020,12 @@ TIM0_OVF_ISR:
 		SBIS PIND, 4 // if C is pressed, jump to output_C
 		rjmp output_C
 		sbi portc, 3 // turn led off if C is not pressed
+		ldi r20, 0
 	reti
 
 	output_C:
 	CBI portc, 3 // turn led on if C is pressed
+	lds r20, ADCH // MSB stored in ADCH due to values set in ADC setup
 	out TCNT0, R20 // set value of buzzer
 	SBI PINB, 1 // make buzzer go bzzzzzzzzzzzz
-	reti
-
-// --------------------- ADC CONVERSION INTERRUPT ---------------------
-
-ADC_COMPLETE: // runs if conversion is done
-	// checks just row 0 since only button C is used
-	CBI PORTD, 0 //check row 0
-	SBI PORTD, 1
-	SBI PORTD, 2
-	SBI PORTD, 3
-		SBIS PIND, 4  // if C is pressed, jump to output_C_ADC
-		rjmp output_C_ADC
-
-	ldi r20, 0 // if C is not pressed, load 0 in register 0 (displays 0000 HZ on screen then)
-	reti
-	output_C_ADC: // load new value from ADC in register r20 to determine buzzer frequency
-	//lds r20, ADCL
-	lds r20, ADCH // MSB stored in ADCH due to values set in ADC setup
-
 	reti

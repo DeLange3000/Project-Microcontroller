@@ -1,0 +1,4 @@
+Software to install:
+
+Arduino IDE: https://www.arduino.cc/en/main/software
+Atmel Studio: https://www.microchip.com/mplab/avr-support/atmel-studio-7
