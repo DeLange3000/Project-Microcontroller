@@ -12,6 +12,23 @@
 ; Author : warre
 ;
 
+
+// FEATURE OVERVIEW
+// - load screen using character buffer
+// - Press A to start game press 0 to go to menu
+// - move joystick up/down to select frequency in scale (position regions of joystick mapped to different frequencies)
+// - point on screen indicates position of joystick
+// - press C to make a sound (play a note). Point on screen gets tail
+// - game where you try to stay within bounds. Play notes when bounds are visible on point
+// - receive score based on how well you did
+// - generate bounds with randomizer? or program song? (both?)
+
+// TO DO
+// - load screen using character buffer (13/07)
+// - generation of bounds (15/07 -> 18/07) (create song and save in memory and implement randomizer)
+// - implementation of score (19/07 -> 21/07) (not in bounds or playing too long or not -> substract from score (lower limit it to zero!))
+
+
 ; Definition file of the ATmega328P
 .include "m328pdef.inc"
 
@@ -109,7 +126,7 @@ init:
 	sts TCNT1H, r16
 	ldi r16, 0xFF
 	sts TCNT1L, r16
-	ldi r16, 0b00000101
+	ldi r16, 0b00000011
 	sts TCCR1B,r16 ; Timer clock = system clock / 1024
 	ldi r16,1<<TOV1
 	sts TIFR1,r16 ; Clear TOV1/ Clear pending interrupts
@@ -138,16 +155,70 @@ init:
 	sts ADCSRB, r16
 
 
-	SEI ; enable interrupts
-	ldi r20, 0
-	ldi r23, 1
-	rjmp main
+	//SEI ; enable interrupts
+	
 
-// used global registers: r20, r21, r23
+	rjmp load_menu
+
+// used global registers: r20 (height of note on screen), r21 (buzzer frequency)
+// used registers for tail chase r0, r1, r2, r3, r4
+
+// ------------------- LOAD MENU ------------------------------
+load_menu_setup:
+CLI //disable interrupts so that buzzer does not work in load menu
+ldi r20, 0
+mov r0, r20 // initialize tail (placed here so tail is gone after reloading)
+mov r1, r20
+mov r2, r20
+mov r3, r20
+mov r4, r20
+load_menu:
+; runs through all lines of display and checks wether a pixel should be on
+	ldi r18, 8 ;select row
+	outer_loop_menu:
+		ldi r17, 80 ;select column
+		loop1_menu:
+			call drawing_loading_screen //screen buffer (PRESS A TO START)
+			dec r17 // decrease column counter
+			brne loop1_menu
+
+		next_loop_menu:
+		ldi r17, 8
+		loop2_menu:
+			cp r17, r18
+			brne skip_menu
+			sbi PORTB, 3
+			rjmp setrow_menu
+			skip_menu:
+			cbi PORTB, 3
+			setrow_menu:
+			cbi PORTB, 5
+			sbi PORTB, 5
+			dec r17
+			brne loop2_menu
+
+		CBI PORTB, 4 // enable each row
+		SBI PORTB, 4
+		CBI PORTB, 4
+		dec r18
+	brne outer_loop_menu
+
+	// PRESS A TO START
+	SBI PORTD, 0 //check row 3
+	SBI PORTD, 1
+	SBI PORTD, 2
+	CBI PORTD, 3
+		SBIS PIND, 4 // if A is pressed, jump to main
+		rjmp setup_main
+    rjmp load_menu
+
+
+// ------------------ DISPLAY --------------------------
+setup_main:
+SEI
+SBI PORTD, 3
 
 main:
-// ------------------ DISPLAY --------------------------
-
 ; runs through all lines of display and checks wether a pixel should be on
 	ldi r18, 8 ;select row
 	outer_loop:
@@ -181,6 +252,14 @@ main:
 		CBI PORTB, 4
 		dec r18
 	brne outer_loop
+
+	SBI PORTD, 0 //check row 3
+	SBI PORTD, 1
+	CBI PORTD, 2
+	SBI PORTD, 3
+		SBIS PIND, 4 // if 0 is pressed, jump to loadscreen
+		rjmp load_menu_setup
+		SBI PORTD, 2
     rjmp main
 
 
@@ -281,39 +360,62 @@ main:
 // decides where a pixel should be on or off
 
 	drawing: // IS CALLED FOR EVERY PIXEL
-
-	mov r22, r20 // copy r20 to r21
+	mov r4, r20 // for speed (so pointer is faster correct)
+	ldi r23, 1 //upper screen index
+	ldi r24, 41 // lower screen index
+	ldi r27, 0 // address of first pixel
+	ldi r26, 0
+	continue_drawing:
+	ld r22, X+ // load data from r0 -> r4 using adress X and increase adress X
 	cpi r22, 8
 	brsh top_row
 	cp r18, r22
 	brne no_pixel
-	cpi r17, 6
-	brlo pixel
+	cp r17, r23
+	breq pixel
 	rjmp no_pixel
 
 	top_row: //(7->11)
 	subi r22, 7
 	cp r18, r22
 	brne no_pixel
-	cpi r17, 41
-	brlo no_pixel
-	cpi r17, 46
-	brlo pixel
+	cp r17, r24
+	breq pixel
 	rjmp no_pixel
 
 	pixel: // turn pixel on
 	sbi portb, 3
 	rjmp set_pixel_value
-	no_pixel: // turn pixel off
+	no_pixel: // turn pixel off	
+	cpi r23, 5
+	breq stop_drawing
+	inc r24
+	inc r23
+	rjmp continue_drawing
+	stop_drawing:
 	cbi portb, 3
 	set_pixel_value: // push pixel on stack
 	cbi PORTB, 5
 	sbi PORTB, 5
 	ret
 
+
+	// ------------------ DRAWING LOADING SCREEN ----------------------
+
+	drawing_loading_screen:
+
+	pixel_menu: // turn pixel on
+	sbi portb, 3
+	rjmp set_pixel_value_menu
+	no_pixel_menu: // turn pixel off	
+	cbi portb, 3
+	set_pixel_value_menu: // push pixel on stack
+	cbi PORTB, 5
+	sbi PORTB, 5
+	ret
+
 // ------------ TIMER INTERRUPT ----------------------------
 TIM0_OVF_ISR:
-
 	// checks just row 0 since only button C is used
 	CBI PORTD, 0 //check row 0
 	SBI PORTD, 1
@@ -322,25 +424,38 @@ TIM0_OVF_ISR:
 		SBIS PIND, 4 // if C is pressed, jump to output_C
 		rjmp buzzz
 		sbi portc, 3 // turn led off if C is not pressed
+		SBI PORTD, 0 // avoids return to menu unwanted
 	reti
 
 	buzzz:
 	cbi portc, 3
 	out TCNT0, R21 // set value of buzzer
 	SBI PINB, 1 // make buzzer go bzzzzzzzzzzzz
+	SBI PORTD, 0 // avoids return to menu unwanted
 	reti
 
 TIM1_OVF: // higher r22 => faster
-	ldi r22, 0xDF
+	push r22
+	ldi r22, 0x6F
 	sts TCNT1H, r22
 	ldi r22, 0xFF
 	sts TCNT1L, r22
-	subi r23, 1
-	cpi r23, 0
-	breq LED2_on
-	sbi portc, 2
-	reti
-	LED2_on:
-	ldi r23, 2
-	cbi portc, 2
+	mov r0, r1
+	mov r1, r2
+	mov r2, r3
+	CBI PORTD, 0 //check row 0
+	SBI PORTD, 1
+	SBI PORTD, 2
+	SBI PORTD, 3
+		SBIS PIND, 4 // if C is pressed, jump to output_C
+		rjmp sound
+		ldi r22, 0
+		mov r3, r22
+		pop r22
+		SBI PORTD, 0 // avoids return to menu unwanted
+		reti
+	sound:
+	mov r3, r4
+	pop r22
+	SBI PORTD, 0 // avoids return to menu unwanted
 	reti
