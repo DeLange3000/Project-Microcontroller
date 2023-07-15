@@ -1,5 +1,5 @@
 
-AVRASM ver. 2.2.8  D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm Sat Jul 15 16:38:49 2023
+AVRASM ver. 2.2.8  D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm Sat Jul 15 17:56:13 2023
 
 
 EQU  SIGNATURE_000 0000001e
@@ -696,12 +696,12 @@ EQU  TWIaddr      00000030
 EQU  SPMRaddr     00000032
 EQU  INT_VECTORS_SIZE 00000034
 CSEG init         00000021
-CSEG TIM1_OVF     0000016c
-CSEG TIM0_OVF_ISR 0000015e
+CSEG TIM1_OVF     00000179
+CSEG TIM0_OVF_ISR 0000016b
 CSEG load_menu    00000071
 CSEG load_menu_setup 0000006a
 CSEG Blockloop    00000077
-CSEG CharTable    00000186
+CSEG CharTable    00000193
 CSEG next_addition 0000007e
 CSEG load_data    00000081
 CSEG BlockColloop 00000083
@@ -734,22 +734,25 @@ CSEG note_Asharp  00000103
 CSEG continue_drawing 0000010b
 CSEG top_row      00000113
 CSEG check_border 00000119
-CSEG pixel        00000149
-CSEG Level        000001c6
+CSEG temp_pixel   00000134
+CSEG pixel        00000156
+CSEG Level        000001d3
 CSEG next_border  0000011d
-CSEG no_pixel     0000014b
-CSEG negative     0000012b
-CSEG not_negative 00000131
-CSEG skip_border  00000147
-CSEG next_        00000135
-CSEG increase     00000134
-CSEG bottom_border 0000013e
-CSEG set_pixel_value 00000151
-CSEG stop_drawing 00000150
-CSEG not_end_of_game 00000157
-CSEG drawing_loading_screen 00000158
-CSEG pixel_menu   00000158
-CSEG set_pixel_value_menu 0000015b
-CSEG no_pixel_menu 0000015a
-CSEG buzzz        00000167
-CSEG sound        00000182
+CSEG no_pixel     00000158
+CSEG skip_border  00000154
+CSEG negative     00000131
+CSEG not_negative 00000135
+CSEG next_        00000139
+CSEG increase     00000138
+CSEG top_row_border 0000014f
+CSEG continue_with_border 0000013e
+CSEG bottom_border 00000145
+CSEG set_pixel_value 0000015e
+CSEG stop_drawing 0000015d
+CSEG not_end_of_game 00000164
+CSEG drawing_loading_screen 00000165
+CSEG pixel_menu   00000165
+CSEG set_pixel_value_menu 00000168
+CSEG no_pixel_menu 00000167
+CSEG buzzz        00000174
+CSEG sound        0000018f

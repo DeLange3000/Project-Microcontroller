@@ -413,7 +413,7 @@ main:
 	cp r18, r22
 	brne check_border
 	cp r17, r23
-	breq pixel
+	breq temp_pixel
 	rjmp check_border
 
 	top_row: //(7->11)
@@ -424,7 +424,7 @@ main:
 	breq pixel
 	rjmp check_border
 
-
+	// when out of border: r25 - r10 - r12 changes sign
 	check_border:
 	ldi zh, high(Level<<1) // load adress table of char into Z
 	ldi zl, low(Level<<1)
@@ -441,18 +441,24 @@ main:
 	adiw zl, 1
 	lpm r12, z // length of border
 	mov r13, r10
+	add r13, r12
+	mov r14, r13
+	sub r13, r25
+	cp r14, r13
+	brlo skip_border
+	mov r13, r10
 	sub r10, r25
 	cp r13, r10 //see of number got negative
 	brlo negative //brge is signed! (workaround)
 	rjmp not_negative
 
 	negative:
-	dec r12
-	breq skip_border
-	inc r10
-	cp r10, r16
-	breq not_negative
-	rjmp negative
+	neg r10
+	sub r12, r10
+	mov r10, r16
+
+	temp_pixel:
+	rjmp pixel
 
 	not_negative:
 	inc r6 // keeps track of how many borders are visible
@@ -464,6 +470,10 @@ main:
 	cp r10, r16
 	brlo skip_border
 	
+	ldi r19, 8
+	cp r11, r19
+	brsh top_row_border
+	continue_with_border:
 	cp r18, r11
 	brne bottom_border
 	cp r17, r10
@@ -482,6 +492,14 @@ main:
 	add r10, r12
 	cp r17, r10
 	brlo pixel
+	rjmp skip_border
+
+	top_row_border:
+	ldi r19, 8
+	sub r11, r19
+	ldi r19, 40
+	add r10, r19
+	rjmp continue_with_border
 
 	skip_border:
 	adiw z, 6 //only 6 since +2 to get all the data
@@ -630,7 +648,10 @@ TIM1_OVF: // higher r22 => faster
 
 
 	Level:
-	.db 1, 3, 10, 0, 0, 0, 0, 0 // x, y, length
-	.db 13, 5, 5, 0, 0, 0, 0, 0
+	.db 41, 3, 10, 0, 0, 0, 0, 0 // x, y, length
+	.db 45, 5, 5, 0, 0, 0, 0, 0
+	.db 65, 7, 20, 0, 0, 0, 0, 0
+	.db 90, 4, 10, 0, 0, 0, 0, 0
+	.db 100, 8, 5, 0, 0, 0, 0, 0
 	.db 0, 0, 0, 0, 0, 0, 0, 0
 

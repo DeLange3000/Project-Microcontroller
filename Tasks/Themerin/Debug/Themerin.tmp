@@ -24,12 +24,12 @@
  </OUTPUT_FILES>
  <LABELS>
   <init><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm</FILE><LINE>52</LINE></init>
-  <TIM1_OVF><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm</FILE><LINE>576</LINE></TIM1_OVF>
-  <TIM0_OVF_ISR><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm</FILE><LINE>555</LINE></TIM0_OVF_ISR>
+  <TIM1_OVF><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm</FILE><LINE>594</LINE></TIM1_OVF>
+  <TIM0_OVF_ISR><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm</FILE><LINE>573</LINE></TIM0_OVF_ISR>
   <load_menu><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm</FILE><LINE>184</LINE></load_menu>
   <load_menu_setup><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm</FILE><LINE>175</LINE></load_menu_setup>
   <Blockloop><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm</FILE><LINE>192</LINE></Blockloop>
-  <CharTable><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm</FILE><LINE>613</LINE></CharTable>
+  <CharTable><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm</FILE><LINE>631</LINE></CharTable>
   <next_addition><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm</FILE><LINE>201</LINE></next_addition>
   <load_data><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm</FILE><LINE>205</LINE></load_data>
   <BlockColloop><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm</FILE><LINE>210</LINE></BlockColloop>
@@ -62,24 +62,27 @@
   <continue_drawing><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm</FILE><LINE>409</LINE></continue_drawing>
   <top_row><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm</FILE><LINE>419</LINE></top_row>
   <check_border><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm</FILE><LINE>428</LINE></check_border>
-  <pixel><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm</FILE><LINE>490</LINE></pixel>
-  <Level><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm</FILE><LINE>632</LINE></Level>
+  <temp_pixel><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm</FILE><LINE>460</LINE></temp_pixel>
+  <pixel><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm</FILE><LINE>508</LINE></pixel>
+  <Level><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm</FILE><LINE>650</LINE></Level>
   <next_border><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm</FILE><LINE>433</LINE></next_border>
-  <no_pixel><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm</FILE><LINE>493</LINE></no_pixel>
-  <negative><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm</FILE><LINE>449</LINE></negative>
-  <not_negative><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm</FILE><LINE>457</LINE></not_negative>
-  <skip_border><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm</FILE><LINE>486</LINE></skip_border>
-  <next_><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm</FILE><LINE>463</LINE></next_>
-  <increase><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm</FILE><LINE>461</LINE></increase>
-  <bottom_border><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm</FILE><LINE>475</LINE></bottom_border>
-  <set_pixel_value><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm</FILE><LINE>501</LINE></set_pixel_value>
-  <stop_drawing><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm</FILE><LINE>499</LINE></stop_drawing>
-  <not_end_of_game><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm</FILE><LINE>509</LINE></not_end_of_game>
-  <drawing_loading_screen><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm</FILE><LINE>515</LINE></drawing_loading_screen>
-  <pixel_menu><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm</FILE><LINE>517</LINE></pixel_menu>
-  <set_pixel_value_menu><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm</FILE><LINE>522</LINE></set_pixel_value_menu>
-  <no_pixel_menu><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm</FILE><LINE>520</LINE></no_pixel_menu>
-  <buzzz><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm</FILE><LINE>569</LINE></buzzz>
-  <sound><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm</FILE><LINE>598</LINE></sound>
+  <no_pixel><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm</FILE><LINE>511</LINE></no_pixel>
+  <skip_border><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm</FILE><LINE>504</LINE></skip_border>
+  <negative><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm</FILE><LINE>455</LINE></negative>
+  <not_negative><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm</FILE><LINE>463</LINE></not_negative>
+  <next_><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm</FILE><LINE>469</LINE></next_>
+  <increase><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm</FILE><LINE>467</LINE></increase>
+  <top_row_border><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm</FILE><LINE>497</LINE></top_row_border>
+  <continue_with_border><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm</FILE><LINE>476</LINE></continue_with_border>
+  <bottom_border><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm</FILE><LINE>485</LINE></bottom_border>
+  <set_pixel_value><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm</FILE><LINE>519</LINE></set_pixel_value>
+  <stop_drawing><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm</FILE><LINE>517</LINE></stop_drawing>
+  <not_end_of_game><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm</FILE><LINE>527</LINE></not_end_of_game>
+  <drawing_loading_screen><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm</FILE><LINE>533</LINE></drawing_loading_screen>
+  <pixel_menu><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm</FILE><LINE>535</LINE></pixel_menu>
+  <set_pixel_value_menu><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm</FILE><LINE>540</LINE></set_pixel_value_menu>
+  <no_pixel_menu><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm</FILE><LINE>538</LINE></no_pixel_menu>
+  <buzzz><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm</FILE><LINE>587</LINE></buzzz>
+  <sound><FILE>D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm</FILE><LINE>616</LINE></sound>
  </LABELS>
 </ASSEMBLER_INFO>
