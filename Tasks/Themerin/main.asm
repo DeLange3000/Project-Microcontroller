@@ -24,8 +24,8 @@
 // - generate bounds with randomizer? or program song? (both?)
 
 // TO DO
-// - load screen using character buffer (13/07)
-// - generation of bounds (15/07 -> 18/07) (create song and save in memory and implement randomizer)
+// - load screen using character buffer (15/07)
+// - generation of bounds (17/07 -> 18/07) (create song and save in memory and implement randomizer)
 // - implementation of score (19/07 -> 21/07) (not in bounds or playing too long or not -> substract from score (lower limit it to zero!))
 
 
@@ -41,6 +41,7 @@
 .org 0x001A rjmp TIM1_OVF
 .org 0x0020 rjmp TIM0_OVF_ISR
 
+ 
 
 
 ; Interrupt address vectors
@@ -162,6 +163,7 @@ init:
 
 // used global registers: r20 (height of note on screen), r21 (buzzer frequency)
 // used registers for tail chase r0, r1, r2, r3, r4
+//used registers for load menu: r20, r21, r22, r18
 
 // ------------------- LOAD MENU ------------------------------
 load_menu_setup:
@@ -172,36 +174,62 @@ mov r1, r20
 mov r2, r20
 mov r3, r20
 mov r4, r20
+
 load_menu:
-; runs through all lines of display and checks wether a pixel should be on
-	ldi r18, 8 ;select row
-	outer_loop_menu:
-		ldi r17, 80 ;select column
-		loop1_menu:
-			call drawing_loading_screen //screen buffer (PRESS A TO START)
-			dec r17 // decrease column counter
-			brne loop1_menu
+ldi yh, high(0x0100) // last char should be send first on screen
+ldi yl, low(0x0100)
+ldi r20, 16
+ldi r22, 0
+ldi r18, 8 ;select row
 
-		next_loop_menu:
-		ldi r17, 8
-		loop2_menu:
-			cp r17, r18
-			brne skip_menu
-			sbi PORTB, 3
-			rjmp setrow_menu
-			skip_menu:
-			cbi PORTB, 3
-			setrow_menu:
-			cbi PORTB, 5
-			sbi PORTB, 5
-			dec r17
-			brne loop2_menu
+Blockloop:
+	ld r21, -Y //predecrement Y and load char value pointed to by Y
+	ldi zh, high(CharTable<<1) // load adress table of char into Z
+	ldi zl, low(charTable<<1)
+	//calculate offset in tavle for char
+	add zl, r22
+	brcc no_carry
+	inc zh
+	no_carry:
+	// load column data
+	lpm r21, z
+	ldi r23, 5
+	// send bits to shift register
+	BlockColloop:
+	cbi portb, 3
+	clc // clear carry flag
+	ror r21
+	brcc CarryIs1 //skip line if C = 0
+	sbi portb, 3
+	CarryIs1:
+	cbi portb, 5
+	sbi portb, 5
+	dec r23
+	brne BlockColloop
+	dec r20
+	brne blockloop
 
-		CBI PORTB, 4 // enable each row
-		SBI PORTB, 4
-		CBI PORTB, 4
-		dec r18
-	brne outer_loop_menu
+	ldi r17, 8
+	loop2_menu:
+		cp r17, r18
+		brne skip_menu
+		sbi PORTB, 3
+		rjmp setrow_menu
+		skip_menu:
+		cbi PORTB, 3
+		setrow_menu:
+		cbi PORTB, 5
+		sbi PORTB, 5
+		dec r17
+		brne loop2_menu
+
+	inc r22
+	ldi r20, 16 //reset r20 back to 16
+	sbi portb, 4
+	cbi portb, 4
+
+	dec r18
+	brne Blockloop
 
 	// PRESS A TO START
 	SBI PORTD, 0 //check row 3
@@ -217,7 +245,7 @@ load_menu:
 setup_main:
 SEI
 SBI PORTD, 3
-
+ldi r20, 0
 main:
 ; runs through all lines of display and checks wether a pixel should be on
 	ldi r18, 8 ;select row
@@ -247,8 +275,7 @@ main:
 			dec r17
 			brne loop2
 
-		CBI PORTB, 4 // enable each row
-		SBI PORTB, 4
+		SBI PORTB, 4 // enable each row
 		CBI PORTB, 4
 		dec r18
 	brne outer_loop
@@ -459,3 +486,11 @@ TIM1_OVF: // higher r22 => faster
 	pop r22
 	SBI PORTD, 0 // avoids return to menu unwanted
 	reti
+
+
+
+
+	//------------ PREDEFINED CHARACTERS --------------------
+
+	CharTable:
+	.db 0b00000000, 0b00001111, 0b00001001, 0b00001001, 0b00001001, 0b00001001, 0b00001001, 0b00001111  //0 adress 0x0100

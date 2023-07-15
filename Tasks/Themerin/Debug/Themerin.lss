@@ -1,10 +1,10 @@
 
-AVRASM ver. 2.2.8  D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm Wed Jul 12 19:08:54 2023
+AVRASM ver. 2.2.8  D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm Sat Jul 15 10:58:50 2023
 
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328Pdef.inc'
-D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm(16): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328pdef.inc'
+D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm(33): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328pdef.inc'
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328Pdef.inc'
-D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm(16): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328pdef.inc'
+D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm(33): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328pdef.inc'
                                  
                                  ;
                                  
@@ -1000,6 +1000,23 @@ D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\The
                                  ; Author : warre
                                  ;
                                  
+                                 
+                                 // FEATURE OVERVIEW
+                                 // - load screen using character buffer
+                                 // - Press A to start game press 0 to go to menu
+                                 // - move joystick up/down to select frequency in scale (position regions of joystick mapped to different frequencies)
+                                 // - point on screen indicates position of joystick
+                                 // - press C to make a sound (play a note). Point on screen gets tail
+                                 // - game where you try to stay within bounds. Play notes when bounds are visible on point
+                                 // - receive score based on how well you did
+                                 // - generate bounds with randomizer? or program song? (both?)
+                                 
+                                 // TO DO
+                                 // - load screen using character buffer (15/07)
+                                 // - generation of bounds (17/07 -> 18/07) (create song and save in memory and implement randomizer)
+                                 // - implementation of score (19/07 -> 21/07) (not in bounds or playing too long or not -> substract from score (lower limit it to zero!))
+                                 
+                                 
                                  ; Definition file of the ATmega328P
                                  .include "m328pdef.inc"
                                  
@@ -1052,9 +1069,10 @@ D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\The
                                  
                                  ;Boot code
 000000 c020                      .org 0x0000 rjmp init //ORDER IS IMPORTANT (smallest adress first)	A
-00001a c103                      .org 0x001A rjmp TIM1_OVF
-000020 c0ef                      .org 0x0020 rjmp TIM0_OVF_ISR
+00001a c116                      .org 0x001A rjmp TIM1_OVF
+000020 c102                      .org 0x0020 rjmp TIM0_OVF_ISR
                                  
+                                  
                                  
                                  
                                  ; Interrupt address vectors
@@ -1174,8 +1192,9 @@ D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\The
                                  
 000069 c007                      	rjmp load_menu
                                  
-                                 // used global registers: r20, r21, r23
-                                 //used registers for tail chase r0, r1, r2, r3
+                                 // used global registers: r20 (height of note on screen), r21 (buzzer frequency)
+                                 // used registers for tail chase r0, r1, r2, r3, r4
+                                 //used registers for load menu: r20, r21, r22, r18
                                  
                                  // ------------------- LOAD MENU ------------------------------
                                  load_menu_setup:
@@ -1186,95 +1205,120 @@ D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\The
 00006e 2e24                      mov r2, r20
 00006f 2e34                      mov r3, r20
 000070 2e44                      mov r4, r20
+                                 
                                  load_menu:
-                                 ; runs through all lines of display and checks wether a pixel should be on
-000071 e028                      	ldi r18, 8 ;select row
-                                 	outer_loop_menu:
-000072 e510                      		ldi r17, 80 ;select column
-                                 		loop1_menu:
-000073 940e 010a                 			call drawing_loading_screen //screen buffer (PRESS A TO START)
-000075 951a                      			dec r17 // decrease column counter
-000076 f7e1                      			brne loop1_menu
+000071 e0d1                      ldi yh, high(0x0100) // last char should be send first on screen
+000072 e0c0                      ldi yl, low(0x0100)
+000073 e140                      ldi r20, 16
+000074 e060                      ldi r22, 0
+000075 e028                      ldi r18, 8 ;select row
                                  
-                                 		next_loop_menu:
-000077 e018                      		ldi r17, 8
-                                 		loop2_menu:
-000078 1712                      			cp r17, r18
-000079 f411                      			brne skip_menu
-00007a 9a2b                      			sbi PORTB, 3
-00007b c001                      			rjmp setrow_menu
-                                 			skip_menu:
-00007c 982b                      			cbi PORTB, 3
-                                 			setrow_menu:
-00007d 982d                      			cbi PORTB, 5
-00007e 9a2d                      			sbi PORTB, 5
-00007f 951a                      			dec r17
-000080 f7b9                      			brne loop2_menu
+                                 Blockloop:
+000076 915a                      	ld r21, -Y //predecrement Y and load char value pointed to by Y
+000077 e0f2                      	ldi zh, high(CharTable<<1) // load adress table of char into Z
+000078 e9e4                      	ldi zl, low(charTable<<1)
+                                 	//calculate offset in tavle for char
+000079 0fe6                      	add zl, r22
+00007a f408                      	brcc no_carry
+00007b 95f3                      	inc zh
+                                 	no_carry:
+                                 	// load column data
+00007c 9154                      	lpm r21, z
+00007d e075                      	ldi r23, 5
+                                 	// send bits to shift register
+                                 	BlockColloop:
+00007e 982b                      	cbi portb, 3
+00007f 9488                      	clc // clear carry flag
+000080 9557                      	ror r21
+000081 f408                      	brcc CarryIs1 //skip line if C = 0
+000082 9a2b                      	sbi portb, 3
+                                 	CarryIs1:
+000083 982d                      	cbi portb, 5
+000084 9a2d                      	sbi portb, 5
+000085 957a                      	dec r23
+000086 f7b9                      	brne BlockColloop
+000087 954a                      	dec r20
+000088 f769                      	brne blockloop
                                  
-000081 982c                      		CBI PORTB, 4 // enable each row
-000082 9a2c                      		SBI PORTB, 4
-000083 982c                      		CBI PORTB, 4
-000084 952a                      		dec r18
-000085 f761                      	brne outer_loop_menu
+000089 e018                      	ldi r17, 8
+                                 	loop2_menu:
+00008a 1712                      		cp r17, r18
+00008b f411                      		brne skip_menu
+00008c 9a2b                      		sbi PORTB, 3
+00008d c001                      		rjmp setrow_menu
+                                 		skip_menu:
+00008e 982b                      		cbi PORTB, 3
+                                 		setrow_menu:
+00008f 982d                      		cbi PORTB, 5
+000090 9a2d                      		sbi PORTB, 5
+000091 951a                      		dec r17
+000092 f7b9                      		brne loop2_menu
+                                 
+000093 9563                      	inc r22
+000094 e140                      	ldi r20, 16 //reset r20 back to 16
+000095 9a2c                      	sbi portb, 4
+000096 982c                      	cbi portb, 4
+                                 
+000097 952a                      	dec r18
+000098 f6e9                      	brne Blockloop
                                  
                                  	// PRESS A TO START
-000086 9a58                      	SBI PORTD, 0 //check row 3
-000087 9a59                      	SBI PORTD, 1
-000088 9a5a                      	SBI PORTD, 2
-000089 985b                      	CBI PORTD, 3
-00008a 9b4c                      		SBIS PIND, 4 // if A is pressed, jump to main
-00008b c001                      		rjmp setup_main
-00008c cfe4                          rjmp load_menu
+000099 9a58                      	SBI PORTD, 0 //check row 3
+00009a 9a59                      	SBI PORTD, 1
+00009b 9a5a                      	SBI PORTD, 2
+00009c 985b                      	CBI PORTD, 3
+00009d 9b4c                      		SBIS PIND, 4 // if A is pressed, jump to main
+00009e c001                      		rjmp setup_main
+00009f cfd1                          rjmp load_menu
                                  
                                  
                                  // ------------------ DISPLAY --------------------------
                                  setup_main:
-00008d 9478                      SEI
-00008e 9a5b                      SBI PORTD, 3
-                                 
+0000a0 9478                      SEI
+0000a1 9a5b                      SBI PORTD, 3
+0000a2 e040                      ldi r20, 0
                                  main:
                                  ; runs through all lines of display and checks wether a pixel should be on
-00008f e028                      	ldi r18, 8 ;select row
+0000a3 e028                      	ldi r18, 8 ;select row
                                  	outer_loop:
-000090 e510                      		ldi r17, 80 ;select column
+0000a4 e510                      		ldi r17, 80 ;select column
                                  		loop1:
-000091 3028                      			cpi r18, 8
-000092 f411                      			brne continue
-000093 940e 00b0                 			call get_tone
+0000a5 3028                      			cpi r18, 8
+0000a6 f411                      			brne continue
+0000a7 940e 00c3                 			call get_tone
                                  			continue:
-000095 940e 00ec                 			call drawing 
-000097 951a                      			dec r17 // decrease column counter
-000098 f7c1                      			brne loop1
+0000a9 940e 00ff                 			call drawing 
+0000ab 951a                      			dec r17 // decrease column counter
+0000ac f7c1                      			brne loop1
                                  
                                  		next_loop:
-000099 e018                      		ldi r17, 8
+0000ad e018                      		ldi r17, 8
                                  		loop2:
-00009a 1712                      			cp r17, r18
-00009b f411                      			brne skip
-00009c 9a2b                      			sbi PORTB, 3
-00009d c001                      			rjmp setrow
+0000ae 1712                      			cp r17, r18
+0000af f411                      			brne skip
+0000b0 9a2b                      			sbi PORTB, 3
+0000b1 c001                      			rjmp setrow
                                  			skip:
-00009e 982b                      			cbi PORTB, 3
+0000b2 982b                      			cbi PORTB, 3
                                  			setrow:
-00009f 982d                      			cbi PORTB, 5
-0000a0 9a2d                      			sbi PORTB, 5
-0000a1 951a                      			dec r17
-0000a2 f7b9                      			brne loop2
+0000b3 982d                      			cbi PORTB, 5
+0000b4 9a2d                      			sbi PORTB, 5
+0000b5 951a                      			dec r17
+0000b6 f7b9                      			brne loop2
                                  
-0000a3 982c                      		CBI PORTB, 4 // enable each row
-0000a4 9a2c                      		SBI PORTB, 4
-0000a5 982c                      		CBI PORTB, 4
-0000a6 952a                      		dec r18
-0000a7 f741                      	brne outer_loop
+0000b7 9a2c                      		SBI PORTB, 4 // enable each row
+0000b8 982c                      		CBI PORTB, 4
+0000b9 952a                      		dec r18
+0000ba f749                      	brne outer_loop
                                  
-0000a8 9a58                      	SBI PORTD, 0 //check row 3
-0000a9 9a59                      	SBI PORTD, 1
-0000aa 985a                      	CBI PORTD, 2
-0000ab 9a5b                      	SBI PORTD, 3
-0000ac 9b4c                      		SBIS PIND, 4 // if 0 is pressed, jump to loadscreen
-0000ad cfbc                      		rjmp load_menu_setup
-0000ae 9a5a                      		SBI PORTD, 2
-0000af cfdf                          rjmp main
+0000bb 9a58                      	SBI PORTD, 0 //check row 3
+0000bc 9a59                      	SBI PORTD, 1
+0000bd 985a                      	CBI PORTD, 2
+0000be 9a5b                      	SBI PORTD, 3
+0000bf 9b4c                      		SBIS PIND, 4 // if 0 is pressed, jump to loadscreen
+0000c0 cfa9                      		rjmp load_menu_setup
+0000c1 9a5a                      		SBI PORTD, 2
+0000c2 cfe0                          rjmp main
                                  
                                  
                                  //------------------------------ GET TONE ----------------------------------
@@ -1283,135 +1327,135 @@ D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\The
                                  //also gets the height of the tone for the display
                                  	get_tone:
                                  
-0000b0 9140 0079                 	lds r20, ADCH // MSB stored in ADCH due to values set in ADC setup
-0000b2 3e46                      	cpi r20, 230
-0000b3 f4b8                      	brsh note_C
-0000b4 3d4c                      	cpi r20, 220
-0000b5 f4c0                      	brsh note_Csharp
-0000b6 3c46                      	cpi r20, 198
-0000b7 f4c8                      	brsh note_D
-0000b8 3b40                      	cpi r20, 176
-0000b9 f4d0                      	brsh note_Dsharp
-0000ba 394a                      	cpi r20, 154
-0000bb f4d8                      	brsh note_E
-0000bc 3844                      	cpi r20, 132
-0000bd f4e0                      	brsh note_F
-0000be 364e                      	cpi r20, 110
-0000bf f4e8                      	brsh note_Fsharp
-0000c0 3548                      	cpi r20, 88
-0000c1 f4f0                      	brsh note_G
-0000c2 3442                      	cpi r20, 66
-0000c3 f4f8                      	brsh note_Gsharp
-0000c4 324c                      	cpi r20, 44
-0000c5 f500                      	brsh note_A
-0000c6 314e                      	cpi r20, 30
-0000c7 f508                      	brsh note_Asharp
+0000c3 9140 0079                 	lds r20, ADCH // MSB stored in ADCH due to values set in ADC setup
+0000c5 3e46                      	cpi r20, 230
+0000c6 f4b8                      	brsh note_C
+0000c7 3d4c                      	cpi r20, 220
+0000c8 f4c0                      	brsh note_Csharp
+0000c9 3c46                      	cpi r20, 198
+0000ca f4c8                      	brsh note_D
+0000cb 3b40                      	cpi r20, 176
+0000cc f4d0                      	brsh note_Dsharp
+0000cd 394a                      	cpi r20, 154
+0000ce f4d8                      	brsh note_E
+0000cf 3844                      	cpi r20, 132
+0000d0 f4e0                      	brsh note_F
+0000d1 364e                      	cpi r20, 110
+0000d2 f4e8                      	brsh note_Fsharp
+0000d3 3548                      	cpi r20, 88
+0000d4 f4f0                      	brsh note_G
+0000d5 3442                      	cpi r20, 66
+0000d6 f4f8                      	brsh note_Gsharp
+0000d7 324c                      	cpi r20, 44
+0000d8 f500                      	brsh note_A
+0000d9 314e                      	cpi r20, 30
+0000da f508                      	brsh note_Asharp
                                  
                                  	//display: top is 1 bottom is 7 (0 is not on display)
                                  
                                  	// note B
-0000c8 e851                      	ldi r21, 129
-0000c9 e042                      	ldi r20, 2
-0000ca 9508                      	ret
+0000db e851                      	ldi r21, 129
+0000dc e042                      	ldi r20, 2
+0000dd 9508                      	ret
                                  
                                  	note_C:
-0000cb e151                      	ldi r21, 17
-0000cc e04d                      	ldi r20, 13
-0000cd 9508                          ret
+0000de e151                      	ldi r21, 17
+0000df e04d                      	ldi r20, 13
+0000e0 9508                          ret
                                  
                                  	note_Csharp:
-0000ce e15e                      	ldi r21, 30
-0000cf e04c                      	ldi r20, 12
-0000d0 9508                      	ret
+0000e1 e15e                      	ldi r21, 30
+0000e2 e04c                      	ldi r20, 12
+0000e3 9508                      	ret
                                  
                                  	note_D:
-0000d1 e25b                      	ldi r21, 43
-0000d2 e04b                      	ldi r20, 11
-0000d3 9508                      	ret
+0000e4 e25b                      	ldi r21, 43
+0000e5 e04b                      	ldi r20, 11
+0000e6 9508                      	ret
                                  
                                  	note_Dsharp:
-0000d4 e357                      	ldi r21, 55
-0000d5 e04a                      	ldi r20, 10
-0000d6 9508                      	ret
+0000e7 e357                      	ldi r21, 55
+0000e8 e04a                      	ldi r20, 10
+0000e9 9508                      	ret
                                  
                                  	note_E:
-0000d7 e452                      	ldi r21, 66
-0000d8 e049                      	ldi r20, 9
-0000d9 9508                      	ret
+0000ea e452                      	ldi r21, 66
+0000eb e049                      	ldi r20, 9
+0000ec 9508                      	ret
                                  
                                  	note_F:
-0000da e45d                      	ldi r21, 77
-0000db e048                      	ldi r20, 8
-0000dc 9508                      	ret
+0000ed e45d                      	ldi r21, 77
+0000ee e048                      	ldi r20, 8
+0000ef 9508                      	ret
                                  
                                  	note_Fsharp:
-0000dd e557                      	ldi r21, 87
-0000de e047                      	ldi r20, 7
-0000df 9508                      	ret
+0000f0 e557                      	ldi r21, 87
+0000f1 e047                      	ldi r20, 7
+0000f2 9508                      	ret
                                  
                                  	note_G:
-0000e0 e651                      	ldi r21, 97
-0000e1 e046                      	ldi r20, 6
-0000e2 9508                      	ret
+0000f3 e651                      	ldi r21, 97
+0000f4 e046                      	ldi r20, 6
+0000f5 9508                      	ret
                                  
                                  	note_Gsharp:
-0000e3 e65a                      	ldi r21, 106
-0000e4 e045                      	ldi r20, 5
-0000e5 9508                      	ret
+0000f6 e65a                      	ldi r21, 106
+0000f7 e045                      	ldi r20, 5
+0000f8 9508                      	ret
                                  
                                  	note_A:
-0000e6 e752                      	ldi r21, 114
-0000e7 e044                      	ldi r20, 4
-0000e8 9508                      	ret
+0000f9 e752                      	ldi r21, 114
+0000fa e044                      	ldi r20, 4
+0000fb 9508                      	ret
                                  
                                  	note_Asharp:
-0000e9 e75a                      	ldi r21, 122
-0000ea e043                      	ldi r20, 3
-0000eb 9508                      	ret
+0000fc e75a                      	ldi r21, 122
+0000fd e043                      	ldi r20, 3
+0000fe 9508                      	ret
                                  
                                  //-------------------------- DRAWING ---------------------------------
                                  
                                  // decides where a pixel should be on or off
                                  
                                  	drawing: // IS CALLED FOR EVERY PIXEL
-0000ec 2e44                      	mov r4, r20 // for speed (so pointer is faster correct)
-0000ed e071                      	ldi r23, 1 //upper screen index
-0000ee e289                      	ldi r24, 41 // lower screen index
-0000ef e0b0                      	ldi r27, 0 // address of first pixel
-0000f0 e0a0                      	ldi r26, 0
+0000ff 2e44                      	mov r4, r20 // for speed (so pointer is faster correct)
+000100 e071                      	ldi r23, 1 //upper screen index
+000101 e289                      	ldi r24, 41 // lower screen index
+000102 e0b0                      	ldi r27, 0 // address of first pixel
+000103 e0a0                      	ldi r26, 0
                                  	continue_drawing:
-0000f1 916d                      	ld r22, X+ // load data from r0 -> r4 using adress X and increase adress X
-0000f2 3068                      	cpi r22, 8
-0000f3 f428                      	brsh top_row
-0000f4 1726                      	cp r18, r22
-0000f5 f459                      	brne no_pixel
-0000f6 1717                      	cp r17, r23
-0000f7 f039                      	breq pixel
-0000f8 c008                      	rjmp no_pixel
+000104 916d                      	ld r22, X+ // load data from r0 -> r4 using adress X and increase adress X
+000105 3068                      	cpi r22, 8
+000106 f428                      	brsh top_row
+000107 1726                      	cp r18, r22
+000108 f459                      	brne no_pixel
+000109 1717                      	cp r17, r23
+00010a f039                      	breq pixel
+00010b c008                      	rjmp no_pixel
                                  
                                  	top_row: //(7->11)
-0000f9 5067                      	subi r22, 7
-0000fa 1726                      	cp r18, r22
-0000fb f429                      	brne no_pixel
-0000fc 1718                      	cp r17, r24
-0000fd f009                      	breq pixel
-0000fe c002                      	rjmp no_pixel
+00010c 5067                      	subi r22, 7
+00010d 1726                      	cp r18, r22
+00010e f429                      	brne no_pixel
+00010f 1718                      	cp r17, r24
+000110 f009                      	breq pixel
+000111 c002                      	rjmp no_pixel
                                  
                                  	pixel: // turn pixel on
-0000ff 9a2b                      	sbi portb, 3
-000100 c006                      	rjmp set_pixel_value
+000112 9a2b                      	sbi portb, 3
+000113 c006                      	rjmp set_pixel_value
                                  	no_pixel: // turn pixel off	
-000101 3075                      	cpi r23, 5
-000102 f019                      	breq stop_drawing
-000103 9583                      	inc r24
-000104 9573                      	inc r23
-000105 cfeb                      	rjmp continue_drawing
+000114 3075                      	cpi r23, 5
+000115 f019                      	breq stop_drawing
+000116 9583                      	inc r24
+000117 9573                      	inc r23
+000118 cfeb                      	rjmp continue_drawing
                                  	stop_drawing:
-000106 982b                      	cbi portb, 3
+000119 982b                      	cbi portb, 3
                                  	set_pixel_value: // push pixel on stack
-000107 982d                      	cbi PORTB, 5
-000108 9a2d                      	sbi PORTB, 5
-000109 9508                      	ret
+00011a 982d                      	cbi PORTB, 5
+00011b 9a2d                      	sbi PORTB, 5
+00011c 9508                      	ret
                                  
                                  
                                  	// ------------------ DRAWING LOADING SCREEN ----------------------
@@ -1419,59 +1463,70 @@ D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\The
                                  	drawing_loading_screen:
                                  
                                  	pixel_menu: // turn pixel on
-00010a 9a2b                      	sbi portb, 3
-00010b c001                      	rjmp set_pixel_value_menu
+00011d 9a2b                      	sbi portb, 3
+00011e c001                      	rjmp set_pixel_value_menu
                                  	no_pixel_menu: // turn pixel off	
-00010c 982b                      	cbi portb, 3
+00011f 982b                      	cbi portb, 3
                                  	set_pixel_value_menu: // push pixel on stack
-00010d 982d                      	cbi PORTB, 5
-00010e 9a2d                      	sbi PORTB, 5
-00010f 9508                      	ret
+000120 982d                      	cbi PORTB, 5
+000121 9a2d                      	sbi PORTB, 5
+000122 9508                      	ret
                                  
                                  // ------------ TIMER INTERRUPT ----------------------------
                                  TIM0_OVF_ISR:
                                  	// checks just row 0 since only button C is used
-000110 9858                      	CBI PORTD, 0 //check row 0
-000111 9a59                      	SBI PORTD, 1
-000112 9a5a                      	SBI PORTD, 2
-000113 9a5b                      	SBI PORTD, 3
-000114 9b4c                      		SBIS PIND, 4 // if C is pressed, jump to output_C
-000115 c003                      		rjmp buzzz
-000116 9a43                      		sbi portc, 3 // turn led off if C is not pressed
-000117 9a58                      		SBI PORTD, 0 // avoids return to menu unwanted
-000118 9518                      	reti
+000123 9858                      	CBI PORTD, 0 //check row 0
+000124 9a59                      	SBI PORTD, 1
+000125 9a5a                      	SBI PORTD, 2
+000126 9a5b                      	SBI PORTD, 3
+000127 9b4c                      		SBIS PIND, 4 // if C is pressed, jump to output_C
+000128 c003                      		rjmp buzzz
+000129 9a43                      		sbi portc, 3 // turn led off if C is not pressed
+00012a 9a58                      		SBI PORTD, 0 // avoids return to menu unwanted
+00012b 9518                      	reti
                                  
                                  	buzzz:
-000119 9843                      	cbi portc, 3
-00011a bd56                      	out TCNT0, R21 // set value of buzzer
-00011b 9a19                      	SBI PINB, 1 // make buzzer go bzzzzzzzzzzzz
-00011c 9a58                      	SBI PORTD, 0 // avoids return to menu unwanted
-00011d 9518                      	reti
+00012c 9843                      	cbi portc, 3
+00012d bd56                      	out TCNT0, R21 // set value of buzzer
+00012e 9a19                      	SBI PINB, 1 // make buzzer go bzzzzzzzzzzzz
+00012f 9a58                      	SBI PORTD, 0 // avoids return to menu unwanted
+000130 9518                      	reti
                                  
                                  TIM1_OVF: // higher r22 => faster
-00011e 936f                      	push r22
-00011f e66f                      	ldi r22, 0x6F
-000120 9360 0085                 	sts TCNT1H, r22
-000122 ef6f                      	ldi r22, 0xFF
-000123 9360 0084                 	sts TCNT1L, r22
-000125 2c01                      	mov r0, r1
-000126 2c12                      	mov r1, r2
-000127 2c23                      	mov r2, r3
-000128 9858                      	CBI PORTD, 0 //check row 0
-000129 9a59                      	SBI PORTD, 1
-00012a 9a5a                      	SBI PORTD, 2
-00012b 9a5b                      	SBI PORTD, 3
-00012c 9b4c                      		SBIS PIND, 4 // if C is pressed, jump to output_C
-00012d c005                      		rjmp sound
-00012e e060                      		ldi r22, 0
-00012f 2e36                      		mov r3, r22
-000130 916f                      		pop r22
-000131 9a58                      		SBI PORTD, 0 // avoids return to menu unwanted
-000132 9518                      		reti
+000131 936f                      	push r22
+000132 e66f                      	ldi r22, 0x6F
+000133 9360 0085                 	sts TCNT1H, r22
+000135 ef6f                      	ldi r22, 0xFF
+000136 9360 0084                 	sts TCNT1L, r22
+000138 2c01                      	mov r0, r1
+000139 2c12                      	mov r1, r2
+00013a 2c23                      	mov r2, r3
+00013b 9858                      	CBI PORTD, 0 //check row 0
+00013c 9a59                      	SBI PORTD, 1
+00013d 9a5a                      	SBI PORTD, 2
+00013e 9a5b                      	SBI PORTD, 3
+00013f 9b4c                      		SBIS PIND, 4 // if C is pressed, jump to output_C
+000140 c005                      		rjmp sound
+000141 e060                      		ldi r22, 0
+000142 2e36                      		mov r3, r22
+000143 916f                      		pop r22
+000144 9a58                      		SBI PORTD, 0 // avoids return to menu unwanted
+000145 9518                      		reti
                                  	sound:
-000133 2c34                      	mov r3, r4
-000134 916f                      	pop r22
-000135 9a58                      	SBI PORTD, 0 // avoids return to menu unwanted
+000146 2c34                      	mov r3, r4
+000147 916f                      	pop r22
+000148 9a58                      	SBI PORTD, 0 // avoids return to menu unwanted
+000149 9518                      	reti
+                                 
+                                 
+                                 
+                                 
+                                 	//------------ PREDEFINED CHARACTERS --------------------
+                                 
+                                 	CharTable:
+00014a 0f00
+00014b 0909
+00014c 0909
 
 
 RESOURCE USE INFORMATION
@@ -1489,39 +1544,39 @@ counted separately from r26..r31 here.
 .dseg memory usage only counts static data declared with .byte
 
 "ATmega328P" register use summary:
-x  :   1 y  :   0 z  :   0 r0 :   2 r1 :   3 r2 :   3 r3 :   4 r4 :   3 
+x  :   1 y  :   1 z  :   1 r0 :   2 r1 :   3 r2 :   3 r3 :   4 r4 :   3 
 r5 :   0 r6 :   0 r7 :   0 r8 :   0 r9 :   0 r10:   0 r11:   0 r12:   0 
-r13:   0 r14:   0 r15:   0 r16:  28 r17:  12 r18:   9 r19:   0 r20:  31 
-r21:  15 r22:  14 r23:   4 r24:   3 r25:   0 r26:   1 r27:   1 r28:   0 
-r29:   0 r30:   0 r31:   0 
-Registers used: 16 out of 35 (45.7%)
+r13:   0 r14:   0 r15:   0 r16:  28 r17:  10 r18:   9 r19:   0 r20:  35 
+r21:  18 r22:  17 r23:   6 r24:   3 r25:   0 r26:   1 r27:   1 r28:   1 
+r29:   1 r30:   2 r31:   2 
+Registers used: 22 out of 35 (62.9%)
 
 "ATmega328P" instruction use summary:
-.lds  :   0 .sts  :   0 adc   :   0 add   :   0 adiw  :   0 and   :   0 
+.lds  :   0 .sts  :   0 adc   :   0 add   :   1 adiw  :   0 and   :   0 
 andi  :   0 asr   :   0 bclr  :   0 bld   :   0 brbc  :   0 brbs  :   0 
-brcc  :   0 brcs  :   0 break :   0 breq  :   3 brge  :   0 brhc  :   0 
+brcc  :   2 brcs  :   0 break :   0 breq  :   3 brge  :   0 brhc  :   0 
 brhs  :   0 brid  :   0 brie  :   0 brlo  :   0 brlt  :   0 brmi  :   0 
-brne  :  11 brpl  :   0 brsh  :  12 brtc  :   0 brts  :   0 brvc  :   0 
-brvs  :   0 bset  :   0 bst   :   0 call  :   3 cbi   :  23 cbr   :   0 
-clc   :   0 clh   :   0 cli   :   1 cln   :   0 clr   :   0 cls   :   0 
+brne  :  12 brpl  :   0 brsh  :  12 brtc  :   0 brts  :   0 brvc  :   0 
+brvs  :   0 bset  :   0 bst   :   0 call  :   2 cbi   :  23 cbr   :   0 
+clc   :   1 clh   :   0 cli   :   1 cln   :   0 clr   :   0 cls   :   0 
 clt   :   0 clv   :   0 clz   :   0 com   :   0 cp    :   6 cpc   :   0 
-cpi   :  14 cpse  :   0 dec   :   6 eor   :   0 fmul  :   0 fmuls :   0 
-fmulsu:   0 icall :   0 ijmp  :   0 in    :   0 inc   :   2 jmp   :   0 
-ld    :   1 ldd   :   0 ldi   :  53 lds   :   1 lpm   :   0 lsl   :   0 
+cpi   :  14 cpse  :   0 dec   :   7 eor   :   0 fmul  :   0 fmuls :   0 
+fmulsu:   0 icall :   0 ijmp  :   0 in    :   0 inc   :   4 jmp   :   0 
+ld    :   2 ldd   :   0 ldi   :  61 lds   :   1 lpm   :   2 lsl   :   0 
 lsr   :   0 mov   :  11 movw  :   0 mul   :   0 muls  :   0 mulsu :   0 
 neg   :   0 nop   :   0 or    :   0 ori   :   0 out   :   4 pop   :   2 
 push  :   1 rcall :   0 ret   :  14 reti  :   4 rjmp  :  17 rol   :   0 
-ror   :   0 sbc   :   0 sbci  :   0 sbi   :  54 sbic  :   0 sbis  :   4 
+ror   :   1 sbc   :   0 sbci  :   0 sbi   :  56 sbic  :   0 sbis  :   4 
 sbiw  :   0 sbr   :   0 sbrc  :   0 sbrs  :   0 sec   :   0 seh   :   0 
 sei   :   1 sen   :   0 ser   :   0 ses   :   0 set   :   0 sev   :   0 
 sez   :   0 sleep :   0 spm   :   0 st    :   0 std   :   0 sts   :  14 
 sub   :   0 subi  :   1 swap  :   0 tst   :   0 wdr   :   0 
-Instructions used: 25 out of 113 (22.1%)
+Instructions used: 30 out of 113 (26.5%)
 
 "ATmega328P" memory use summary [bytes]:
 Segment   Begin    End      Code   Data   Used    Size   Use%
 ---------------------------------------------------------------
-[.cseg] 0x000000 0x00026e    562      0    562   32768   1.7%
+[.cseg] 0x000000 0x00029c    600      8    608   32768   1.9%
 [.dseg] 0x000100 0x000100      0      0      0    2048   0.0%
 [.eseg] 0x000000 0x000000      0      0      0    1024   0.0%
 
