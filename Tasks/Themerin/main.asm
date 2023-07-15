@@ -163,7 +163,7 @@ init:
 
 // used global registers: r20 (height of note on screen), r21 (buzzer frequency)
 // used registers for tail chase r0, r1, r2, r3, r4
-//used registers for load menu: r20, r21, r22, r18
+//used registers for load menu: r20, r21, r22, r18, r24
 
 // ------------------- LOAD MENU ------------------------------
 load_menu_setup:
@@ -176,21 +176,27 @@ mov r3, r20
 mov r4, r20
 
 load_menu:
-ldi yh, high(0x0100) // last char should be send first on screen
-ldi yl, low(0x0100)
+ldi yh, high(0x010F) // last char should be send first on screen
+ldi yl, low(0x010F)
 ldi r20, 16
-ldi r22, 0
 ldi r18, 8 ;select row
+ldi r24, 120 // block offset initial value
+ldi r22, 0
 
 Blockloop:
-	ld r21, -Y //predecrement Y and load char value pointed to by Y
+	ldi r17, 8
+	ld r21, -y //predecrement Y and load char value pointed to by Y
 	ldi zh, high(CharTable<<1) // load adress table of char into Z
-	ldi zl, low(charTable<<1)
+	ldi zl, low(CharTable<<1)
 	//calculate offset in tavle for char
-	add zl, r22
-	brcc no_carry
+	add zl, r22 // line offset
+	brcc next_addition
 	inc zh
-	no_carry:
+	next_addition:
+	add zl, r24 // block offset
+	brcc load_data
+	inc zh
+	load_data:
 	// load column data
 	lpm r21, z
 	ldi r23, 5
@@ -206,10 +212,11 @@ Blockloop:
 	sbi portb, 5
 	dec r23
 	brne BlockColloop
+
+	subi r24, 8 //increase blockoffset with 8
 	dec r20
 	brne blockloop
 
-	ldi r17, 8
 	loop2_menu:
 		cp r17, r18
 		brne skip_menu
@@ -223,11 +230,11 @@ Blockloop:
 		dec r17
 		brne loop2_menu
 
-	inc r22
 	ldi r20, 16 //reset r20 back to 16
+	ldi r24, 120
 	sbi portb, 4
 	cbi portb, 4
-
+	inc r22
 	dec r18
 	brne Blockloop
 
@@ -492,5 +499,22 @@ TIM1_OVF: // higher r22 => faster
 
 	//------------ PREDEFINED CHARACTERS --------------------
 
-	CharTable:
-	.db 0b00000000, 0b00001111, 0b00001001, 0b00001001, 0b00001001, 0b00001001, 0b00001001, 0b00001111  //0 adress 0x0100
+	CharTable: // bottom => top
+	.db 0b00000000, 0b00001000, 0b00001000, 0b00001000, 0b00001111, 0b00001001, 0b00001001, 0b00001111  //P adress 0x0100
+	.db 0b00000000, 0b00001001, 0b00001001, 0b00001010, 0b00001110, 0b00001001, 0b00001001, 0b00001110  //R
+	.db 0b00000000, 0b00001111, 0b00001000, 0b00001000, 0b00001110, 0b00001000, 0b00001000, 0b00001111  //E
+	.db 0b00000000, 0b00001111, 0b00000001, 0b00000001, 0b00001111, 0b00001000, 0b00001000, 0b00001111  //S
+	.db 0b00000000, 0b00001111, 0b00000001, 0b00000001, 0b00001111, 0b00001000, 0b00001000, 0b00001111  //S
+	.db 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000  // space
+	.db 0b00000000, 0b00001001, 0b00001001, 0b00001001, 0b00001111, 0b00001001, 0b00001001, 0b00000110  //A
+	.db 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000  // space
+	.db 0b00000000, 0b00000100, 0b00000100, 0b00000100, 0b00000100, 0b00000100, 0b00000100, 0b00001111  //T
+	.db 0b00000000, 0b00000110, 0b00001001, 0b00001001, 0b00001001, 0b00001001, 0b00001001, 0b00000110  //O
+	.db 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000  // space
+	.db 0b00000000, 0b00001111, 0b00000001, 0b00000001, 0b00001111, 0b00001000, 0b00001000, 0b00001111  //S
+	.db 0b00000000, 0b00000100, 0b00000100, 0b00000100, 0b00000100, 0b00000100, 0b00000100, 0b00001111  //T
+	.db 0b00000000, 0b00001001, 0b00001001, 0b00001001, 0b00001111, 0b00001001, 0b00001001, 0b00000110  //A
+	.db 0b00000000, 0b00001001, 0b00001001, 0b00001010, 0b00001110, 0b00001001, 0b00001001, 0b00001110  //R
+	.db 0b00000000, 0b00000100, 0b00000100, 0b00000100, 0b00000100, 0b00000100, 0b00000100, 0b00001111  //T adress 0x010F
+
+
