@@ -14,19 +14,22 @@
 
 
 // FEATURE OVERVIEW
-// - load screen using character buffer
+// - load screen using character buffer (buzzer does not work in loading screen)
 // - Press A to start game press 0 to go to menu
 // - move joystick up/down to select frequency in scale (position regions of joystick mapped to different frequencies)
 // - point on screen indicates position of joystick
 // - press C to make a sound (play a note). Point on screen gets tail
 // - game where you try to stay within bounds. Play notes when bounds are visible on point
 // - receive score based on how well you did
-// - generate bounds with randomizer? or program song? (both?)
+// - generate bounds by programming a song in memory
 
 // TO DO
-// - load screen using character buffer (15/07)
 // - generation of bounds (17/07 -> 18/07) (create song and save in memory and implement randomizer)
 // - implementation of score (19/07 -> 21/07) (not in bounds or playing too long or not -> substract from score (lower limit it to zero!))
+
+// BOUNDS
+// - upper bound defines also lower bound (-2)
+// - store in memory bound height and length (max height is 14, max length is 40)
 
 
 ; Definition file of the ATmega328P
@@ -163,7 +166,10 @@ init:
 
 // used global registers: r20 (height of note on screen), r21 (buzzer frequency)
 // used registers for tail chase r0, r1, r2, r3, r4
-//used registers for load menu: r20, r21, r22, r18, r24
+// registers for borders: r10 -> r16, r19
+// register for border counter: r25
+// used registers for load menu: r20, r21, r22, r18, r24
+// used register to indicate end of the game: r5
 
 // ------------------- LOAD MENU ------------------------------
 load_menu_setup:
@@ -253,6 +259,7 @@ setup_main:
 SEI
 SBI PORTD, 3
 ldi r20, 0
+ldi r25, 0
 main:
 ; runs through all lines of display and checks wether a pixel should be on
 	ldi r18, 8 ;select row
@@ -404,18 +411,81 @@ main:
 	cpi r22, 8
 	brsh top_row
 	cp r18, r22
-	brne no_pixel
+	brne check_border
 	cp r17, r23
 	breq pixel
-	rjmp no_pixel
+	rjmp check_border
 
 	top_row: //(7->11)
 	subi r22, 7
 	cp r18, r22
-	brne no_pixel
+	brne check_border
 	cp r17, r24
 	breq pixel
-	rjmp no_pixel
+	rjmp check_border
+
+
+	check_border:
+	ldi zh, high(Level<<1) // load adress table of char into Z
+	ldi zl, low(Level<<1)
+	ldi r19, 0
+	mov r6, r19
+	next_border:
+	ldi r19, 0
+	ldi r16, 1
+	lpm r10, z // x position of border
+	cp r10, r19
+	breq no_pixel // end of sequence reached when r10 = 0
+	adiw zl, 1
+	lpm r11, z // y position of border
+	adiw zl, 1
+	lpm r12, z // length of border
+	mov r13, r10
+	sub r10, r25
+	cp r13, r10 //see of number got negative
+	brlo negative //brge is signed! (workaround)
+	rjmp not_negative
+
+	negative:
+	dec r12
+	breq skip_border
+	inc r10
+	cp r10, r16
+	breq not_negative
+	rjmp negative
+
+	not_negative:
+	inc r6 // keeps track of how many borders are visible
+	cp r10, r19
+	brne next_
+	increase:
+	inc r10
+	next_:
+	cp r10, r16
+	brlo skip_border
+	
+	cp r18, r11
+	brne bottom_border
+	cp r17, r10
+	brlo skip_border
+	add r10, r12
+	cp r17, r10
+	brlo pixel
+	
+	bottom_border:
+	ldi r19, 2
+	add r11, r19
+	cp r18, r11
+	brne skip_border
+	cp r17, r10
+	brlo skip_border
+	add r10, r12
+	cp r17, r10
+	brlo pixel
+
+	skip_border:
+	adiw z, 6 //only 6 since +2 to get all the data
+	rjmp next_border
 
 	pixel: // turn pixel on
 	sbi portb, 3
@@ -431,6 +501,12 @@ main:
 	set_pixel_value: // push pixel on stack
 	cbi PORTB, 5
 	sbi PORTB, 5
+
+	ldi r19, 0
+	cp r6, r19
+	brne not_end_of_game
+	rjmp load_menu_setup // game has ended
+	not_end_of_game:
 	ret
 
 
@@ -448,6 +524,33 @@ main:
 	sbi PORTB, 5
 	ret
 
+	//--------------- BORDER SHIFTING-------------------
+
+/*	shift_borders:
+	ldi r19, 0
+	push r0
+	push r1
+	mov r0, r19
+	mov r1, r19
+	ldi zh, high(Level<<1) // load adress table of char into Z
+	ldi zl, low(Level<<1)
+	shift_next_border:
+	lpm r1, z // x position of border
+	cp r1, r19
+	breq skip_border
+	//dec r10
+	spm
+	adiw z, 2
+	lpm r10, z
+	cp r10, r19
+	breq stop_shifting
+	adiw z, 6
+	rjmp shift_next_border
+
+	stop_shifting:
+	ret*/
+
+
 // ------------ TIMER INTERRUPT ----------------------------
 TIM0_OVF_ISR:
 	// checks just row 0 since only button C is used
@@ -459,6 +562,8 @@ TIM0_OVF_ISR:
 		rjmp buzzz
 		sbi portc, 3 // turn led off if C is not pressed
 		SBI PORTD, 0 // avoids return to menu unwanted
+
+
 	reti
 
 	buzzz:
@@ -469,6 +574,7 @@ TIM0_OVF_ISR:
 	reti
 
 TIM1_OVF: // higher r22 => faster
+	inc r25
 	push r22
 	ldi r22, 0x6F
 	sts TCNT1H, r22
@@ -477,6 +583,7 @@ TIM1_OVF: // higher r22 => faster
 	mov r0, r1
 	mov r1, r2
 	mov r2, r3
+	//call shift_borders
 	CBI PORTD, 0 //check row 0
 	SBI PORTD, 1
 	SBI PORTD, 2
@@ -493,6 +600,10 @@ TIM1_OVF: // higher r22 => faster
 	pop r22
 	SBI PORTD, 0 // avoids return to menu unwanted
 	reti
+
+
+
+	
 
 
 
@@ -517,4 +628,9 @@ TIM1_OVF: // higher r22 => faster
 	.db 0b00000000, 0b00001001, 0b00001001, 0b00001010, 0b00001110, 0b00001001, 0b00001001, 0b00001110  //R
 	.db 0b00000000, 0b00000100, 0b00000100, 0b00000100, 0b00000100, 0b00000100, 0b00000100, 0b00001111  //T adress 0x010F
 
+
+	Level:
+	.db 1, 3, 10, 0, 0, 0, 0, 0 // x, y, length
+	.db 13, 5, 5, 0, 0, 0, 0, 0
+	.db 0, 0, 0, 0, 0, 0, 0, 0
 
