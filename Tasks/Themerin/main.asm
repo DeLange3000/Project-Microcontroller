@@ -25,6 +25,10 @@
 
 // TO DO
 // - generation of bounds (17/07 -> 18/07) (create song and save in memory and implement randomizer)
+// -> PROBLEMS: - working with 80 bit long screen (bottom and top are wrongly shown)
+//				- flickering?
+// -> SOLUTION: 1) check if bound should be drawn
+//				2) check if upper and lower bound should be drawn in the bottom part of the screen
 // - implementation of score (19/07 -> 21/07) (not in bounds or playing too long or not -> substract from score (lower limit it to zero!))
 
 // BOUNDS
@@ -265,14 +269,11 @@ main:
 	ldi r18, 8 ;select row
 	outer_loop:
 		ldi r17, 80 ;select column
-		loop1:
-			cpi r18, 8
-			brne continue
-			call get_tone
-			continue:
-			call drawing 
-			dec r17 // decrease column counter
-			brne loop1
+		cpi r18, 8
+		brne continue
+		call get_tone
+		continue:
+		call drawing 
 
 		next_loop:
 		ldi r17, 8
@@ -413,7 +414,7 @@ main:
 	cp r18, r22
 	brne check_border
 	cp r17, r23
-	breq temp_pixel
+	breq pixel
 	rjmp check_border
 
 	top_row: //(7->11)
@@ -424,15 +425,21 @@ main:
 	breq pixel
 	rjmp check_border
 
-	// when out of border: r25 - r10 - r12 changes sign
 	check_border:
-	ldi zh, high(Level<<1) // load adress table of char into Z
-	ldi zl, low(Level<<1)
+	ldi zh, high(Level<<3) // load adress table of char into Z
+	ldi zl, low(Level<<3)
 	ldi r19, 0
-	mov r6, r19
+	
 	next_border:
-	ldi r19, 0
-	ldi r16, 1
+	lpm r10, z // min_r25
+	cp r25, r10
+	brlo skip_border
+	adiw zl, 1	
+	lpm r10, z // max_r25
+	cp r10, r25
+	brlo skip_border
+	adiw zl, 1
+	// load data from flash (x, y, length)
 	lpm r10, z // x position of border
 	cp r10, r19
 	breq no_pixel // end of sequence reached when r10 = 0
@@ -440,69 +447,36 @@ main:
 	lpm r11, z // y position of border
 	adiw zl, 1
 	lpm r12, z // length of border
-	mov r13, r10
-	add r13, r12
-	mov r14, r13
-	sub r13, r25
-	cp r14, r13
-	brlo skip_border
-	mov r13, r10
-	sub r10, r25
-	cp r13, r10 //see of number got negative
-	brlo negative //brge is signed! (workaround)
-	rjmp not_negative
+	// check if border should be drawn
+	// when should border be shown?
+	// x - r25 < 40 (right edge of screen)
+	// x + length - r25 > 0 (left edge of screen) 
 
-	negative:
-	neg r10
-	sub r12, r10
-	mov r10, r16
-
-	temp_pixel:
-	rjmp pixel
-
-	not_negative:
-	inc r6 // keeps track of how many borders are visible
-	cp r10, r19
-	brne next_
-	increase:
-	inc r10
-	next_:
-	cp r10, r16
-	brlo skip_border
-	
-	ldi r19, 8
-	cp r11, r19
+	draw_border:
+	ldi r16, 8
+	cp r11, r16
 	brsh top_row_border
-	continue_with_border:
-	cp r18, r11
-	brne bottom_border
-	cp r17, r10
-	brlo skip_border
-	add r10, r12
-	cp r17, r10
-	brlo pixel
-	
-	bottom_border:
-	ldi r19, 2
-	add r11, r19
-	cp r18, r11
+
+	cp r11, r18
 	brne skip_border
+	sub r10, r25 // can be negative
+	brvc pos_left_side
+	mov r10, r19
+	pos_left_side:
 	cp r17, r10
 	brlo skip_border
+	cpi r17, 41
+	brge skip_border
 	add r10, r12
 	cp r17, r10
 	brlo pixel
-	rjmp skip_border
 
 	top_row_border:
-	ldi r19, 8
-	sub r11, r19
-	ldi r19, 40
-	add r10, r19
-	rjmp continue_with_border
+	rjmp skip_border
+
 
 	skip_border:
-	adiw z, 6 //only 6 since +2 to get all the data
+	adiw z, 4 //only 6 since +2 to get all the data
 	rjmp next_border
 
 	pixel: // turn pixel on
@@ -520,27 +494,16 @@ main:
 	cbi PORTB, 5
 	sbi PORTB, 5
 
-	ldi r19, 0
+/*	ldi r19, 0
 	cp r6, r19
 	brne not_end_of_game
-	rjmp load_menu_setup // game has ended
+	rjmp load_menu_setup // game has ended*/
 	not_end_of_game:
+
+	dec r17 // decrease column counter
 	ret
 
 
-	// ------------------ DRAWING LOADING SCREEN ----------------------
-
-	drawing_loading_screen:
-
-	pixel_menu: // turn pixel on
-	sbi portb, 3
-	rjmp set_pixel_value_menu
-	no_pixel_menu: // turn pixel off	
-	cbi portb, 3
-	set_pixel_value_menu: // push pixel on stack
-	cbi PORTB, 5
-	sbi PORTB, 5
-	ret
 
 	//--------------- BORDER SHIFTING-------------------
 
@@ -648,10 +611,14 @@ TIM1_OVF: // higher r22 => faster
 
 
 	Level:
-	.db 41, 3, 10, 0, 0, 0, 0, 0 // x, y, length
-	.db 45, 5, 5, 0, 0, 0, 0, 0
-	.db 65, 7, 20, 0, 0, 0, 0, 0
+	// us of limits for r25 to minimize screen flickering
+	// min_r25 = x - 40
+	// max_r25 = x + length
+	// assume: no 2 borders on top of each other
+	.db 1, 231, 41, 3, 190, 0, 0, 0 //min_r25, max_r25, x, y, length
+    .db 45, 10, 5, 0, 0, 0, 0, 0
+	.db 240, 2, 10, 0, 0, 0, 0, 0
+	/*.db 65, 7, 20, 0, 0, 0, 0, 0
 	.db 90, 4, 10, 0, 0, 0, 0, 0
-	.db 100, 8, 5, 0, 0, 0, 0, 0
-	.db 0, 0, 0, 0, 0, 0, 0, 0
+	.db 100, 8, 5, 0, 0, 0, 0, 0*/
 
