@@ -34,6 +34,7 @@
 // BOUNDS
 // - upper bound defines also lower bound (-2)
 // - store in memory bound height and length (max height is 14, max length is 40)
+// - CHANGE R28 AND R6 WHEN CHANGING AMOUNT OF BOUNDS!!!!!!!!!!!!!!!!!!!!!!!
 
 
 ; Definition file of the ATmega328P
@@ -273,7 +274,7 @@ main:
 
 ; runs through all lines of display and checks wether a pixel should be on
 	ldi r18, 8 ;select row
-	ldi r28, 8 // rows *#borders
+	ldi r28, 16 // rows *#borders
 	outer_loop:
 		ldi r17, 80 ;select column
 		cpi r18, 8
@@ -423,7 +424,7 @@ main:
 	//check for borders
 	ldi zh, high(Level<<1) // load adress table of char into Z
 	ldi zl, low(Level<<1)
-	ldi r19, 1
+	ldi r19, 2
 	mov r6, r19 // counter for amount of borders
 	ldi r19, 41
 	mov r7, r19 // for bottom part of display
@@ -455,6 +456,8 @@ main:
 	lpm r10, z // x position of border
 	adiw z, 1
 	lpm r12, z // length of border
+	ldi r19, 0 // to check if its top or bottom of screen
+	mov r8, r19
 	//so border does not overflow into bottom part of screen
 	ldi r19, 41
 	mov r15, r10
@@ -470,33 +473,37 @@ main:
 	top_row_border:
 	subi r16, 7
 	cp r16, r18
-	breq next_data_load
+	breq load_data2
 	subi r16, 2
 	cp r16, r18
 	brne skip_border
-	next_data_load:
-	//load data (r16:y, r10:x, r11:length)
+	load_data2: // (r16:y, r10:x, r11:length)
 	lpm r10, z // min_r25
 	adiw zl, 1	
 	cp r25, r10
 	brlo skip_border
-	adiw z, 1
 	lpm r10, z // max_r25
 	cp r10, r25
 	brlo skip_border
+	adiw z, 1
 	lpm r10, z // x position of border
-	cp r10, r19
-	breq continue_drawing // end of sequence reached when r10 = 0
-	adiw zl, 1
+	adiw z, 1
 	lpm r12, z // length of border
-	mov r11, r12
 	add r10, r7
+	ldi r19, 1
+	mov r8, r19
 	rjmp draw_border
 
 	temp_continue_drawing:
 	rjmp continue_drawing
 
 	draw_border:
+	ldi r19, 1
+	cp r8, r19
+	brne no_lower_limit
+	cpi r17, 41
+	brlo continue_drawing
+	no_lower_limit:
 	mov r16, r10
 	sub r16, r25
 	cp r17, r16
@@ -559,6 +566,7 @@ main:
 	sbi PORTB, 5
 	dec r17 // decrease column counter
 	breq stop_drawing
+	ldi r19, 0
 	cp r6, r19
 	breq continue_drawing
 	dec r11
@@ -650,7 +658,8 @@ TIM1_OVF: // higher r22 => faster
 
 
 	Level:
-	.db 3, 0, 50, 40, 10, 0, 0, 0 //y, min_r25, max_r25, x, length
+	.db 15, 0, 50, 40, 10, 0, 0, 0 //y, min_r25, max_r25, x, length
+	.db 3, 20, 65, 60, 5, 0, 0, 0
 	//.db 3, 11, 81, 71, 10, 0, 0, 0
 	.db 25, 0, 0, 0, 0, 0, 0, 0
 	 // should be in reverse order

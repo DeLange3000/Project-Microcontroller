@@ -1,5 +1,5 @@
 
-AVRASM ver. 2.2.8  D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm Mon Jul 17 18:13:30 2023
+AVRASM ver. 2.2.8  D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm Mon Jul 17 19:02:15 2023
 
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328Pdef.inc'
 D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm(40): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328pdef.inc'
@@ -1076,8 +1076,8 @@ D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\The
                                  
                                  ;Boot code
 000000 c020                      .org 0x0000 rjmp init //ORDER IS IMPORTANT (smallest adress first)	A
-00001a c17a                      .org 0x001A rjmp TIM1_OVF
-000020 c166                      .org 0x0020 rjmp TIM0_OVF_ISR
+00001a c181                      .org 0x001A rjmp TIM1_OVF
+000020 c16d                      .org 0x0020 rjmp TIM0_OVF_ISR
                                  
                                   
                                  
@@ -1228,7 +1228,7 @@ D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\The
 000077 e018                      	ldi r17, 8
 000078 915a                      	ld r21, -y //predecrement Y and load char value pointed to by Y
 000079 e0f3                      	ldi zh, high(CharTable<<1) // load adress table of char into Z
-00007a e5ee                      	ldi zl, low(CharTable<<1)
+00007a e6ec                      	ldi zl, low(CharTable<<1)
                                  	//calculate offset in tavle for char
 00007b 0fe6                      	add zl, r22 // line offset
 00007c f408                      	brcc next_addition
@@ -1304,7 +1304,7 @@ D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\The
                                  
                                  ; runs through all lines of display and checks wether a pixel should be on
 0000ac e028                      	ldi r18, 8 ;select row
-0000ad e0c8                      	ldi r28, 8 // rows *#borders
+0000ad e1c0                      	ldi r28, 16 // rows *#borders
                                  	outer_loop:
 0000ae e510                      		ldi r17, 80 ;select column
 0000af 3028                      		cpi r18, 8
@@ -1453,8 +1453,8 @@ D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\The
                                  	load_adress:
                                  	//check for borders
 00010e e0f3                      	ldi zh, high(Level<<1) // load adress table of char into Z
-00010f edee                      	ldi zl, low(Level<<1)
-000110 e031                      	ldi r19, 1
+00010f eeec                      	ldi zl, low(Level<<1)
+000110 e032                      	ldi r19, 2
 000111 2e63                      	mov r6, r19 // counter for amount of borders
 000112 e239                      	ldi r19, 41
 000113 2e73                      	mov r7, r19 // for bottom part of display
@@ -1467,190 +1467,197 @@ D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\The
                                  	// if border not on r18 => no need to check it
 000118 9104                      	lpm r16, z //y position of border
 000119 3109                      	cpi r16, 25
-00011a f189                      	breq temp_continue_drawing
+00011a f191                      	breq temp_continue_drawing
 00011b 9631                      	adiw z, 1
 00011c 1702                      	cp r16, r18
 00011d f019                      	breq load_data1
 00011e 5002                      	subi r16, 2
 00011f 1702                      	cp r16, r18
-000120 f4a9                      	brne top_row_border
+000120 f4b9                      	brne top_row_border
                                  	load_data1: // (r16:y, r10:x, r11:length)
 000121 90a4                      	lpm r10, z // min_r25
 000122 9631                      	adiw z, 1	
 000123 159a                      	cp r25, r10
-000124 f180                      	brlo skip_border
+000124 f1b0                      	brlo skip_border
 000125 90a4                      	lpm r10, z // max_r25
 000126 16a9                      	cp r10, r25
-000127 f168                      	brlo skip_border
+000127 f198                      	brlo skip_border
 000128 9631                      	adiw z, 1
 000129 90a4                      	lpm r10, z // x position of border
 00012a 9631                      	adiw z, 1
 00012b 90c4                      	lpm r12, z // length of border
+00012c e030                      	ldi r19, 0 // to check if its top or bottom of screen
+00012d 2e83                      	mov r8, r19
                                  	//so border does not overflow into bottom part of screen
-00012c e239                      	ldi r19, 41
-00012d 2cfa                      	mov r15, r10
-00012e 0cfc                      	add r15, r12
-00012f 1af9                      	sub r15, r25
-000130 16f3                      	cp r15, r19
-000131 f0d8                      	brlo draw_border
-000132 2ec3                      	mov r12, r19
-000133 18ca                      	sub r12, r10
-000134 0ec9                      	add r12, r25
-000135 c017                      	rjmp draw_border
+00012e e239                      	ldi r19, 41
+00012f 2cfa                      	mov r15, r10
+000130 0cfc                      	add r15, r12
+000131 1af9                      	sub r15, r25
+000132 16f3                      	cp r15, r19
+000133 f0d0                      	brlo draw_border
+000134 2ec3                      	mov r12, r19
+000135 18ca                      	sub r12, r10
+000136 0ec9                      	add r12, r25
+000137 c016                      	rjmp draw_border
                                  
                                  	top_row_border:
-000136 5007                      	subi r16, 7
-000137 1702                      	cp r16, r18
-000138 f019                      	breq next_data_load
-000139 5002                      	subi r16, 2
-00013a 1702                      	cp r16, r18
-00013b f4c9                      	brne skip_border
-                                 	next_data_load:
-                                 	//load data (r16:y, r10:x, r11:length)
-00013c 90a4                      	lpm r10, z // min_r25
-00013d 9631                      	adiw zl, 1	
-00013e 159a                      	cp r25, r10
-00013f f0a8                      	brlo skip_border
-000140 9631                      	adiw z, 1
-000141 90a4                      	lpm r10, z // max_r25
-000142 16a9                      	cp r10, r25
-000143 f088                      	brlo skip_border
-000144 90a4                      	lpm r10, z // x position of border
-000145 16a3                      	cp r10, r19
-000146 f099                      	breq continue_drawing // end of sequence reached when r10 = 0
-000147 9631                      	adiw zl, 1
+000138 5007                      	subi r16, 7
+000139 1702                      	cp r16, r18
+00013a f019                      	breq load_data2
+00013b 5002                      	subi r16, 2
+00013c 1702                      	cp r16, r18
+00013d f4e9                      	brne skip_border
+                                 	load_data2: // (r16:y, r10:x, r11:length)
+00013e 90a4                      	lpm r10, z // min_r25
+00013f 9631                      	adiw zl, 1	
+000140 159a                      	cp r25, r10
+000141 f0c8                      	brlo skip_border
+000142 90a4                      	lpm r10, z // max_r25
+000143 16a9                      	cp r10, r25
+000144 f0b0                      	brlo skip_border
+000145 9631                      	adiw z, 1
+000146 90a4                      	lpm r10, z // x position of border
+000147 9631                      	adiw z, 1
 000148 90c4                      	lpm r12, z // length of border
-000149 2cbc                      	mov r11, r12
-00014a 0ca7                      	add r10, r7
-00014b c001                      	rjmp draw_border
+000149 0ca7                      	add r10, r7
+00014a e031                      	ldi r19, 1
+00014b 2e83                      	mov r8, r19
+00014c c001                      	rjmp draw_border
                                  
                                  	temp_continue_drawing:
-00014c c00d                      	rjmp continue_drawing
+00014d c012                      	rjmp continue_drawing
                                  
                                  	draw_border:
-00014d 2d0a                      	mov r16, r10
-00014e 1b09                      	sub r16, r25
-00014f 1710                      	cp r17, r16
-000150 f04c                      	brlt continue_drawing
-000151 0d0c                      	add r16, r12
-000152 1710                      	cp r17, r16
-000153 f118                      	brlo pixel
-000154 c005                      	rjmp continue_drawing
+00014e e031                      	ldi r19, 1
+00014f 1683                      	cp r8, r19
+000150 f411                      	brne no_lower_limit
+000151 3219                      	cpi r17, 41
+000152 f068                      	brlo continue_drawing
+                                 	no_lower_limit:
+000153 2d0a                      	mov r16, r10
+000154 1b09                      	sub r16, r25
+000155 1710                      	cp r17, r16
+000156 f04c                      	brlt continue_drawing
+000157 0d0c                      	add r16, r12
+000158 1710                      	cp r17, r16
+000159 f118                      	brlo pixel
+00015a c005                      	rjmp continue_drawing
                                  
                                  	skip_border:
-000155 9637                      	adiw z, 7
-000156 95ca                      	dec r28
-000157 946a                      	dec r6
-000158 f009                      	breq continue_drawing
-000159 cfbe                      	rjmp next_border
+00015b 9637                      	adiw z, 7
+00015c 95ca                      	dec r28
+00015d 946a                      	dec r6
+00015e f009                      	breq continue_drawing
+00015f cfb8                      	rjmp next_border
                                  
                                  	continue_drawing:
-00015a e070                      	ldi r23, 0 //upper screen index
-00015b e288                      	ldi r24, 40 // lower screen index
-00015c e0b0                      	ldi r27, 0 // address of first pixel
-00015d e0a0                      	ldi r26, 0
-00015e 321e                      	cpi r17, 46
-00015f f4cc                      	brge no_pixel
-000160 3218                      	cpi r17, 40
-000161 f41c                      	brge next_pixel_tail
-000162 3016                      	cpi r17, 6
-000163 f008                      	brlo next_pixel_tail
-000164 c014                      	rjmp no_pixel
+000160 e070                      	ldi r23, 0 //upper screen index
+000161 e288                      	ldi r24, 40 // lower screen index
+000162 e0b0                      	ldi r27, 0 // address of first pixel
+000163 e0a0                      	ldi r26, 0
+000164 321e                      	cpi r17, 46
+000165 f4cc                      	brge no_pixel
+000166 3218                      	cpi r17, 40
+000167 f41c                      	brge next_pixel_tail
+000168 3016                      	cpi r17, 6
+000169 f008                      	brlo next_pixel_tail
+00016a c014                      	rjmp no_pixel
                                  
                                  	next_pixel_tail:
-000165 9573                      	inc r23
-000166 9583                      	inc r24
-000167 916d                      	ld r22, X+ // load data from r0 -> r4 using adress X and increase adress X
-000168 30a6                      	cpi r26, 6
-000169 f47c                      	brge no_pixel
-00016a 3068                      	cpi r22, 8
-00016b f428                      	brsh top_row
-00016c 1726                      	cp r18, r22
-00016d f7b9                      	brne next_pixel_tail
-00016e 1717                      	cp r17, r23
-00016f f039                      	breq pixel
-000170 cff4                      	rjmp next_pixel_tail
+00016b 9573                      	inc r23
+00016c 9583                      	inc r24
+00016d 916d                      	ld r22, X+ // load data from r0 -> r4 using adress X and increase adress X
+00016e 30a6                      	cpi r26, 6
+00016f f47c                      	brge no_pixel
+000170 3068                      	cpi r22, 8
+000171 f428                      	brsh top_row
+000172 1726                      	cp r18, r22
+000173 f7b9                      	brne next_pixel_tail
+000174 1717                      	cp r17, r23
+000175 f039                      	breq pixel
+000176 cff4                      	rjmp next_pixel_tail
                                  
                                  	top_row: //(7->11)
-000171 5067                      	subi r22, 7
-000172 1726                      	cp r18, r22
-000173 f789                      	brne next_pixel_tail
-000174 1718                      	cp r17, r24
-000175 f009                      	breq pixel
-000176 cfee                      	rjmp next_pixel_tail
+000177 5067                      	subi r22, 7
+000178 1726                      	cp r18, r22
+000179 f789                      	brne next_pixel_tail
+00017a 1718                      	cp r17, r24
+00017b f009                      	breq pixel
+00017c cfee                      	rjmp next_pixel_tail
                                  
                                  
                                  	pixel: // turn pixel on
-000177 9a2b                      	sbi portb, 3
-000178 c001                      	rjmp set_pixel_value
+00017d 9a2b                      	sbi portb, 3
+00017e c001                      	rjmp set_pixel_value
                                  	no_pixel: // turn pixel off	
-000179 982b                      	cbi portb, 3
+00017f 982b                      	cbi portb, 3
                                  	set_pixel_value: // push pixel on stack
-00017a 982d                      	cbi PORTB, 5
-00017b 9a2d                      	sbi PORTB, 5
-00017c 951a                      	dec r17 // decrease column counter
-00017d f031                      	breq stop_drawing
-00017e 1663                      	cp r6, r19
-00017f f2d1                      	breq continue_drawing
-000180 94ba                      	dec r11
-000181 f659                      	brne draw_border
-000182 9634                      	adiw z, 4
-000183 cf86                      	rjmp continue_with_borders
+000180 982d                      	cbi PORTB, 5
+000181 9a2d                      	sbi PORTB, 5
+000182 951a                      	dec r17 // decrease column counter
+000183 f039                      	breq stop_drawing
+000184 e030                      	ldi r19, 0
+000185 1663                      	cp r6, r19
+000186 f2c9                      	breq continue_drawing
+000187 94ba                      	dec r11
+000188 f629                      	brne draw_border
+000189 9634                      	adiw z, 4
+00018a cf7f                      	rjmp continue_with_borders
                                  	stop_drawing:
-000184 3010                      	cpi r17, 0
-000185 f799                      	brne no_pixel
-000186 9508                      	ret
+00018b 3010                      	cpi r17, 0
+00018c f791                      	brne no_pixel
+00018d 9508                      	ret
                                  
                                  
                                  // ------------ TIMER INTERRUPT ----------------------------
                                  TIM0_OVF_ISR:
                                  	// checks just row 0 since only button C is used
-000187 9858                      	CBI PORTD, 0 //check row 0
-000188 9a59                      	SBI PORTD, 1
-000189 9a5a                      	SBI PORTD, 2
-00018a 9a5b                      	SBI PORTD, 3
-00018b 9b4c                      		SBIS PIND, 4 // if C is pressed, jump to output_C
-00018c c003                      		rjmp buzzz
-00018d 9a43                      		sbi portc, 3 // turn led off if C is not pressed
-00018e 9a58                      		SBI PORTD, 0 // avoids return to menu unwanted
+00018e 9858                      	CBI PORTD, 0 //check row 0
+00018f 9a59                      	SBI PORTD, 1
+000190 9a5a                      	SBI PORTD, 2
+000191 9a5b                      	SBI PORTD, 3
+000192 9b4c                      		SBIS PIND, 4 // if C is pressed, jump to output_C
+000193 c003                      		rjmp buzzz
+000194 9a43                      		sbi portc, 3 // turn led off if C is not pressed
+000195 9a58                      		SBI PORTD, 0 // avoids return to menu unwanted
                                  
                                  
-00018f 9518                      	reti
+000196 9518                      	reti
                                  
                                  	buzzz:
-000190 9843                      	cbi portc, 3
-000191 bd56                      	out TCNT0, R21 // set value of buzzer
-000192 9a19                      	SBI PINB, 1 // make buzzer go bzzzzzzzzzzzz
-000193 9a58                      	SBI PORTD, 0 // avoids return to menu unwanted
-000194 9518                      	reti
+000197 9843                      	cbi portc, 3
+000198 bd56                      	out TCNT0, R21 // set value of buzzer
+000199 9a19                      	SBI PINB, 1 // make buzzer go bzzzzzzzzzzzz
+00019a 9a58                      	SBI PORTD, 0 // avoids return to menu unwanted
+00019b 9518                      	reti
                                  
                                  TIM1_OVF: // higher r22 => faster
-000195 9593                      	inc r25
-000196 936f                      	push r22
-000197 e66f                      	ldi r22, 0x6F
-000198 9360 0085                 	sts TCNT1H, r22
-00019a ef6f                      	ldi r22, 0xFF
-00019b 9360 0084                 	sts TCNT1L, r22
-00019d 2c01                      	mov r0, r1
-00019e 2c12                      	mov r1, r2
-00019f 2c23                      	mov r2, r3
+00019c 9593                      	inc r25
+00019d 936f                      	push r22
+00019e e66f                      	ldi r22, 0x6F
+00019f 9360 0085                 	sts TCNT1H, r22
+0001a1 ef6f                      	ldi r22, 0xFF
+0001a2 9360 0084                 	sts TCNT1L, r22
+0001a4 2c01                      	mov r0, r1
+0001a5 2c12                      	mov r1, r2
+0001a6 2c23                      	mov r2, r3
                                  	//call shift_borders
-0001a0 9858                      	CBI PORTD, 0 //check row 0
-0001a1 9a59                      	SBI PORTD, 1
-0001a2 9a5a                      	SBI PORTD, 2
-0001a3 9a5b                      	SBI PORTD, 3
-0001a4 9b4c                      		SBIS PIND, 4 // if C is pressed, jump to output_C
-0001a5 c005                      		rjmp sound
-0001a6 e060                      		ldi r22, 0
-0001a7 2e36                      		mov r3, r22
-0001a8 916f                      		pop r22
-0001a9 9a58                      		SBI PORTD, 0 // avoids return to menu unwanted
-0001aa 9518                      		reti
+0001a7 9858                      	CBI PORTD, 0 //check row 0
+0001a8 9a59                      	SBI PORTD, 1
+0001a9 9a5a                      	SBI PORTD, 2
+0001aa 9a5b                      	SBI PORTD, 3
+0001ab 9b4c                      		SBIS PIND, 4 // if C is pressed, jump to output_C
+0001ac c005                      		rjmp sound
+0001ad e060                      		ldi r22, 0
+0001ae 2e36                      		mov r3, r22
+0001af 916f                      		pop r22
+0001b0 9a58                      		SBI PORTD, 0 // avoids return to menu unwanted
+0001b1 9518                      		reti
                                  	sound:
-0001ab 2c34                      	mov r3, r4
-0001ac 916f                      	pop r22
-0001ad 9a58                      	SBI PORTD, 0 // avoids return to menu unwanted
-0001ae 9518                      	reti
+0001b2 2c34                      	mov r3, r4
+0001b3 916f                      	pop r22
+0001b4 9a58                      	SBI PORTD, 0 // avoids return to menu unwanted
+0001b5 9518                      	reti
                                  
                                  
                                  
@@ -1662,82 +1669,86 @@ D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\The
                                  	//------------ PREDEFINED CHARACTERS --------------------
                                  
                                  	CharTable: // bottom => top
-0001af 0800
-0001b0 0808
-0001b1 090f
-0001b2 0f09                      	.db 0b00000000, 0b00001000, 0b00001000, 0b00001000, 0b00001111, 0b00001001, 0b00001001, 0b00001111  //P adress 0x0100
-0001b3 0900
-0001b4 0a09
-0001b5 090e
-0001b6 0e09                      	.db 0b00000000, 0b00001001, 0b00001001, 0b00001010, 0b00001110, 0b00001001, 0b00001001, 0b00001110  //R
-0001b7 0f00
-0001b8 0808
-0001b9 080e
-0001ba 0f08                      	.db 0b00000000, 0b00001111, 0b00001000, 0b00001000, 0b00001110, 0b00001000, 0b00001000, 0b00001111  //E
-0001bb 0f00
-0001bc 0101
-0001bd 080f
-0001be 0f08                      	.db 0b00000000, 0b00001111, 0b00000001, 0b00000001, 0b00001111, 0b00001000, 0b00001000, 0b00001111  //S
-0001bf 0f00
-0001c0 0101
-0001c1 080f
-0001c2 0f08                      	.db 0b00000000, 0b00001111, 0b00000001, 0b00000001, 0b00001111, 0b00001000, 0b00001000, 0b00001111  //S
-0001c3 0000
-0001c4 0000
-0001c5 0000
-0001c6 0000                      	.db 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000  // space
-0001c7 0900
-0001c8 0909
-0001c9 090f
-0001ca 0609                      	.db 0b00000000, 0b00001001, 0b00001001, 0b00001001, 0b00001111, 0b00001001, 0b00001001, 0b00000110  //A
+0001b6 0800
+0001b7 0808
+0001b8 090f
+0001b9 0f09                      	.db 0b00000000, 0b00001000, 0b00001000, 0b00001000, 0b00001111, 0b00001001, 0b00001001, 0b00001111  //P adress 0x0100
+0001ba 0900
+0001bb 0a09
+0001bc 090e
+0001bd 0e09                      	.db 0b00000000, 0b00001001, 0b00001001, 0b00001010, 0b00001110, 0b00001001, 0b00001001, 0b00001110  //R
+0001be 0f00
+0001bf 0808
+0001c0 080e
+0001c1 0f08                      	.db 0b00000000, 0b00001111, 0b00001000, 0b00001000, 0b00001110, 0b00001000, 0b00001000, 0b00001111  //E
+0001c2 0f00
+0001c3 0101
+0001c4 080f
+0001c5 0f08                      	.db 0b00000000, 0b00001111, 0b00000001, 0b00000001, 0b00001111, 0b00001000, 0b00001000, 0b00001111  //S
+0001c6 0f00
+0001c7 0101
+0001c8 080f
+0001c9 0f08                      	.db 0b00000000, 0b00001111, 0b00000001, 0b00000001, 0b00001111, 0b00001000, 0b00001000, 0b00001111  //S
+0001ca 0000
 0001cb 0000
 0001cc 0000
-0001cd 0000
-0001ce 0000                      	.db 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000  // space
-0001cf 0400
-0001d0 0404
-0001d1 0404
-0001d2 0f04                      	.db 0b00000000, 0b00000100, 0b00000100, 0b00000100, 0b00000100, 0b00000100, 0b00000100, 0b00001111  //T
-0001d3 0600
-0001d4 0909
-0001d5 0909
-0001d6 0609                      	.db 0b00000000, 0b00000110, 0b00001001, 0b00001001, 0b00001001, 0b00001001, 0b00001001, 0b00000110  //O
-0001d7 0000
-0001d8 0000
-0001d9 0000
-0001da 0000                      	.db 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000  // space
-0001db 0f00
-0001dc 0101
-0001dd 080f
-0001de 0f08                      	.db 0b00000000, 0b00001111, 0b00000001, 0b00000001, 0b00001111, 0b00001000, 0b00001000, 0b00001111  //S
-0001df 0400
-0001e0 0404
-0001e1 0404
-0001e2 0f04                      	.db 0b00000000, 0b00000100, 0b00000100, 0b00000100, 0b00000100, 0b00000100, 0b00000100, 0b00001111  //T
-0001e3 0900
-0001e4 0909
-0001e5 090f
-0001e6 0609                      	.db 0b00000000, 0b00001001, 0b00001001, 0b00001001, 0b00001111, 0b00001001, 0b00001001, 0b00000110  //A
-0001e7 0900
-0001e8 0a09
-0001e9 090e
-0001ea 0e09                      	.db 0b00000000, 0b00001001, 0b00001001, 0b00001010, 0b00001110, 0b00001001, 0b00001001, 0b00001110  //R
-0001eb 0400
-0001ec 0404
-0001ed 0404
-0001ee 0f04                      	.db 0b00000000, 0b00000100, 0b00000100, 0b00000100, 0b00000100, 0b00000100, 0b00000100, 0b00001111  //T adress 0x010F
+0001cd 0000                      	.db 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000  // space
+0001ce 0900
+0001cf 0909
+0001d0 090f
+0001d1 0609                      	.db 0b00000000, 0b00001001, 0b00001001, 0b00001001, 0b00001111, 0b00001001, 0b00001001, 0b00000110  //A
+0001d2 0000
+0001d3 0000
+0001d4 0000
+0001d5 0000                      	.db 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000  // space
+0001d6 0400
+0001d7 0404
+0001d8 0404
+0001d9 0f04                      	.db 0b00000000, 0b00000100, 0b00000100, 0b00000100, 0b00000100, 0b00000100, 0b00000100, 0b00001111  //T
+0001da 0600
+0001db 0909
+0001dc 0909
+0001dd 0609                      	.db 0b00000000, 0b00000110, 0b00001001, 0b00001001, 0b00001001, 0b00001001, 0b00001001, 0b00000110  //O
+0001de 0000
+0001df 0000
+0001e0 0000
+0001e1 0000                      	.db 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000  // space
+0001e2 0f00
+0001e3 0101
+0001e4 080f
+0001e5 0f08                      	.db 0b00000000, 0b00001111, 0b00000001, 0b00000001, 0b00001111, 0b00001000, 0b00001000, 0b00001111  //S
+0001e6 0400
+0001e7 0404
+0001e8 0404
+0001e9 0f04                      	.db 0b00000000, 0b00000100, 0b00000100, 0b00000100, 0b00000100, 0b00000100, 0b00000100, 0b00001111  //T
+0001ea 0900
+0001eb 0909
+0001ec 090f
+0001ed 0609                      	.db 0b00000000, 0b00001001, 0b00001001, 0b00001001, 0b00001111, 0b00001001, 0b00001001, 0b00000110  //A
+0001ee 0900
+0001ef 0a09
+0001f0 090e
+0001f1 0e09                      	.db 0b00000000, 0b00001001, 0b00001001, 0b00001010, 0b00001110, 0b00001001, 0b00001001, 0b00001110  //R
+0001f2 0400
+0001f3 0404
+0001f4 0404
+0001f5 0f04                      	.db 0b00000000, 0b00000100, 0b00000100, 0b00000100, 0b00000100, 0b00000100, 0b00000100, 0b00001111  //T adress 0x010F
                                  
                                  
                                  	Level:
-0001ef 0003
-0001f0 2832
-0001f1 000a
-0001f2 0000                      	.db 3, 0, 50, 40, 10, 0, 0, 0 //y, min_r25, max_r25, x, length
+0001f6 000f
+0001f7 2832
+0001f8 000a
+0001f9 0000                      	.db 15, 0, 50, 40, 10, 0, 0, 0 //y, min_r25, max_r25, x, length
+0001fa 1403
+0001fb 3c41
+0001fc 0005
+0001fd 0000                      	.db 3, 20, 65, 60, 5, 0, 0, 0
                                  	//.db 3, 11, 81, 71, 10, 0, 0, 0
-0001f3 0019
-0001f4 0000
-0001f5 0000
-0001f6 0000                      	.db 25, 0, 0, 0, 0, 0, 0, 0
+0001fe 0019
+0001ff 0000
+000200 0000
+000201 0000                      	.db 25, 0, 0, 0, 0, 0, 0, 0
                                  	 // should be in reverse order
                                  	// us of limits for r25 to minimize screen flickering
                                  	// min_r25 = x - 40
@@ -1767,26 +1778,26 @@ counted separately from r26..r31 here.
 .dseg memory usage only counts static data declared with .byte
 
 "ATmega328P" register use summary:
-x  :   1 y  :   1 z  :  17 r0 :   2 r1 :   3 r2 :   3 r3 :   4 r4 :   3 
-r5 :   0 r6 :   3 r7 :   2 r8 :   0 r9 :   0 r10:  15 r11:   4 r12:   8 
-r13:   0 r14:   0 r15:   4 r16:  42 r17:  18 r18:  13 r19:  11 r20:  35 
+x  :   1 y  :   1 z  :  18 r0 :   2 r1 :   3 r2 :   3 r3 :   4 r4 :   3 
+r5 :   0 r6 :   3 r7 :   2 r8 :   3 r9 :   0 r10:  14 r11:   3 r12:   7 
+r13:   0 r14:   0 r15:   4 r16:  42 r17:  19 r18:  13 r19:  17 r20:  35 
 r21:  18 r22:  17 r23:   5 r24:   7 r25:   9 r26:   2 r27:   1 r28:   4 
-r29:   1 r30:   6 r31:   4 
-Registers used: 30 out of 35 (85.7%)
+r29:   1 r30:   5 r31:   4 
+Registers used: 31 out of 35 (88.6%)
 
 "ATmega328P" instruction use summary:
 .lds  :   0 .sts  :   0 adc   :   0 add   :   6 adiw  :   9 and   :   0 
 andi  :   0 asr   :   0 bclr  :   0 bld   :   0 brbc  :   0 brbs  :   0 
-brcc  :   3 brcs  :   0 break :   0 breq  :  11 brge  :   3 brhc  :   0 
-brhs  :   0 brid  :   0 brie  :   0 brlo  :   7 brlt  :   1 brmi  :   0 
-brne  :  16 brpl  :   0 brsh  :  12 brtc  :   0 brts  :   0 brvc  :   0 
+brcc  :   3 brcs  :   0 break :   0 breq  :  10 brge  :   3 brhc  :   0 
+brhs  :   0 brid  :   0 brie  :   0 brlo  :   8 brlt  :   1 brmi  :   0 
+brne  :  17 brpl  :   0 brsh  :  12 brtc  :   0 brts  :   0 brvc  :   0 
 brvs  :   0 bset  :   0 bst   :   0 call  :   2 cbi   :  21 cbr   :   0 
 clc   :   1 clh   :   0 cli   :   1 cln   :   0 clr   :   0 cls   :   0 
 clt   :   0 clv   :   0 clz   :   0 com   :   0 cp    :  19 cpc   :   0 
-cpi   :  22 cpse  :   0 dec   :  10 eor   :   0 fmul  :   0 fmuls :   0 
+cpi   :  23 cpse  :   0 dec   :  10 eor   :   0 fmul  :   0 fmuls :   0 
 fmulsu:   0 icall :   0 ijmp  :   0 in    :   0 inc   :   7 jmp   :   0 
-ld    :   2 ldd   :   0 ldi   :  71 lds   :   1 lpm   :  20 lsl   :   0 
-lsr   :   0 mov   :  18 movw  :   0 mul   :   0 muls  :   0 mulsu :   0 
+ld    :   2 ldd   :   0 ldi   :  75 lds   :   1 lpm   :  20 lsl   :   0 
+lsr   :   0 mov   :  19 movw  :   0 mul   :   0 muls  :   0 mulsu :   0 
 neg   :   0 nop   :   0 or    :   0 ori   :   0 out   :   4 pop   :   2 
 push  :   1 rcall :   0 ret   :  13 reti  :   4 rjmp  :  25 rol   :   0 
 ror   :   1 sbc   :   0 sbci  :   0 sbi   :  54 sbic  :   0 sbis  :   4 
@@ -1799,7 +1810,7 @@ Instructions used: 35 out of 113 (31.0%)
 "ATmega328P" memory use summary [bytes]:
 Segment   Begin    End      Code   Data   Used    Size   Use%
 ---------------------------------------------------------------
-[.cseg] 0x000000 0x0003ee    802    144    946   32768   2.9%
+[.cseg] 0x000000 0x000404    816    152    968   32768   3.0%
 [.dseg] 0x000100 0x000100      0      0      0    2048   0.0%
 [.eseg] 0x000000 0x000000      0      0      0    1024   0.0%
 
