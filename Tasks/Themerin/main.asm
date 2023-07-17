@@ -274,7 +274,7 @@ main:
 
 ; runs through all lines of display and checks wether a pixel should be on
 	ldi r18, 8 ;select row
-	ldi r28, 16 // rows *#borders
+	ldi r28, 24 // rows *#borders
 	outer_loop:
 		ldi r17, 80 ;select column
 		cpi r18, 8
@@ -424,13 +424,10 @@ main:
 	//check for borders
 	ldi zh, high(Level<<1) // load adress table of char into Z
 	ldi zl, low(Level<<1)
-	ldi r19, 2
+	ldi r19, 3
 	mov r6, r19 // counter for amount of borders
 	ldi r19, 41
 	mov r7, r19 // for bottom part of display
-	ldi r19, 0
-	mov r11, r19
-	inc r11
 	rjmp next_border
 
 	next_border:
@@ -444,7 +441,7 @@ main:
 	subi r16, 2
 	cp r16, r18
 	brne top_row_border
-	load_data1: // (r16:y, r10:x, r11:length)
+	load_data1: // (r16:y, r10:x, r12:length)
 	lpm r10, z // min_r25
 	adiw z, 1	
 	cp r25, r10
@@ -477,7 +474,7 @@ main:
 	subi r16, 2
 	cp r16, r18
 	brne skip_border
-	load_data2: // (r16:y, r10:x, r11:length)
+	load_data2: // (r16:y, r10:x, r12:length)
 	lpm r10, z // min_r25
 	adiw zl, 1	
 	cp r25, r10
@@ -569,13 +566,10 @@ main:
 	ldi r19, 0
 	cp r6, r19
 	breq continue_drawing
-	dec r11
 	brne draw_border
 	adiw z, 4
 	rjmp continue_with_borders
 	stop_drawing:
-	cpi r17, 0
-	brne no_pixel
 	ret
 
 
@@ -658,9 +652,10 @@ TIM1_OVF: // higher r22 => faster
 
 
 	Level:
-	.db 15, 0, 50, 40, 10, 0, 0, 0 //y, min_r25, max_r25, x, length
-	.db 3, 20, 65, 60, 5, 0, 0, 0
-	//.db 3, 11, 81, 71, 10, 0, 0, 0
+	.db 15, 0, 42, 40, 2, 0, 0, 0 //y, min_r25, max_r25, x, length //max_r25 is 215
+	.db 3, 5, 50, 45, 5, 0, 0, 0
+	.db 12, 10, 54, 50, 4, 0, 0, 0
+	//.db 5, 50, 100, 90, 10, 0, 0, 0
 	.db 25, 0, 0, 0, 0, 0, 0, 0
 	 // should be in reverse order
 	// us of limits for r25 to minimize screen flickering
