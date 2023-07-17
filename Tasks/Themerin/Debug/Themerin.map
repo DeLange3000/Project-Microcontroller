@@ -1,5 +1,5 @@
 
-AVRASM ver. 2.2.8  D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm Mon Jul 17 11:56:55 2023
+AVRASM ver. 2.2.8  D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm Mon Jul 17 16:11:30 2023
 
 
 EQU  SIGNATURE_000 0000001e
@@ -696,12 +696,12 @@ EQU  TWIaddr      00000030
 EQU  SPMRaddr     00000032
 EQU  INT_VECTORS_SIZE 00000034
 CSEG init         00000021
-CSEG TIM1_OVF     00000155
-CSEG TIM0_OVF_ISR 00000147
+CSEG TIM1_OVF     00000182
+CSEG TIM0_OVF_ISR 00000174
 CSEG load_menu    00000071
 CSEG load_menu_setup 0000006a
 CSEG Blockloop    00000077
-CSEG CharTable    0000016f
+CSEG CharTable    0000019c
 CSEG next_addition 0000007e
 CSEG load_data    00000081
 CSEG BlockColloop 00000083
@@ -730,19 +730,20 @@ CSEG note_G       000000f8
 CSEG note_Gsharp  000000fb
 CSEG note_A       000000fe
 CSEG note_Asharp  00000101
-CSEG continue_drawing 00000109
-CSEG top_row      00000111
-CSEG check_border 00000117
-CSEG pixel        0000013b
-CSEG Level        000001af
-CSEG next_border  0000011a
-CSEG skip_border  00000139
-CSEG no_pixel     0000013d
-CSEG draw_border  00000129
-CSEG top_row_border 00000138
-CSEG pos_left_side 00000131
-CSEG set_pixel_value 00000143
-CSEG stop_drawing 00000142
-CSEG not_end_of_game 00000145
-CSEG buzzz        00000150
-CSEG sound        0000016b
+CSEG continue_with_borders 00000105
+CSEG load_adress  00000109
+CSEG next_border  00000111
+CSEG Level        000001dc
+CSEG continue_drawing 00000147
+CSEG load_data1   0000011a
+CSEG top_row_border 00000128
+CSEG skip_border  00000144
+CSEG draw_border  0000013c
+CSEG pixel        00000164
+CSEG no_pixel     00000166
+CSEG next_pixel_tail 00000152
+CSEG top_row      0000015e
+CSEG set_pixel_value 00000167
+CSEG stop_drawing 00000171
+CSEG buzzz        0000017d
+CSEG sound        00000198

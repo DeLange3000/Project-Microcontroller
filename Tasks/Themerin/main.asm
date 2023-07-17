@@ -403,133 +403,144 @@ main:
 
 	drawing: // IS CALLED FOR EVERY PIXEL
 	mov r4, r20 // for speed (so pointer is faster correct)
-	ldi r23, 1 //upper screen index
-	ldi r24, 41 // lower screen index
+
+	continue_with_borders:
+	cpi r17, 40
+	breq load_adress
+	cpi r17, 80
+	brne next_border
+	load_adress:
+	//check for borders
+	ldi zh, high(Level<<1) // load adress table of char into Z
+	ldi zl, low(Level<<1)
+	ldi r19, 1
+	mov r6, r19 // counter for amount of borders
+	ldi r19, 0
+	mov r11, r19
+	inc r11
+	rjmp next_border
+
+	next_border:
+	// if border not on r18 => no need to check it
+	lpm r16, z //y position of border
+	cpi r16, 25
+	breq continue_drawing
+	adiw z, 1
+	cp r16, r18
+	breq load_data1
+	subi r16, 2
+	cp r16, r18
+	brne top_row_border
+	load_data1: // (r16:y, r10:x, r11:length)
+	lpm r10, z // min_r25
+	adiw zl, 1	
+	cp r25, r10
+	brlo skip_border
+	lpm r10, z // max_r25
+	cp r10, r25
+	brlo skip_border
+	adiw z, 1
+	lpm r10, z // x position of border
+	cp r10, r19
+	breq continue_drawing // end of sequence reached when r10 = 0
+	adiw zl, 1
+	lpm r12, z // length of border
+	rjmp draw_border
+
+	top_row_border:
+	subi r16, 7
+	cp r16, r18
+	brne skip_border
+	//load data (r16:y, r10:x, r11:length)
+	lpm r10, z // min_r25
+	adiw zl, 1	
+	cp r25, r10
+	brlo skip_border
+	adiw z, 1
+	lpm r10, z // max_r25
+	cp r10, r25
+	brlo skip_border
+	lpm r10, z // x position of border
+	cp r10, r19
+	breq continue_drawing // end of sequence reached when r10 = 0
+	adiw zl, 1
+	lpm r12, z // length of border
+	mov r11, r12
+	ldi r19, 40
+	add r12, r19
+	rjmp draw_border
+
+	draw_border:
+	mov r16, r10
+	sub r16, r25
+	cp r17, r16
+	brlo continue_drawing
+	add r16, r12
+	cp r17, r16
+	brlo pixel
+	rjmp continue_drawing
+
+	skip_border:
+	adiw z, 7
+	dec r6
+	rjmp next_border
+
+	continue_drawing:
+	ldi r23, 0 //upper screen index
+	ldi r24, 40 // lower screen index
 	ldi r27, 0 // address of first pixel
 	ldi r26, 0
-	continue_drawing:
+	cpi r17, 46
+	brge no_pixel
+	cpi r17, 40
+	brge next_pixel_tail
+	cpi r17, 6
+	brlo next_pixel_tail
+	rjmp no_pixel
+
+	next_pixel_tail:
+	inc r23
+	inc r24
 	ld r22, X+ // load data from r0 -> r4 using adress X and increase adress X
+	cpi r26, 6
+	brge no_pixel
 	cpi r22, 8
 	brsh top_row
 	cp r18, r22
-	brne check_border
+	brne next_pixel_tail
 	cp r17, r23
 	breq pixel
-	rjmp check_border
+	rjmp next_pixel_tail
 
 	top_row: //(7->11)
 	subi r22, 7
 	cp r18, r22
-	brne check_border
+	brne next_pixel_tail
 	cp r17, r24
 	breq pixel
-	rjmp check_border
+	rjmp next_pixel_tail
 
-	check_border:
-	ldi zh, high(Level<<3) // load adress table of char into Z
-	ldi zl, low(Level<<3)
-	ldi r19, 0
-	
-	next_border:
-	lpm r10, z // min_r25
-	cp r25, r10
-	brlo skip_border
-	adiw zl, 1	
-	lpm r10, z // max_r25
-	cp r10, r25
-	brlo skip_border
-	adiw zl, 1
-	// load data from flash (x, y, length)
-	lpm r10, z // x position of border
-	cp r10, r19
-	breq no_pixel // end of sequence reached when r10 = 0
-	adiw zl, 1
-	lpm r11, z // y position of border
-	adiw zl, 1
-	lpm r12, z // length of border
-	// check if border should be drawn
-	// when should border be shown?
-	// x - r25 < 40 (right edge of screen)
-	// x + length - r25 > 0 (left edge of screen) 
-
-	draw_border:
-	ldi r16, 8
-	cp r11, r16
-	brsh top_row_border
-
-	cp r11, r18
-	brne skip_border
-	sub r10, r25 // can be negative
-	brvc pos_left_side
-	mov r10, r19
-	pos_left_side:
-	cp r17, r10
-	brlo skip_border
-	cpi r17, 41
-	brge skip_border
-	add r10, r12
-	cp r17, r10
-	brlo pixel
-
-	top_row_border:
-	rjmp skip_border
-
-
-	skip_border:
-	adiw z, 4 //only 6 since +2 to get all the data
-	rjmp next_border
 
 	pixel: // turn pixel on
 	sbi portb, 3
 	rjmp set_pixel_value
 	no_pixel: // turn pixel off	
-	cpi r23, 5
-	breq stop_drawing
-	inc r24
-	inc r23
-	rjmp continue_drawing
-	stop_drawing:
 	cbi portb, 3
 	set_pixel_value: // push pixel on stack
 	cbi PORTB, 5
 	sbi PORTB, 5
-
-/*	ldi r19, 0
-	cp r6, r19
-	brne not_end_of_game
-	rjmp load_menu_setup // game has ended*/
-	not_end_of_game:
-
 	dec r17 // decrease column counter
+	breq stop_drawing
+	cp r6, r19
+	breq continue_drawing
+	dec r11
+	brne draw_border
+	adiw z, 3
+	rjmp continue_with_borders
+	stop_drawing:
+	cpi r17, 0
+	brne no_pixel
 	ret
-
-
-
-	//--------------- BORDER SHIFTING-------------------
-
-/*	shift_borders:
-	ldi r19, 0
-	push r0
-	push r1
-	mov r0, r19
-	mov r1, r19
-	ldi zh, high(Level<<1) // load adress table of char into Z
-	ldi zl, low(Level<<1)
-	shift_next_border:
-	lpm r1, z // x position of border
-	cp r1, r19
-	breq skip_border
-	//dec r10
-	spm
-	adiw z, 2
-	lpm r10, z
-	cp r10, r19
-	breq stop_shifting
-	adiw z, 6
-	rjmp shift_next_border
-
-	stop_shifting:
-	ret*/
 
 
 // ------------ TIMER INTERRUPT ----------------------------
@@ -611,13 +622,16 @@ TIM1_OVF: // higher r22 => faster
 
 
 	Level:
+	.db 3, 1, 231, 41, 190, 0, 0, 0 //y, min_r25, max_r25, x, length
+	.db 25, 0, 0, 0, 0, 0, 0, 0
+	 // should be in reverse order
 	// us of limits for r25 to minimize screen flickering
 	// min_r25 = x - 40
 	// max_r25 = x + length
 	// assume: no 2 borders on top of each other
-	.db 1, 231, 41, 3, 190, 0, 0, 0 //min_r25, max_r25, x, y, length
-    .db 45, 10, 5, 0, 0, 0, 0, 0
-	.db 240, 2, 10, 0, 0, 0, 0, 0
+	
+    //.db 45, 10, 5, 0, 0, 0, 0, 0
+	//.db 240, 2, 10, 0, 0, 0, 0, 0
 	/*.db 65, 7, 20, 0, 0, 0, 0, 0
 	.db 90, 4, 10, 0, 0, 0, 0, 0
 	.db 100, 8, 5, 0, 0, 0, 0, 0*/
