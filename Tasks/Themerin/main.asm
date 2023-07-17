@@ -171,7 +171,7 @@ init:
 // used global registers: r20 (height of note on screen), r21 (buzzer frequency)
 // used registers for tail chase r0, r1, r2, r3, r4
 // registers for borders: r10 -> r16, r19
-// register for border counter: r25
+// register for border counter: r25, r28
 // used registers for load menu: r20, r21, r22, r18, r24
 // used register to indicate end of the game: r5
 
@@ -226,6 +226,10 @@ Blockloop:
 	subi r24, 8 //increase blockoffset with 8
 	dec r20
 	brne blockloop
+	rjmp loop2_menu
+
+	jump_to_load_menu_setup:
+	rjmp load_menu_setup
 
 	loop2_menu:
 		cp r17, r18
@@ -265,8 +269,11 @@ SBI PORTD, 3
 ldi r20, 0
 ldi r25, 0
 main:
+
+
 ; runs through all lines of display and checks wether a pixel should be on
 	ldi r18, 8 ;select row
+	ldi r28, 8 // rows *#borders
 	outer_loop:
 		ldi r17, 80 ;select column
 		cpi r18, 8
@@ -302,6 +309,9 @@ main:
 		SBIS PIND, 4 // if 0 is pressed, jump to loadscreen
 		rjmp load_menu_setup
 		SBI PORTD, 2
+
+	cpi r28, 0
+	breq jump_to_load_menu_setup
     rjmp main
 
 
@@ -415,6 +425,8 @@ main:
 	ldi zl, low(Level<<1)
 	ldi r19, 1
 	mov r6, r19 // counter for amount of borders
+	ldi r19, 41
+	mov r7, r19 // for bottom part of display
 	ldi r19, 0
 	mov r11, r19
 	inc r11
@@ -424,7 +436,7 @@ main:
 	// if border not on r18 => no need to check it
 	lpm r16, z //y position of border
 	cpi r16, 25
-	breq continue_drawing
+	breq temp_continue_drawing
 	adiw z, 1
 	cp r16, r18
 	breq load_data1
@@ -433,7 +445,7 @@ main:
 	brne top_row_border
 	load_data1: // (r16:y, r10:x, r11:length)
 	lpm r10, z // min_r25
-	adiw zl, 1	
+	adiw z, 1	
 	cp r25, r10
 	brlo skip_border
 	lpm r10, z // max_r25
@@ -441,16 +453,28 @@ main:
 	brlo skip_border
 	adiw z, 1
 	lpm r10, z // x position of border
-	cp r10, r19
-	breq continue_drawing // end of sequence reached when r10 = 0
-	adiw zl, 1
+	adiw z, 1
 	lpm r12, z // length of border
+	//so border does not overflow into bottom part of screen
+	ldi r19, 41
+	mov r15, r10
+	add r15, r12
+	sub r15, r25
+	cp r15, r19
+	brlo draw_border
+	mov r12, r19
+	sub r12, r10
+	add r12, r25
 	rjmp draw_border
 
 	top_row_border:
 	subi r16, 7
 	cp r16, r18
+	breq next_data_load
+	subi r16, 2
+	cp r16, r18
 	brne skip_border
+	next_data_load:
 	//load data (r16:y, r10:x, r11:length)
 	lpm r10, z // min_r25
 	adiw zl, 1	
@@ -466,15 +490,17 @@ main:
 	adiw zl, 1
 	lpm r12, z // length of border
 	mov r11, r12
-	ldi r19, 40
-	add r12, r19
+	add r10, r7
 	rjmp draw_border
+
+	temp_continue_drawing:
+	rjmp continue_drawing
 
 	draw_border:
 	mov r16, r10
 	sub r16, r25
 	cp r17, r16
-	brlo continue_drawing
+	brlt continue_drawing
 	add r16, r12
 	cp r17, r16
 	brlo pixel
@@ -482,7 +508,9 @@ main:
 
 	skip_border:
 	adiw z, 7
+	dec r28
 	dec r6
+	breq continue_drawing
 	rjmp next_border
 
 	continue_drawing:
@@ -535,7 +563,7 @@ main:
 	breq continue_drawing
 	dec r11
 	brne draw_border
-	adiw z, 3
+	adiw z, 4
 	rjmp continue_with_borders
 	stop_drawing:
 	cpi r17, 0
@@ -622,7 +650,8 @@ TIM1_OVF: // higher r22 => faster
 
 
 	Level:
-	.db 3, 1, 231, 41, 190, 0, 0, 0 //y, min_r25, max_r25, x, length
+	.db 3, 0, 50, 40, 10, 0, 0, 0 //y, min_r25, max_r25, x, length
+	//.db 3, 11, 81, 71, 10, 0, 0, 0
 	.db 25, 0, 0, 0, 0, 0, 0, 0
 	 // should be in reverse order
 	// us of limits for r25 to minimize screen flickering
