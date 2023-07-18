@@ -655,8 +655,9 @@ TIM1_OVF: // higher r22 => faster
 	.db 15, 0, 42, 40, 2, 0, 0, 0 //y, min_r25, max_r25, x, length //max_r25 is 215
 	.db 3, 5, 50, 45, 5, 0, 0, 0
 	.db 12, 10, 54, 50, 4, 0, 0, 0
-	//.db 5, 50, 100, 90, 10, 0, 0, 0
 	.db 25, 0, 0, 0, 0, 0, 0, 0
+	
+	//.db 5, 50, 100, 90, 10, 0, 0, 0
 	 // should be in reverse order
 	// us of limits for r25 to minimize screen flickering
 	// min_r25 = x - 40
