@@ -27,8 +27,11 @@
 // - generation of bounds (17/07 -> 18/07) (create song and save in memory and implement randomizer)
 // -> PROBLEMS: - working with 80 bit long screen (bottom and top are wrongly shown)
 //				- flickering?
-// -> SOLUTION: 1) check if bound should be drawn
-//				2) check if upper and lower bound should be drawn in the bottom part of the screen
+//				- border length should adjust at edge of window
+// -> SOLUTION: 1) check if bound should be drawn => OK
+//				2) check if upper and lower bound should be drawn in the bottom part of the screen => OK
+//				3) condition to check when next border should be drawn
+//
 // - implementation of score (19/07 -> 21/07) (not in bounds or playing too long or not -> substract from score (lower limit it to zero!))
 
 // BOUNDS
@@ -274,8 +277,8 @@ main:
 
 ; runs through all lines of display and checks wether a pixel should be on
 	ldi r18, 8 ;select row
-	ldi r28, 24 // rows *#borders
-	outer_loop:
+	ldi r28, 64 //2 * rows * #borders
+	outer_loop: 
 		ldi r17, 80 ;select column
 		cpi r18, 8
 		brne continue
@@ -303,6 +306,9 @@ main:
 		dec r18
 	brne outer_loop
 
+/*	cpi r28, 0
+	breq jump_to_load_menu_setup*/
+
 	SBI PORTD, 0 //check row 3
 	SBI PORTD, 1
 	CBI PORTD, 2
@@ -311,8 +317,7 @@ main:
 		rjmp load_menu_setup
 		SBI PORTD, 2
 
-	cpi r28, 0
-	breq jump_to_load_menu_setup
+
     rjmp main
 
 
@@ -435,36 +440,27 @@ main:
 	lpm r16, z //y position of border
 	cpi r16, 25
 	breq temp_continue_drawing
-	adiw z, 1
 	cp r16, r18
 	breq load_data1
 	subi r16, 2
 	cp r16, r18
 	brne top_row_border
 	load_data1: // (r16:y, r10:x, r12:length)
+	adiw z, 1 // +1
 	lpm r10, z // min_r25
-	adiw z, 1	
+	adiw z, 1 // +2
 	cp r25, r10
 	brlo skip_border
 	lpm r10, z // max_r25
 	cp r10, r25
 	brlo skip_border
-	adiw z, 1
+	adiw z, 1 // +3
 	lpm r10, z // x position of border
-	adiw z, 1
+	adiw z, 1 // +4
 	lpm r12, z // length of border
+	mov r11, r12
 	ldi r19, 0 // to check if its top or bottom of screen
 	mov r8, r19
-	//so border does not overflow into bottom part of screen
-	ldi r19, 41
-	mov r15, r10
-	add r15, r12
-	sub r15, r25
-	cp r15, r19
-	brlo draw_border
-	mov r12, r19
-	sub r12, r10
-	add r12, r25
 	rjmp draw_border
 
 	top_row_border:
@@ -475,24 +471,31 @@ main:
 	cp r16, r18
 	brne skip_border
 	load_data2: // (r16:y, r10:x, r12:length)
+	adiw zl, 1 // +1
 	lpm r10, z // min_r25
-	adiw zl, 1	
+	adiw zl, 1 // +2
 	cp r25, r10
 	brlo skip_border
 	lpm r10, z // max_r25
 	cp r10, r25
 	brlo skip_border
-	adiw z, 1
+	adiw z, 1 // +3
 	lpm r10, z // x position of border
-	adiw z, 1
+	adiw z, 1 // +4
 	lpm r12, z // length of border
+	mov r11, r12
 	add r10, r7
 	ldi r19, 1
 	mov r8, r19
 	rjmp draw_border
 
 	temp_continue_drawing:
+	ldi r19, 0
+	mov r6, r19
 	rjmp continue_drawing
+
+	temp_continue_with_borders:
+	rjmp continue_with_borders
 
 	draw_border:
 	ldi r19, 1
@@ -500,18 +503,23 @@ main:
 	brne no_lower_limit
 	cpi r17, 41
 	brlo continue_drawing
+	rjmp borders
 	no_lower_limit:
+	cpi r17, 41
+	brsh continue_drawing
+	borders:
 	mov r16, r10
 	sub r16, r25
 	cp r17, r16
 	brlt continue_drawing
 	add r16, r12
 	cp r17, r16
-	brlo pixel
-	rjmp continue_drawing
+	brsh continue_drawing
+	dec r11
+	rjmp pixel
 
 	skip_border:
-	adiw z, 7
+	adiw z, 8
 	dec r28
 	dec r6
 	breq continue_drawing
@@ -545,7 +553,7 @@ main:
 	rjmp next_pixel_tail
 
 	top_row: //(7->11)
-	subi r22, 7
+	subi r22, 6
 	cp r18, r22
 	brne next_pixel_tail
 	cp r17, r24
@@ -563,10 +571,14 @@ main:
 	sbi PORTB, 5
 	dec r17 // decrease column counter
 	breq stop_drawing
+	cpi r17, 40
+	breq temp_continue_with_borders
 	ldi r19, 0
+	cp r11, r19
+	brne draw_border
 	cp r6, r19
 	breq continue_drawing
-	brne draw_border
+	dec r6
 	adiw z, 4
 	rjmp continue_with_borders
 	stop_drawing:
@@ -633,28 +645,28 @@ TIM1_OVF: // higher r22 => faster
 	//------------ PREDEFINED CHARACTERS --------------------
 
 	CharTable: // bottom => top
-	.db 0b00000000, 0b00001000, 0b00001000, 0b00001000, 0b00001111, 0b00001001, 0b00001001, 0b00001111  //P adress 0x0100
+	.db 0b00000000, 0b00001000, 0b00001000, 0b00001000, 0b00001110, 0b00001001, 0b00001001, 0b00001110  //P adress 0x0100
 	.db 0b00000000, 0b00001001, 0b00001001, 0b00001010, 0b00001110, 0b00001001, 0b00001001, 0b00001110  //R
 	.db 0b00000000, 0b00001111, 0b00001000, 0b00001000, 0b00001110, 0b00001000, 0b00001000, 0b00001111  //E
-	.db 0b00000000, 0b00001111, 0b00000001, 0b00000001, 0b00001111, 0b00001000, 0b00001000, 0b00001111  //S
-	.db 0b00000000, 0b00001111, 0b00000001, 0b00000001, 0b00001111, 0b00001000, 0b00001000, 0b00001111  //S
+	.db 0b00000000, 0b00001110, 0b00000001, 0b00000001, 0b00000110, 0b00001000, 0b00001000, 0b00000111  //S
+	.db 0b00000000, 0b00001110, 0b00000001, 0b00000001, 0b00000110, 0b00001000, 0b00001000, 0b00000111  //S
 	.db 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000  // space
 	.db 0b00000000, 0b00001001, 0b00001001, 0b00001001, 0b00001111, 0b00001001, 0b00001001, 0b00000110  //A
 	.db 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000  // space
-	.db 0b00000000, 0b00000100, 0b00000100, 0b00000100, 0b00000100, 0b00000100, 0b00000100, 0b00001111  //T
+	.db 0b00000000, 0b00000100, 0b00000100, 0b00000100, 0b00000100, 0b00000100, 0b00000100, 0b00011111  //T
 	.db 0b00000000, 0b00000110, 0b00001001, 0b00001001, 0b00001001, 0b00001001, 0b00001001, 0b00000110  //O
 	.db 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000  // space
-	.db 0b00000000, 0b00001111, 0b00000001, 0b00000001, 0b00001111, 0b00001000, 0b00001000, 0b00001111  //S
-	.db 0b00000000, 0b00000100, 0b00000100, 0b00000100, 0b00000100, 0b00000100, 0b00000100, 0b00001111  //T
+	.db 0b00000000, 0b00001110, 0b00000001, 0b00000001, 0b00000110, 0b00001000, 0b00001000, 0b00000111  //S
+	.db 0b00000000, 0b00000100, 0b00000100, 0b00000100, 0b00000100, 0b00000100, 0b00000100, 0b00011111  //T
 	.db 0b00000000, 0b00001001, 0b00001001, 0b00001001, 0b00001111, 0b00001001, 0b00001001, 0b00000110  //A
 	.db 0b00000000, 0b00001001, 0b00001001, 0b00001010, 0b00001110, 0b00001001, 0b00001001, 0b00001110  //R
-	.db 0b00000000, 0b00000100, 0b00000100, 0b00000100, 0b00000100, 0b00000100, 0b00000100, 0b00001111  //T adress 0x010F
+	.db 0b00000000, 0b00000100, 0b00000100, 0b00000100, 0b00000100, 0b00000100, 0b00000100, 0b00011111  //T adress 0x010F
 
 
 	Level:
-	.db 15, 0, 42, 40, 2, 0, 0, 0 //y, min_r25, max_r25, x, length //max_r25 is 215
+	.db 5, 21, 65, 61, 4, 0, 0, 0
 	.db 3, 5, 50, 45, 5, 0, 0, 0
-	.db 12, 10, 54, 50, 4, 0, 0, 0
+	.db 13, 0, 42, 40, 2, 0, 0, 0 //y, min_r25, max_r25, x, length //max_r25 is 215
 	.db 25, 0, 0, 0, 0, 0, 0, 0
 	
 	//.db 5, 50, 100, 90, 10, 0, 0, 0
