@@ -1,5 +1,5 @@
 
-AVRASM ver. 2.2.8  D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm Fri Jul 21 10:37:39 2023
+AVRASM ver. 2.2.8  D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm Fri Jul 21 14:58:46 2023
 
 
 EQU  SIGNATURE_000 0000001e
@@ -696,12 +696,12 @@ EQU  TWIaddr      00000030
 EQU  SPMRaddr     00000032
 EQU  INT_VECTORS_SIZE 00000034
 CSEG init         00000021
-CSEG TIM1_OVF     000001b2
-CSEG TIM0_OVF_ISR 000001a4
+CSEG TIM1_OVF     0000019d
+CSEG TIM0_OVF_ISR 0000018f
 CSEG load_menu    00000071
 CSEG load_menu_setup 0000006a
 CSEG Blockloop    00000077
-CSEG CharTable    000001cc
+CSEG CharTable    000001b7
 CSEG next_addition 0000007e
 CSEG load_data    00000081
 CSEG BlockColloop 00000083
@@ -734,25 +734,26 @@ CSEG note_Asharp  00000106
 CSEG continue_with_borders 0000010a
 CSEG load_adress  0000010e
 CSEG next_border  00000115
-CSEG Level        0000020c
-CSEG temp_continue_drawing 00000137
-CSEG load_data1   0000011d
-CSEG top_row_border 0000013a
-CSEG skip_border2 0000015e
-CSEG draw_border  00000164
-CSEG continue_drawing 00000175
-CSEG load_data2   00000142
-CSEG skip_border1 0000015d
-CSEG draw_border_bottom 00000163
-CSEG temp_continue_with_borders 0000015c
-CSEG no_lower_limit 0000016a
-CSEG borders      0000016c
-CSEG pixel        00000193
-CSEG no_pixel     00000195
-CSEG next_pixel_tail 00000180
-CSEG top_row      0000018c
-CSEG temp_draw_border 00000192
-CSEG set_pixel_value 00000196
-CSEG stop_drawing 000001a3
-CSEG buzzz        000001ad
-CSEG sound        000001c8
+CSEG Level        000001f7
+CSEG temp_continue_drawing 00000120
+CSEG set_top_row  0000011d
+CSEG top_row_border 00000123
+CSEG load_data_border 0000012d
+CSEG continue_drawing 00000160
+CSEG set_bottom_row 0000012b
+CSEG skip_border1 00000145
+CSEG skip_border2 00000146
+CSEG draw_border_bottom 0000014b
+CSEG draw_border  0000014f
+CSEG no_lower_limit 00000155
+CSEG borders      00000157
+CSEG pixel        0000017d
+CSEG no_pixel     0000017f
+CSEG next_pixel_tail 0000016b
+CSEG top_row      00000177
+CSEG set_pixel_value 00000180
+CSEG stop_drawing 0000018e
+CSEG temp_continue_with_borders 0000018c
+CSEG temp_draw_border 0000018d
+CSEG buzzz        00000198
+CSEG sound        000001b3

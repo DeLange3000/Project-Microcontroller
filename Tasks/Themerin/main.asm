@@ -21,7 +21,7 @@
 // - press C to make a sound (play a note). Point on screen gets tail
 // - game where you try to stay within bounds. Play notes when bounds are visible on point
 // - generate bounds by programming a song in memory
-// - receive score based on how well you did
+// - receive score based on how well you did (+1 for each time you are inside the borders)
 
 // TO DO
 // - generation of bounds
@@ -32,15 +32,18 @@
 //				2) check if bound should be drawn => OK
 //				3) check if upper and lower bound should be drawn in the bottom part of the screen => OK
 //				4) condition to check when next border should be drawn => OK
-//				5) recalculate border length at edge of screen
+//				5) recalculate border length at edge of screen => OK
 //
 // - implementation of score (not in bounds or playing too long or not -> substract from score (lower limit it to zero!))
+// -> register indicates if tone is in right position
+// -> evaluate score during TIMER1 interrupt
 
 // BOUNDS
 // - upper bound defines also lower bound (-2)
 // - store in memory bound height and length
 // - CHANGE R28 AND R6 WHEN CHANGING AMOUNT OF BOUNDS!!!!!!!!!!!!!!!!!!!!!!!
 
+	//display: top is 1 bottom is 7 (0 is not on display)
 
 ; Definition file of the ATmega328P
 .include "m328pdef.inc"
@@ -50,14 +53,10 @@
 ; constants
 
 ;Boot code
-.org 0x0000 rjmp init //ORDER IS IMPORTANT (smallest adress first)	A
-.org 0x001A rjmp TIM1_OVF
-.org 0x0020 rjmp TIM0_OVF_ISR
-
- 
-
-
+.org 0x0000 rjmp init //ORDER IS IMPORTANT (smallest adress first)
 ; Interrupt address vectors
+.org 0x001A rjmp TIM1_OVF // timer1 interrupt
+.org 0x0020 rjmp TIM0_OVF_ISR // timer2 interrupt
 
 init:
 // ------------------ SETUP ---------------------------
@@ -118,10 +117,9 @@ init:
 	SBI DDRC, 3
 	SBI PORTC, 3
 
-	//set c pins as input
+	//set c pins as input for joystick
 	cbi ddrc, 1
 	cbi ddrc ,0
-
 
 	// buzzer setup
 	LDI R21, 185 ; register 21 controls frequency
@@ -147,8 +145,6 @@ init:
 	ldi r16,1<<TOIE1
 	sts TIMSK1,r16 ; Enable Timer/Counter1 Overflow Interrupt
 
-
-
 	// ADC setup
 	ldi r16, 0b11111111
 	sts didr0, r16
@@ -162,12 +158,11 @@ init:
 	ldi r16, 0b11100010
 	sts ADCSRA, r16
 
-	ldi r16, 0b01100001 ; last 0000 for adc0
+	ldi r16, 0b01100001 ; last 0001 for adc1 (Joystick up/down)
 	sts ADMUX, r16
 	
 	ldi r16, 0b00000000
 	sts ADCSRB, r16
-
 
 	//SEI ; enable interrupts
 	
@@ -194,43 +189,43 @@ mov r4, r20
 load_menu:
 ldi yh, high(0x010F) // last char should be send first on screen
 ldi yl, low(0x010F)
-ldi r20, 16
-ldi r18, 8 ;select row
+ldi r20, 16 // 16 blocks fill the entire screen
+ldi r18, 8 // select row
 ldi r24, 120 // block offset initial value
-ldi r22, 0
+ldi r22, 0 // offset for each seperate line in memory
 
 Blockloop:
-	ldi r17, 8
+	ldi r17, 8 // offset for each block in memory
 	ld r21, -y //predecrement Y and load char value pointed to by Y
 	ldi zh, high(CharTable<<1) // load adress table of char into Z
 	ldi zl, low(CharTable<<1)
-	//calculate offset in tavle for char
+	//calculate offset in table for char
 	add zl, r22 // line offset
 	brcc next_addition
-	inc zh
+	inc zh // carry for word
 	next_addition:
 	add zl, r24 // block offset
 	brcc load_data
-	inc zh
+	inc zh // carry for word
 	load_data:
 	// load column data
 	lpm r21, z
-	ldi r23, 5
+	ldi r23, 5 // only 5 pixels of each line of block is put on the stack
 	// send bits to shift register
 	BlockColloop:
-	cbi portb, 3
+	cbi portb, 3 //turn pixel off
 	clc // clear carry flag
 	ror r21
 	brcc CarryIs1 //skip line if C = 0
-	sbi portb, 3
+	sbi portb, 3 // turn pixel on
 	CarryIs1:
-	cbi portb, 5
+	cbi portb, 5 // put pixel in shift register
 	sbi portb, 5
-	dec r23
+	dec r23 // only 5 pixels of each line of block is put on the stack
 	brne BlockColloop
 
-	subi r24, 8 //increase blockoffset with 8
-	dec r20
+	subi r24, 8 // decrease blockoffset with 8
+	dec r20 // decrease block counter
 	brne blockloop
 	rjmp loop2_menu
 
@@ -250,12 +245,12 @@ Blockloop:
 		dec r17
 		brne loop2_menu
 
-	ldi r20, 16 //reset r20 back to 16
-	ldi r24, 120
+	ldi r20, 16 // reset r20 back to 16 for next line of screen
+	ldi r24, 120 // reset r24 back to 120 for next line of screen
 	sbi portb, 4
 	cbi portb, 4
-	inc r22
-	dec r18
+	inc r22 // increase line offset => next line of each block is read from memory for next line on display
+	dec r18 // decrease line "selector" of display
 	brne Blockloop
 
 	// PRESS A TO START
@@ -270,23 +265,23 @@ Blockloop:
 
 // ------------------ DISPLAY --------------------------
 setup_main:
-SEI
-SBI PORTD, 3
-ldi r20, 0
-ldi r25, 0
+SEI // enable interrupts (timer0 and timer1)
+SBI PORTD, 3 // turn off row 3 (otherwise can glitch back to main menu when pressing "C")
+ldi r20, 0 // reset position of pixel set by joystick
+ldi r25, 0 // reset counter that sets the position of the boundaries on the screen
 main:
 
 
 ; runs through all lines of display and checks wether a pixel should be on
-	ldi r18, 8 ;select row
-	ldi r28, 80 //2 * rows * #borders
+	ldi r18, 8 ; select row
+	ldi r28, 80 //2 * rows * #borders (this is used to check whether no bounds are on the screen => no bounds means end of game)
 	outer_loop: 
-		ldi r17, 80 ;select column
-		cpi r18, 8
+		ldi r17, 80 // select column
+		cpi r18, 1 // only convert joystick position to frequency when row 1 of display is selected (no need to do it for each row of the display)
 		brne continue
-		call get_tone
+		call get_tone // translates position of joystick into a discrete set of frequencies
 		continue:
-		call drawing 
+		call drawing // draws position of joystick + it's tail + borders
 
 		next_loop:
 		ldi r17, 8
@@ -308,8 +303,8 @@ main:
 		dec r18
 	brne outer_loop
 
-	cpi r28, 0
-	breq jump_to_load_menu_setup
+	cpi r28, 0 // if r28 is 0 => no borders on screen => game has end
+	breq jump_to_load_menu_setup // jump to load screen if game has ended
 
 	SBI PORTD, 0 //check row 3
 	SBI PORTD, 1
@@ -317,20 +312,18 @@ main:
 	SBI PORTD, 3
 		SBIS PIND, 4 // if 0 is pressed, jump to loadscreen
 		rjmp load_menu_setup
-		SBI PORTD, 2
-
-
+		SBI PORTD, 2 // turn of row 3 to avoid glitches
     rjmp main
 
 
 //------------------------------ GET TONE ----------------------------------
 
-//converts regions of the ADC value of the joysytick into tones
-//also gets the height of the tone for the display
 	get_tone:
-
+	// this function turns different positional regions of the joystick into discrete tones used for the buzzer (reg 21) (C->B)
+	// it also generates a value used to display the position of the joystick on the screen (reg 20)
+	// conversion from reg 21 value to frequency is done using matlab (see "note_to_freq_conv.m")
 	lds r20, ADCH // MSB stored in ADCH due to values set in ADC setup
-	cpi r20, 230
+	cpi r20, 230 // compare the value from the adc to different preset values and assign a note/tone to each region
 	brsh note_C
 	cpi r20, 220
 	brsh note_Csharp
@@ -352,8 +345,6 @@ main:
 	brsh note_A
 	cpi r20, 30
 	brsh note_Asharp
-
-	//display: top is 1 bottom is 7 (0 is not on display)
 
 	// note B
 	ldi r21, 129
@@ -417,153 +408,133 @@ main:
 
 //-------------------------- DRAWING ---------------------------------
 
-// decides where a pixel should be on or off
+	drawing: // IS CALLED FOR EACH ROW
+	// draws position of joystick + it's tail + borders
 
-	drawing: // IS CALLED FOR EVERY PIXEL
-	mov r4, r20 // for speed (so pointer is faster correct)
+	// HOW TO BORDERS WORK:
+	// - the memory has a copy of the 'level' it consists of a series of borders. the memory contains x, y, length of border but also for wich r25 values it should be drawn (this is to increase speed)
+	// - the x position is only for the bottom part of the border so to get the top part a substraction of 2 needs to be performed for each border
+	// - the borders are ordened in the memory in the oposite direction then how the level progresses since the display needs the pixels most to the right of the display first
+	// - the code runs through the borders and see which one needs to be drawn. it will get the length of the border or calculate it when the border crosses the screen edge
+	// - it will run through all the borders for the top half of the screen and again for the bottom half of the screen for each iteration (or value of r18)
 
+	mov r4, r20 // for speed (so pointer is faster correct) // r4 contains the current position of the joystick
 	continue_with_borders:
-	cpi r17, 40
+	cpi r17, 40 // only when r17 = 40 or 80 the pointer to the borders should be reset to the beginning of the dataset
 	breq load_adress
 	cpi r17, 80
 	brne next_border
 	load_adress:
-	//check for borders
-	ldi zh, high(Level<<1) // load adress table of char into Z
+	ldi zh, high(Level<<1) // load adress of first border into z
 	ldi zl, low(Level<<1)
 	ldi r19, 5
-	mov r6, r19 // counter for amount of borders
+	mov r6, r19 // counter for amount of borders ( r6 = #borders excluding border ending in 25 for y position)
 	ldi r19, 40
-	mov r7, r19 // for bottom part of display
+	mov r7, r19 // for bottom part of display (need to add 40 to get pixels to show on bottom part of screen)
 	rjmp next_border
 
 	next_border:
 	// if border not on r18 => no need to check it
 	lpm r16, z //y position of border
-	cpi r16, 25
+	cpi r16, 25 // if y = 25 then end of border sequence is reached
 	breq temp_continue_drawing
-	cp r16, r18
-	breq load_data1
-	subi r16, 2
-	cp r16, r18
-	brne top_row_border
-	load_data1: // (r16:y, r10:x, r12:length)
-	adiw z, 1 // +1
-	lpm r10, z // min_r25
-	adiw z, 1 // +2
-	cp r25, r10
-	brlo skip_border2
-	lpm r10, z // max_r25
-	cp r10, r25
-	brlo skip_border2
-	adiw z, 1 // +3
-	lpm r10, z // x position of border
-	adiw z, 1 // +4
-	lpm r12, z // length of border
-	mov r11, r12
+	cp r16, r18 // only look at rest of data of border if its y-position is equal to the row that has to be drawn
+	breq set_top_row
+	subi r16, 2 // check for upper part of border
+	cp r16, r18 // only look at rest of data of border if its y-position is equal to the row that has to be drawn
+	brne top_row_border // if y-position is not equal to r18, then it might be because the y-position belongs to the bottom part of the screen
+	set_top_row:
 	ldi r19, 0 // to check if its top or bottom of screen
-	mov r8, r19
-	// calculate new border length if border is outside of screen
-	mov r15, r10
-	add r15, r12
-	sub r15, r25
-	mov r13, r7
-	inc r13
-	cp r15, r13
-	brlo draw_border
-	sub r15, r7
-	sub r11, r15
-	inc r11
-	rjmp draw_border
+	mov r8, r19 // r8 indicates if the border is part of the top or bottom part of the screen
+	rjmp load_data_border
+	
 
 	temp_continue_drawing:
-	ldi r19, 0
+	ldi r19, 0 // if x = 25 => went through all the borders so r6 should be 0
 	mov r6, r19
 	rjmp continue_drawing
 
-
-
 	top_row_border:
+	inc r16 // add 2 to r16 to compensate for the -2 to check if r16 should be drawn on the top half of the screen
 	inc r16
-	inc r16
-	subi r16, 7
+	subi r16, 7 // substract 7 from y-position to check if border should be drawn on lower half of the screen
 	cp r16, r18
-	breq load_data2
-	subi r16, 2
+	breq set_bottom_row
+	subi r16, 2 // check for upper part of border
 	cp r16, r18
 	brne skip_border1
-	load_data2: // (r16:y, r10:x, r12:length)
+	set_bottom_row:
+	ldi r19, 1
+	mov r8, r19
+	load_data_border: // (r16:y, r10:x, r12:length)
 	adiw zl, 1 // +1
 	lpm r10, z // min_r25
 	adiw zl, 1 // +2
-	cp r25, r10
+	cp r25, r10 // if r25 < min_r25 the border should not be drawn and is to be skipped
 	brlo skip_border2
 	lpm r10, z // max_r25
-	cp r10, r25
+	cp r10, r25 // if r25 > max_r25 the border should not be drawn and is to be skipped
 	brlo skip_border2
 	adiw z, 1 // +3
 	lpm r10, z // x position of border
 	adiw z, 1 // +4
 	lpm r12, z // length of border
-	mov r11, r12
-
-	ldi r19, 1
-	mov r8, r19
-	// calculate new border length if border is outside of screen
-	mov r15, r10
-	add r15, r12
-	sub r15, r25
-	mov r13, r7
-	inc r13
-	cp r15, r13
+	mov r11, r12 // r11 is used to check how mnay pixels should be on	
+	// calculate new border length if border is outside of screen (this only has to be done for the right part of the screen, left part is solved by using r8)
+	// if this calculation is not done, other borders on the same screen line will not be drawn
+	mov r15, r10 // r15 = x
+	add r15, r12 // r15 = x + length of border
+	sub r15, r25 // r15 = x + length of border - r25
+	mov r13, r7 // r13 = 40
+	inc r13 // r13 = 41
+	cp r15, r13 // x + length of border - r25 >= 41 => border is beyond screen edge
 	brlo draw_border_bottom
-	sub r15, r7
-	sub r11, r15
-	inc r11
+	sub r15, r7 // r15 = x + length of border - r25 - 40 => length of border that is off the screen
+	sub r11, r15 // r11 => length of border that is on the screen
+	inc r11 // increase r11 so the border length matches the wanted border length
 	rjmp draw_border_bottom
 
-	temp_continue_with_borders:
-	rjmp continue_with_borders
-
-	skip_border1:
+	skip_border1: // skip border after checking y-position (add total of 8 to z-pointer)
 	adiw z, 2
-	skip_border2:
-	adiw z, 6
-	dec r28
-	dec r6
+	skip_border2: // skip border after checking min_r25 and max_r25
+	adiw z, 6 // add 6 to z-pointer
+	dec r28 // if r28 = 0 => no borders on screen
+	dec r6 // if r6 = 0 => no borders need to be checked/drawn on that pixel line
 	breq continue_drawing
 	rjmp next_border
 
-	draw_border_bottom:
-	// add 40 to shift border to bottom of screen
-	add r10, r7
+	draw_border_bottom: 
+	ldi r19, 1 // add 40 to x position of border should be drawn on the bottom half of the screen
+	cp r8 , r19
+	brne draw_border
+	add r10, r7 // add 40 to shift border to bottom of screen
 	draw_border:
 	ldi r19, 1
-	cp r8, r19
+	cp r8, r19 // check if border is on top or bottom half of the screen
 	brne no_lower_limit
-	cpi r17, 41
+	cpi r17, 41 // only draw for r17 < 41 if border is on the top half of the screen
 	brlo continue_drawing
 	rjmp borders
 	no_lower_limit:
-	cpi r17, 41
+	cpi r17, 41 // only draw fr r17 >= 41 if border is on the bottom half of the screen
 	brsh continue_drawing
 	borders:
-	mov r16, r10
-	sub r16, r25
-	cp r17, r16
+	mov r16, r10 // move x position to reg 16
+	sub r16, r25 // substract r25 from x position => you get current x-position based on the shift caused by r25
+	cp r17, r16 // if r17 < r16 => no border for that pixel
 	brlt continue_drawing
-	add r16, r12
-	cp r17, r16
+	add r16, r12 // add length of border to r16
+	cp r17, r16 // of r17 < r16 => border should be drawn  => everything between the 'x-position - r25' and the 'x-position - r25 + length of the border' should be drawn 
 	brsh continue_drawing
-	dec r11
+	dec r11 // decrease amount of pixels that are left to draw for the border
 	rjmp pixel
 
-	continue_drawing:
+	continue_drawing: // checks where position of joystick and tail should be drawn
 	ldi r23, 0 //upper screen index
 	ldi r24, 40 // lower screen index
-	ldi r27, 0 // address of first pixel
-	ldi r26, 0
-	cpi r17, 46
+	ldi r27, 0 // LSB part of address of first pixel
+	ldi r26, 0 // MSB part of adress of first pixel
+	cpi r17, 46 // tail and joystick are only drawn on the left 5 pixels of the screen so any other r17 values can be ignored
 	brge no_pixel
 	cpi r17, 40
 	brge next_pixel_tail
@@ -572,29 +543,27 @@ main:
 	rjmp no_pixel
 
 	next_pixel_tail:
-	inc r23
-	inc r24
+	// pixel tail is stored in r0->r4
+	inc r23 // increase upper screen index
+	inc r24 // increase lower screen index
 	ld r22, X+ // load data from r0 -> r4 using adress X and increase adress X
-	cpi r26, 6
+	cpi r26, 6 // if r4 is reached, end of tail registers reached, and no pixel should be drawn
 	brge no_pixel
-	cpi r22, 8
+	cpi r22, 8 // if y-position of tail >= 8 it should be drawn on the bottom part of the screen
 	brsh top_row
-	cp r18, r22
+	cp r18, r22 // if y-position of tail = r18 then check r17
 	brne next_pixel_tail
-	cp r17, r23
+	cp r17, r23 // if r23 = r17 (correct x-position of tail) then draw tail
 	breq pixel
-	rjmp next_pixel_tail
+	rjmp next_pixel_tail // run through all the registers used for the tail and check if they should be drawn
 
 	top_row: //(7->11)
-	subi r22, 7
-	cp r18, r22
+	subi r22, 7 // substract 7 from the y-position of the tail so we get a  y-position we can use in the screen
+	cp r18, r22 // if y-position of tail = r18 then check r17
 	brne next_pixel_tail
-	cp r17, r24
+	cp r17, r24// if r21 = r17 (correct x-position of tail for bottom part of the screen) then draw tail
 	breq pixel
 	rjmp next_pixel_tail
-
-	temp_draw_border:
-	rjmp draw_border
 
 	pixel: // turn pixel on
 	sbi portb, 3
@@ -606,18 +575,20 @@ main:
 	sbi PORTB, 5
 	dec r17 // decrease column counter
 	breq stop_drawing
-	cpi r17, 40
+	cpi r17, 40 // if r17 then the adress for the borders should be loaded in again and borders should be checked again
 	breq temp_continue_with_borders
 	ldi r19, 0
-	cp r6, r19
+	cp r6, r19 // if r6 =0 then all borders are checked and there is no need to check them again so only the tail is evaluated
 	breq continue_drawing
-	cp r11, r19
+	cp r11, r19 // if r11 > 0 then more of the selected border should be drawn
 	brne temp_draw_border
-	adiw z, 4
-	rjmp continue_with_borders
+	adiw z, 4 // add 4 to z-pointer to point to the next border
+	temp_continue_with_borders:
+	rjmp continue_with_borders // rjmp has larger range then conditional jump so used here
+	temp_draw_border:
+	rjmp draw_border // rjmp has larger range then conditional jump so used here
 	stop_drawing:
 	ret
-
 
 // ------------ TIMER INTERRUPT ----------------------------
 TIM0_OVF_ISR:
@@ -630,8 +601,6 @@ TIM0_OVF_ISR:
 		rjmp buzzz
 		sbi portc, 3 // turn led off if C is not pressed
 		SBI PORTD, 0 // avoids return to menu unwanted
-
-
 	reti
 
 	buzzz:
@@ -642,13 +611,14 @@ TIM0_OVF_ISR:
 	reti
 
 TIM1_OVF: // higher r22 => faster
-	inc r25
-	push r22
-	ldi r22, 0x6F
-	sts TCNT1H, r22
+// timer1 determines at which rate the borders shift to the left (also determines tail shift speed)
+	inc r25 // r25 works as a way to shift the borders across the screen
+	push r22 // push r22 on stack since it is used here
+	ldi r22, 0x6F // setup timer1 again to have the same refresh rate
+	sts TCNT1H, r22 
 	ldi r22, 0xFF
 	sts TCNT1L, r22
-	mov r0, r1
+	mov r0, r1 // shift tail y-positions from right to left for each refresh
 	mov r1, r2
 	mov r2, r3
 	//call shift_borders
@@ -656,29 +626,25 @@ TIM1_OVF: // higher r22 => faster
 	SBI PORTD, 1
 	SBI PORTD, 2
 	SBI PORTD, 3
-		SBIS PIND, 4 // if C is pressed, jump to output_C
+		SBIS PIND, 4 // if C is pressed, jump to sound
 		rjmp sound
 		ldi r22, 0
-		mov r3, r22
+		mov r3, r22 // if C is pressed, then a tail comes of the pixel that displays the position of the joystick, otherwise the tail dissapears
 		pop r22
 		SBI PORTD, 0 // avoids return to menu unwanted
 		reti
 	sound:
-	mov r3, r4
+	mov r3, r4 // if C is pressed, then a tail comes of the pixel that displays the position of the joystick, otherwise the tail dissapears
 	pop r22
 	SBI PORTD, 0 // avoids return to menu unwanted
 	reti
 
 
 
-	
-
-
-
-
 	//------------ PREDEFINED CHARACTERS --------------------
 
 	CharTable: // bottom => top
+	// displays load menu
 	.db 0b00000000, 0b00001000, 0b00001000, 0b00001000, 0b00001110, 0b00001001, 0b00001001, 0b00001110  //P adress 0x0100
 	.db 0b00000000, 0b00001001, 0b00001001, 0b00001010, 0b00001110, 0b00001001, 0b00001001, 0b00001110  //R
 	.db 0b00000000, 0b00001111, 0b00001000, 0b00001000, 0b00001110, 0b00001000, 0b00001000, 0b00001111  //E
@@ -702,16 +668,16 @@ TIM1_OVF: // higher r22 => faster
 	.db 11, 30, 80, 70, 10, 0, 0, 0 
 	.db 5, 21, 65, 61, 4, 0, 0, 0
 	.db 3, 5, 50, 45, 5, 0, 0, 0
-	.db 13, 0, 42, 40, 2, 0, 0, 0 //y, min_r25, max_r25, x, length //max_r25 is 215
+	.db 13, 0, 42, 40, 2, 0, 0, 0 
 	.db 25, 0, 0, 0, 0, 0, 0, 0
-	
-	//.db 5, 50, 100, 90, 10, 0, 0, 0
-	 // should be in reverse order
+	//y, min_r25, max_r25, x, length
+	// should be in reverse order
 	// us of limits for r25 to minimize screen flickering
 	// min_r25 = x - 40
 	// max_r25 = x + length
-	// assume: no 2 borders on top of each other
+	// assume: no 2 borders on the same pixel column
 
 	// MAX 16 BORDERS => ELSE OVERFLOW ON R28
+	// max_r25 can be maximum 215 since we need to add 40 if its drawn on bottom half of screen
 	
 
