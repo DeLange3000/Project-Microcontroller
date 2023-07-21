@@ -277,7 +277,7 @@ main:
 
 ; runs through all lines of display and checks wether a pixel should be on
 	ldi r18, 8 ;select row
-	ldi r28, 64 //2 * rows * #borders
+	ldi r28, 80 //2 * rows * #borders
 	outer_loop: 
 		ldi r17, 80 ;select column
 		cpi r18, 8
@@ -306,8 +306,8 @@ main:
 		dec r18
 	brne outer_loop
 
-/*	cpi r28, 0
-	breq jump_to_load_menu_setup*/
+	cpi r28, 0
+	breq jump_to_load_menu_setup
 
 	SBI PORTD, 0 //check row 3
 	SBI PORTD, 1
@@ -429,9 +429,9 @@ main:
 	//check for borders
 	ldi zh, high(Level<<1) // load adress table of char into Z
 	ldi zl, low(Level<<1)
-	ldi r19, 3
+	ldi r19, 5
 	mov r6, r19 // counter for amount of borders
-	ldi r19, 41
+	ldi r19, 40
 	mov r7, r19 // for bottom part of display
 	rjmp next_border
 
@@ -450,10 +450,10 @@ main:
 	lpm r10, z // min_r25
 	adiw z, 1 // +2
 	cp r25, r10
-	brlo skip_border
+	brlo skip_border2
 	lpm r10, z // max_r25
 	cp r10, r25
-	brlo skip_border
+	brlo skip_border2
 	adiw z, 1 // +3
 	lpm r10, z // x position of border
 	adiw z, 1 // +4
@@ -464,21 +464,23 @@ main:
 	rjmp draw_border
 
 	top_row_border:
+	inc r16
+	inc r16
 	subi r16, 7
 	cp r16, r18
 	breq load_data2
 	subi r16, 2
 	cp r16, r18
-	brne skip_border
+	brne skip_border1
 	load_data2: // (r16:y, r10:x, r12:length)
 	adiw zl, 1 // +1
 	lpm r10, z // min_r25
 	adiw zl, 1 // +2
 	cp r25, r10
-	brlo skip_border
+	brlo skip_border2
 	lpm r10, z // max_r25
 	cp r10, r25
-	brlo skip_border
+	brlo skip_border2
 	adiw z, 1 // +3
 	lpm r10, z // x position of border
 	adiw z, 1 // +4
@@ -518,8 +520,11 @@ main:
 	dec r11
 	rjmp pixel
 
-	skip_border:
-	adiw z, 8
+
+	skip_border1:
+	adiw z, 2
+	skip_border2:
+	adiw z, 6
 	dec r28
 	dec r6
 	breq continue_drawing
@@ -553,13 +558,15 @@ main:
 	rjmp next_pixel_tail
 
 	top_row: //(7->11)
-	subi r22, 6
+	subi r22, 7
 	cp r18, r22
 	brne next_pixel_tail
 	cp r17, r24
 	breq pixel
 	rjmp next_pixel_tail
 
+	temp_draw_border:
+	rjmp draw_border
 
 	pixel: // turn pixel on
 	sbi portb, 3
@@ -574,11 +581,10 @@ main:
 	cpi r17, 40
 	breq temp_continue_with_borders
 	ldi r19, 0
-	cp r11, r19
-	brne draw_border
 	cp r6, r19
 	breq continue_drawing
-	dec r6
+	cp r11, r19
+	brne temp_draw_border
 	adiw z, 4
 	rjmp continue_with_borders
 	stop_drawing:
@@ -664,6 +670,8 @@ TIM1_OVF: // higher r22 => faster
 
 
 	Level:
+	.db 9, 41, 86, 81, 5, 0, 0, 0
+	.db 11, 30, 80, 70, 10, 0, 0, 0 
 	.db 5, 21, 65, 61, 4, 0, 0, 0
 	.db 3, 5, 50, 45, 5, 0, 0, 0
 	.db 13, 0, 42, 40, 2, 0, 0, 0 //y, min_r25, max_r25, x, length //max_r25 is 215
@@ -675,10 +683,7 @@ TIM1_OVF: // higher r22 => faster
 	// min_r25 = x - 40
 	// max_r25 = x + length
 	// assume: no 2 borders on top of each other
+
+	// MAX 16 BORDERS => ELSE OVERFLOW ON R28
 	
-    //.db 45, 10, 5, 0, 0, 0, 0, 0
-	//.db 240, 2, 10, 0, 0, 0, 0, 0
-	/*.db 65, 7, 20, 0, 0, 0, 0, 0
-	.db 90, 4, 10, 0, 0, 0, 0, 0
-	.db 100, 8, 5, 0, 0, 0, 0, 0*/
 
