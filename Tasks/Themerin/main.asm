@@ -34,7 +34,7 @@
 //				4) condition to check when next border should be drawn => OK
 //				5) recalculate border length at edge of screen => OK
 //
-// - implementation of score (not in bounds or playing too long or not -> substract from score (lower limit it to zero!))
+// - implementation of score (+1 for each time you are inside the borders => no danger of overflow due to border length limitations)
 // -> register indicates if tone is in right position
 // -> evaluate score during TIMER1 interrupt
 
@@ -174,7 +174,8 @@ init:
 // registers for borders: r10 -> r16, r19
 // register for border counter: r25, r28
 // used registers for load menu: r20, r21, r22, r18, r24
-// used register to indicate end of the game: r5
+// used register to indicate end of the game: r28
+// used registers for score: r14, r15
 
 // ------------------- LOAD MENU ------------------------------
 load_menu_setup:
@@ -269,10 +270,13 @@ SEI // enable interrupts (timer0 and timer1)
 SBI PORTD, 3 // turn off row 3 (otherwise can glitch back to main menu when pressing "C")
 ldi r20, 0 // reset position of pixel set by joystick
 ldi r25, 0 // reset counter that sets the position of the boundaries on the screen
+mov r15, r25 // r15 keeps track of the score (reset to zero)
 main:
 
 
 ; runs through all lines of display and checks wether a pixel should be on
+	ldi r19, 0
+	mov r14, r19 // register 14 is used to keep track wether the joystick is inbetween the borders
 	ldi r18, 8 ; select row
 	ldi r28, 80 //2 * rows * #borders (this is used to check whether no bounds are on the screen => no bounds means end of game)
 	outer_loop: 
@@ -304,7 +308,7 @@ main:
 	brne outer_loop
 
 	cpi r28, 0 // if r28 is 0 => no borders on screen => game has end
-	breq jump_to_load_menu_setup // jump to load screen if game has ended
+	breq score_menu_setup // jump to load screen if game has ended
 
 	SBI PORTD, 0 //check row 3
 	SBI PORTD, 1
@@ -314,6 +318,164 @@ main:
 		rjmp load_menu_setup
 		SBI PORTD, 2 // turn of row 3 to avoid glitches
     rjmp main
+
+// ----------------------------- SCORE MENU --------------------------------
+score_menu_setup:
+CLI
+// convert score into digits r0 -> r2 (r0 contains 100s, r1 contains 10s, r2 contains 1s)
+// only needs to be done once in the score menu
+ldi r16, 0
+mov r2, r16 //reset r0 -> r3
+mov r3, r16
+mov r4, r16
+mov r16, r15 // move r15 to r16 so we can use cpi
+digit100: //get all the 100s digits by substracting 100 until r16 < 100
+cpi r16, 100
+brlo digit10
+subi r16, 100
+inc r2
+rjmp digit100
+digit10: //get all the 10s digits by substracting 10 until r16 < 10
+cpi r16, 10
+brlo digit1
+subi r16, 10
+inc r3
+rjmp digit10
+digit1: //get all the 1s digits by substracting 1 until r16 =0
+cpi r16, 0
+breq multiply_with_8
+subi r16, 1
+inc r4
+rjmp digit1
+
+multiply_with_8:
+ldi r19, 8 // r1 should always be zero since 9*8 < 255
+mul r2, r19
+mov r2, r0
+mul r3, r19
+mov r3, r0
+mul r4, r19
+mov r4, r0
+
+score_menu:
+ldi yh, high(0x010F) // last char should be send first on screen
+ldi yl, low(0x010F)
+ldi r20, 16 // 16 blocks fill the entire screen
+ldi r18, 8 // select row
+ldi r24, 120 // block offset initial value
+ldi r22, 0 // offset for each seperate line in memory
+
+Blockloop_score:
+	ldi r17, 8 // offset for each block in memory
+	ld r21, -y //predecrement Y and load char value pointed to by Y
+	ldi zh, high(ScoreTable<<1) // load adress table of char into Z
+	ldi zl, low(ScoreTable<<1)
+	ldi r23, 5 // only 5 pixels of each line of block is put on the stack
+	//calculate offset in table for char
+	cpi r20, 12
+	brsh zeros_on_screen //show empty blocks for r20 > 13 (after digits of score)
+	cpi r20, 9
+	brsh score_on_screen // show the score on the screen
+	cpi r20, 6
+	brsh zeros_on_screen // show empty blocks after the wod "score" on the top part of the screen
+	add zl, r22 // line offset
+	brcc next_addition_score
+	inc zh // carry for word
+	next_addition_score:
+	add zl, r24 // block offset
+	brcc load_data_score
+	inc zh // carry for word
+	load_data_score:
+	// load column data
+	lpm r21, z
+	rjmp BlockColloop_score
+
+	score_on_screen: // use register r2 -> r4 for each digit
+	ldi zh, high(DigitsTable<<1) // load adress table of char into Z
+	ldi zl, low(DigitsTable<<1)
+	add zl, r22 // line offset
+	brcc next_addition_digit
+	inc zh // carry for word
+	next_addition_digit:
+
+	cpi r20, 9
+	brne digit10_
+	add zl, r2 // block offset
+	brcc digit100_load
+	inc zh // carry for word
+	digit100_load:
+	lpm r21, z
+	rjmp BlockColloop_score
+
+	digit10_:
+	cpi r20, 10
+	brne digit1_
+	add zl, r3 // block offset
+	brcc digit10_load
+	inc zh // carry for word
+	digit10_load:
+	lpm r21, z
+	rjmp BlockColloop_score
+
+	digit1_:
+	add zl, r4 // block offset
+	brcc digit1_load
+	inc zh // carry for word
+	digit1_load:
+	lpm r21, z
+	rjmp BlockColloop_score
+
+	zeros_on_screen:
+	ldi r21, 0
+	// send bits to shift register
+	BlockColloop_score:
+	cbi portb, 3 //turn pixel off
+	clc // clear carry flag
+	ror r21
+	brcc CarryIs1_score //skip line if C = 0
+	sbi portb, 3 // turn pixel on
+	CarryIs1_score:
+	cbi portb, 5 // put pixel in shift register
+	sbi portb, 5
+	dec r23 // only 5 pixels of each line of block is put on the stack
+	brne BlockColloop_score
+	subi r24, 8 // decrease blockoffset with 8
+	dec r20 // decrease block counter
+	brne blockloop_score
+	rjmp loop2_menu_score
+
+	loop2_menu_score:
+		cp r17, r18
+		brne skip_menu_score
+		sbi PORTB, 3
+		rjmp setrow_menu_score
+		skip_menu_score:
+		cbi PORTB, 3
+		setrow_menu_score:
+		cbi PORTB, 5
+		sbi PORTB, 5
+		dec r17
+		brne loop2_menu_score
+
+	ldi r20, 16 // reset r20 back to 16 for next line of screen
+	ldi r24, 120 // reset r24 back to 120 for next line of screen
+	sbi portb, 4
+	cbi portb, 4
+	inc r22 // increase line offset => next line of each block is read from memory for next line on display
+	dec r18 // decrease line "selector" of display
+	brne temp_Blockloop_score
+
+	// PRESS A TO START
+	SBI PORTD, 0 //check row 3
+	SBI PORTD, 1
+	CBI PORTD, 2
+	SBI PORTD, 3
+		SBIS PIND, 4 // if 0 is pressed, jump to main menu
+		rjmp load_menu_setup
+    rjmp score_menu
+
+	temp_Blockloop_score:
+	rjmp Blockloop_score
 
 
 //------------------------------ GET TONE ----------------------------------
@@ -466,6 +628,7 @@ main:
 	set_bottom_row:
 	ldi r19, 1
 	mov r8, r19
+
 	load_data_border: // (r16:y, r10:x, r12:length)
 	adiw zl, 1 // +1
 	lpm r10, z // min_r25
@@ -527,6 +690,13 @@ main:
 	cp r17, r16 // of r17 < r16 => border should be drawn  => everything between the 'x-position - r25' and the 'x-position - r25 + length of the border' should be drawn 
 	brsh continue_drawing
 	dec r11 // decrease amount of pixels that are left to draw for the border
+	cpi r17, 5
+	brne pixel
+	mov r14, r18
+	cp r8, r19
+	brne pixel
+	ldi r19, 7
+	add r14, r19
 	rjmp pixel
 
 	continue_drawing: // checks where position of joystick and tail should be drawn
@@ -590,6 +760,16 @@ main:
 	stop_drawing:
 	ret
 
+// ------------ CHECK SCORE -------------------------------
+
+check_score:
+	inc r14
+	cp r14, r20
+	brne no_points
+	inc r15
+	no_points:
+	ret
+
 // ------------ TIMER INTERRUPT ----------------------------
 TIM0_OVF_ISR:
 	// checks just row 0 since only button C is used
@@ -621,7 +801,7 @@ TIM1_OVF: // higher r22 => faster
 	mov r0, r1 // shift tail y-positions from right to left for each refresh
 	mov r1, r2
 	mov r2, r3
-	//call shift_borders
+	call check_score
 	CBI PORTD, 0 //check row 0
 	SBI PORTD, 1
 	SBI PORTD, 2
@@ -661,6 +841,30 @@ TIM1_OVF: // higher r22 => faster
 	.db 0b00000000, 0b00001001, 0b00001001, 0b00001001, 0b00001111, 0b00001001, 0b00001001, 0b00000110  //A
 	.db 0b00000000, 0b00001001, 0b00001001, 0b00001010, 0b00001110, 0b00001001, 0b00001001, 0b00001110  //R
 	.db 0b00000000, 0b00000100, 0b00000100, 0b00000100, 0b00000100, 0b00000100, 0b00000100, 0b00011111  //T adress 0x010F
+
+	ScoreTable: // displays the word "score"
+	.db 0b00000000, 0b00001110, 0b00000001, 0b00000001, 0b00000110, 0b00001000, 0b00001000, 0b00000111  //S
+	.db 0b00000000, 0b00000111, 0b00001000, 0b00001000, 0b00001000, 0b00001000, 0b00001000, 0b00000111  //C
+	.db 0b00000000, 0b00000110, 0b00001001, 0b00001001, 0b00001001, 0b00001001, 0b00001001, 0b00000110  //O
+	.db 0b00000000, 0b00001001, 0b00001001, 0b00001010, 0b00001110, 0b00001001, 0b00001001, 0b00001110  //R
+	.db 0b00000000, 0b00001111, 0b00001000, 0b00001000, 0b00001110, 0b00001000, 0b00001000, 0b00001111  //E
+
+	DigitsTable:
+	.db 0b00000000, 0b00000110, 0b00001001, 0b00001001, 0b00001001, 0b00001001, 0b00001001, 0b00000110 //0
+	.db 0b00000000, 0b00000010, 0b00000010, 0b00000010, 0b00000010, 0b00000010, 0b00000110, 0b00000010 //1
+	.db 0b00000000, 0b00001111, 0b00001000, 0b00000100, 0b00000010, 0b00000001, 0b00000001, 0b00001110 //2
+	.db 0b00000000, 0b00001110, 0b00000001, 0b00000001, 0b00000111, 0b00000001, 0b00000001, 0b00001110 //3
+	.db 0b00000000, 0b00000010, 0b00000010, 0b00001111, 0b00001010, 0b00001000, 0b00001000, 0b00001000 //4
+	.db 0b00000000, 0b00001110, 0b00000001, 0b00000001, 0b00000110, 0b00001000, 0b00001000, 0b00001111 //5
+	.db 0b00000000, 0b00000110, 0b00001001, 0b00001001, 0b00001110, 0b00001000, 0b00001000, 0b00000110 //6
+	.db 0b00000000, 0b00000100, 0b00000100, 0b00000100, 0b00000100, 0b00000010, 0b00000001, 0b00001111 //7
+	.db 0b00000000, 0b00000110, 0b00001001, 0b00001001, 0b00000110, 0b00001001, 0b00001001, 0b00000110 //8
+	.db 0b00000000, 0b00000110, 0b00000001, 0b00000001, 0b00000111, 0b00001001, 0b00001001, 0b00000110 //9
+
+
+
+
+
 
 
 	Level:
