@@ -20,23 +20,25 @@
 // - point on screen indicates position of joystick
 // - press C to make a sound (play a note). Point on screen gets tail
 // - game where you try to stay within bounds. Play notes when bounds are visible on point
-// - receive score based on how well you did
 // - generate bounds by programming a song in memory
+// - receive score based on how well you did
 
 // TO DO
-// - generation of bounds (17/07 -> 18/07) (create song and save in memory and implement randomizer)
+// - generation of bounds
 // -> PROBLEMS: - working with 80 bit long screen (bottom and top are wrongly shown)
-//				- flickering?
+//				- flickering? 
 //				- border length should adjust at edge of window
-// -> SOLUTION: 1) check if bound should be drawn => OK
-//				2) check if upper and lower bound should be drawn in the bottom part of the screen => OK
-//				3) condition to check when next border should be drawn
+// -> SOLUTION: 1) flickering solved by redoing screen drawing function (reduced amount of memory loads)
+//				2) check if bound should be drawn => OK
+//				3) check if upper and lower bound should be drawn in the bottom part of the screen => OK
+//				4) condition to check when next border should be drawn => OK
+//				5) recalculate border length at edge of screen
 //
-// - implementation of score (19/07 -> 21/07) (not in bounds or playing too long or not -> substract from score (lower limit it to zero!))
+// - implementation of score (not in bounds or playing too long or not -> substract from score (lower limit it to zero!))
 
 // BOUNDS
 // - upper bound defines also lower bound (-2)
-// - store in memory bound height and length (max height is 14, max length is 40)
+// - store in memory bound height and length
 // - CHANGE R28 AND R6 WHEN CHANGING AMOUNT OF BOUNDS!!!!!!!!!!!!!!!!!!!!!!!
 
 
@@ -461,7 +463,25 @@ main:
 	mov r11, r12
 	ldi r19, 0 // to check if its top or bottom of screen
 	mov r8, r19
+	// calculate new border length if border is outside of screen
+	mov r15, r10
+	add r15, r12
+	sub r15, r25
+	mov r13, r7
+	inc r13
+	cp r15, r13
+	brlo draw_border
+	sub r15, r7
+	sub r11, r15
+	inc r11
 	rjmp draw_border
+
+	temp_continue_drawing:
+	ldi r19, 0
+	mov r6, r19
+	rjmp continue_drawing
+
+
 
 	top_row_border:
 	inc r16
@@ -486,19 +506,37 @@ main:
 	adiw z, 1 // +4
 	lpm r12, z // length of border
 	mov r11, r12
-	add r10, r7
+
 	ldi r19, 1
 	mov r8, r19
-	rjmp draw_border
-
-	temp_continue_drawing:
-	ldi r19, 0
-	mov r6, r19
-	rjmp continue_drawing
+	// calculate new border length if border is outside of screen
+	mov r15, r10
+	add r15, r12
+	sub r15, r25
+	mov r13, r7
+	inc r13
+	cp r15, r13
+	brlo draw_border_bottom
+	sub r15, r7
+	sub r11, r15
+	inc r11
+	rjmp draw_border_bottom
 
 	temp_continue_with_borders:
 	rjmp continue_with_borders
 
+	skip_border1:
+	adiw z, 2
+	skip_border2:
+	adiw z, 6
+	dec r28
+	dec r6
+	breq continue_drawing
+	rjmp next_border
+
+	draw_border_bottom:
+	// add 40 to shift border to bottom of screen
+	add r10, r7
 	draw_border:
 	ldi r19, 1
 	cp r8, r19
@@ -519,16 +557,6 @@ main:
 	brsh continue_drawing
 	dec r11
 	rjmp pixel
-
-
-	skip_border1:
-	adiw z, 2
-	skip_border2:
-	adiw z, 6
-	dec r28
-	dec r6
-	breq continue_drawing
-	rjmp next_border
 
 	continue_drawing:
 	ldi r23, 0 //upper screen index
