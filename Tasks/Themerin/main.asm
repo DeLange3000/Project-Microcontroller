@@ -37,6 +37,9 @@
 // - implementation of score (+1 for each time you are inside the borders => no danger of overflow due to border length limitations)
 // -> register indicates if tone is in right position
 // -> evaluate score during TIMER1 interrupt
+//
+// - clean up score display
+// - fix score calculation
 
 // BOUNDS
 // - upper bound defines also lower bound (-2)
@@ -270,13 +273,11 @@ SEI // enable interrupts (timer0 and timer1)
 SBI PORTD, 3 // turn off row 3 (otherwise can glitch back to main menu when pressing "C")
 ldi r20, 0 // reset position of pixel set by joystick
 ldi r25, 0 // reset counter that sets the position of the boundaries on the screen
-mov r15, r25 // r15 keeps track of the score (reset to zero)
+mov r5, r25 // r15 keeps track of the score (reset to zero)
+mov r14, r25 // register 14 is used to keep track wether the joystick is inbetween the borders
 main:
 
-
 ; runs through all lines of display and checks wether a pixel should be on
-	ldi r19, 0
-	mov r14, r19 // register 14 is used to keep track wether the joystick is inbetween the borders
 	ldi r18, 8 ; select row
 	ldi r28, 80 //2 * rows * #borders (this is used to check whether no bounds are on the screen => no bounds means end of game)
 	outer_loop: 
@@ -328,7 +329,7 @@ ldi r16, 0
 mov r2, r16 //reset r0 -> r3
 mov r3, r16
 mov r4, r16
-mov r16, r15 // move r15 to r16 so we can use cpi
+mov r16, r5 // move r5 to r16 so we can use cpi
 digit100: //get all the 100s digits by substracting 100 until r16 < 100
 cpi r16, 100
 brlo digit10
@@ -362,22 +363,22 @@ ldi yh, high(0x010F) // last char should be send first on screen
 ldi yl, low(0x010F)
 ldi r20, 16 // 16 blocks fill the entire screen
 ldi r18, 8 // select row
-ldi r24, 120 // block offset initial value
+ldi r24, 40 // block offset initial value
 ldi r22, 0 // offset for each seperate line in memory
 
 Blockloop_score:
 	ldi r17, 8 // offset for each block in memory
 	ld r21, -y //predecrement Y and load char value pointed to by Y
-	ldi zh, high(ScoreTable<<1) // load adress table of char into Z
-	ldi zl, low(ScoreTable<<1)
 	ldi r23, 5 // only 5 pixels of each line of block is put on the stack
 	//calculate offset in table for char
 	cpi r20, 12
 	brsh zeros_on_screen //show empty blocks for r20 > 13 (after digits of score)
 	cpi r20, 9
 	brsh score_on_screen // show the score on the screen
-	cpi r20, 6
+	cpi r20, 7
 	brsh zeros_on_screen // show empty blocks after the wod "score" on the top part of the screen
+	ldi zh, high(ScoreTable<<1) // load adress table of char into Z
+	ldi zl, low(ScoreTable<<1)
 	add zl, r22 // line offset
 	brcc next_addition_score
 	inc zh // carry for word
@@ -388,6 +389,7 @@ Blockloop_score:
 	load_data_score:
 	// load column data
 	lpm r21, z
+	subi r24, 8 // decrease blockoffset with 8
 	rjmp BlockColloop_score
 
 	score_on_screen: // use register r2 -> r4 for each digit
@@ -439,7 +441,6 @@ Blockloop_score:
 	sbi portb, 5
 	dec r23 // only 5 pixels of each line of block is put on the stack
 	brne BlockColloop_score
-	subi r24, 8 // decrease blockoffset with 8
 	dec r20 // decrease block counter
 	brne blockloop_score
 	rjmp loop2_menu_score
@@ -458,7 +459,7 @@ Blockloop_score:
 		brne loop2_menu_score
 
 	ldi r20, 16 // reset r20 back to 16 for next line of screen
-	ldi r24, 120 // reset r24 back to 120 for next line of screen
+	ldi r24, 40 // reset r24 back to 120 for next line of screen
 	sbi portb, 4
 	cbi portb, 4
 	inc r22 // increase line offset => next line of each block is read from memory for next line on display
@@ -690,6 +691,7 @@ Blockloop_score:
 	cp r17, r16 // of r17 < r16 => border should be drawn  => everything between the 'x-position - r25' and the 'x-position - r25 + length of the border' should be drawn 
 	brsh continue_drawing
 	dec r11 // decrease amount of pixels that are left to draw for the border
+	// for score
 	cpi r17, 5
 	brne pixel
 	mov r14, r18
@@ -760,16 +762,6 @@ Blockloop_score:
 	stop_drawing:
 	ret
 
-// ------------ CHECK SCORE -------------------------------
-
-check_score:
-	inc r14
-	cp r14, r20
-	brne no_points
-	inc r15
-	no_points:
-	ret
-
 // ------------ TIMER INTERRUPT ----------------------------
 TIM0_OVF_ISR:
 	// checks just row 0 since only button C is used
@@ -794,6 +786,7 @@ TIM1_OVF: // higher r22 => faster
 // timer1 determines at which rate the borders shift to the left (also determines tail shift speed)
 	inc r25 // r25 works as a way to shift the borders across the screen
 	push r22 // push r22 on stack since it is used here
+	push r15
 	ldi r22, 0x6F // setup timer1 again to have the same refresh rate
 	sts TCNT1H, r22 
 	ldi r22, 0xFF
@@ -801,20 +794,30 @@ TIM1_OVF: // higher r22 => faster
 	mov r0, r1 // shift tail y-positions from right to left for each refresh
 	mov r1, r2
 	mov r2, r3
-	call check_score
+	ldi r22, 0
 	CBI PORTD, 0 //check row 0
 	SBI PORTD, 1
 	SBI PORTD, 2
 	SBI PORTD, 3
 		SBIS PIND, 4 // if C is pressed, jump to sound
 		rjmp sound
-		ldi r22, 0
 		mov r3, r22 // if C is pressed, then a tail comes of the pixel that displays the position of the joystick, otherwise the tail dissapears
 		pop r22
+		pop r15
 		SBI PORTD, 0 // avoids return to menu unwanted
 		reti
 	sound:
+	//score
+	mov r15, r14
+	cp r15, r22 // if r14 = 0 => no boundaries so if C is not pressed +1
+	breq no_score
+	inc r15
+	cp r15, r20
+	brne no_score
+	inc r5
+	no_score:
 	mov r3, r4 // if C is pressed, then a tail comes of the pixel that displays the position of the joystick, otherwise the tail dissapears
+	pop r15
 	pop r22
 	SBI PORTD, 0 // avoids return to menu unwanted
 	reti
@@ -848,6 +851,7 @@ TIM1_OVF: // higher r22 => faster
 	.db 0b00000000, 0b00000110, 0b00001001, 0b00001001, 0b00001001, 0b00001001, 0b00001001, 0b00000110  //O
 	.db 0b00000000, 0b00001001, 0b00001001, 0b00001010, 0b00001110, 0b00001001, 0b00001001, 0b00001110  //R
 	.db 0b00000000, 0b00001111, 0b00001000, 0b00001000, 0b00001110, 0b00001000, 0b00001000, 0b00001111  //E
+	.db 0b00000000, 0b00000000, 0b00001000, 0b00000000, 0b00000000, 0b00000000, 0b00001000, 0b00000000  //:
 
 	DigitsTable:
 	.db 0b00000000, 0b00000110, 0b00001001, 0b00001001, 0b00001001, 0b00001001, 0b00001001, 0b00000110 //0
@@ -860,12 +864,6 @@ TIM1_OVF: // higher r22 => faster
 	.db 0b00000000, 0b00000100, 0b00000100, 0b00000100, 0b00000100, 0b00000010, 0b00000001, 0b00001111 //7
 	.db 0b00000000, 0b00000110, 0b00001001, 0b00001001, 0b00000110, 0b00001001, 0b00001001, 0b00000110 //8
 	.db 0b00000000, 0b00000110, 0b00000001, 0b00000001, 0b00000111, 0b00001001, 0b00001001, 0b00000110 //9
-
-
-
-
-
-
 
 	Level:
 	.db 9, 41, 86, 81, 5, 0, 0, 0
