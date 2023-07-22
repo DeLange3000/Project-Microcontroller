@@ -168,8 +168,6 @@ init:
 	sts ADCSRB, r16
 
 	//SEI ; enable interrupts
-	
-
 	rjmp load_menu
 
 // used global registers: r20 (height of note on screen), r21 (buzzer frequency)
@@ -310,7 +308,7 @@ main:
 		dec r18
 	brne outer_loop
 
-	mov r9, r14
+	mov r9, r14 // do timer1 interrupt gets value of r14 AFTER the whole screen has been updated
 	cpi r28, 0 // if r28 is 0 => no borders on screen => game has end
 	breq score_menu_setup // jump to load screen if game has ended
 
@@ -574,7 +572,8 @@ Blockloop_score:
 
 //-------------------------- DRAWING ---------------------------------
 
-	drawing: // IS CALLED FOR EACH ROW
+	drawing:
+	 // IS CALLED FOR EACH ROW
 	// draws position of joystick + it's tail + borders
 
 	// HOW TO BORDERS WORK:
@@ -604,6 +603,16 @@ Blockloop_score:
 	lpm r16, z //y position of border
 	cpi r16, 25 // if y = 25 then end of border sequence is reached
 	breq temp_continue_drawing
+	cpi r16, 9 // the score glitches out if the line is between the bottom and top half of the screen
+	breq push_data
+	cpi r16, 8
+	brne push_zero
+	push_data:
+	ldi r24, 1
+	rjmp no_edge
+	push_zero:
+	ldi r24, 0
+	no_edge:
 	cp r16, r18 // only look at rest of data of border if its y-position is equal to the row that has to be drawn
 	breq set_top_row
 	subi r16, 2 // check for upper part of border
@@ -697,7 +706,13 @@ Blockloop_score:
 	breq top_screen
 	cpi r17, 45
 	brne pixel
+	cpi r24, 1
+	brne add_7
+	ldi r19, 5
+	rjmp add_5
+	add_7:
 	ldi r19, 7
+	add_5:
 	mov r14, r18
 	add r14, r19
 	rjmp pixel
@@ -707,7 +722,7 @@ Blockloop_score:
 
 	continue_drawing: // checks where position of joystick and tail should be drawn
 	ldi r23, 0 //upper screen index
-	ldi r24, 40 // lower screen index
+	ldi r16, 40 // lower screen index
 	ldi r27, 0 // LSB part of address of first pixel
 	ldi r26, 0 // MSB part of adress of first pixel
 	cpi r17, 46 // tail and joystick are only drawn on the left 5 pixels of the screen so any other r17 values can be ignored
@@ -721,7 +736,7 @@ Blockloop_score:
 	next_pixel_tail:
 	// pixel tail is stored in r0->r4
 	inc r23 // increase upper screen index
-	inc r24 // increase lower screen index
+	inc r16 // increase lower screen index
 	ld r22, X+ // load data from r0 -> r4 using adress X and increase adress X
 	cpi r26, 6 // if r4 is reached, end of tail registers reached, and no pixel should be drawn
 	brge no_pixel
@@ -737,7 +752,7 @@ Blockloop_score:
 	subi r22, 7 // substract 7 from the y-position of the tail so we get a  y-position we can use in the screen
 	cp r18, r22 // if y-position of tail = r18 then check r17
 	brne next_pixel_tail
-	cp r17, r24// if r21 = r17 (correct x-position of tail for bottom part of the screen) then draw tail
+	cp r17, r16// if r21 = r17 (correct x-position of tail for bottom part of the screen) then draw tail
 	breq pixel
 	rjmp next_pixel_tail
 
@@ -818,11 +833,13 @@ TIM1_OVF: // higher r22 => faster
 	inc r16
 	cp r16, r20
 	brne no_score
+	score:
 	inc r5
 	no_score:
 	mov r3, r4 // if C is pressed, then a tail comes of the pixel that displays the position of the joystick, otherwise the tail dissapears
 	pop r16
 	pop r22
+	no_push:
 	SBI PORTD, 0 // avoids return to menu unwanted
 	reti
 
@@ -870,9 +887,9 @@ TIM1_OVF: // higher r22 => faster
 	.db 0b00000000, 0b00000110, 0b00000001, 0b00000001, 0b00000111, 0b00001001, 0b00001001, 0b00000110 //9
 
 	Level:
-	.db 9, 50, 93, 90, 3, 0, 0, 0
-	.db 4, 41, 86, 81, 5, 0, 0, 0
-	.db 11, 30, 80, 70, 10, 0, 0, 0 
+	.db 11, 50, 92, 90, 2, 0, 0, 0
+	.db 7, 40, 85, 80, 5, 0, 0, 0
+	.db 9, 30, 80, 70, 10, 0, 0, 0 
 	.db 5, 21, 65, 61, 4, 0, 0, 0
 	.db 3, 5, 50, 45, 5, 0, 0, 0
 	.db 13, 0, 42, 40, 2, 0, 0, 0 
