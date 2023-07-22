@@ -274,12 +274,14 @@ SBI PORTD, 3 // turn off row 3 (otherwise can glitch back to main menu when pres
 ldi r20, 0 // reset position of pixel set by joystick
 ldi r25, 0 // reset counter that sets the position of the boundaries on the screen
 mov r5, r25 // r15 keeps track of the score (reset to zero)
-mov r14, r25 // register 14 is used to keep track wether the joystick is inbetween the borders
+mov r15, r25
 main:
 
 ; runs through all lines of display and checks wether a pixel should be on
+	ldi r19, 0
+	mov r14, r19 // register 14 is used to keep track wether the joystick is inbetween the borders
 	ldi r18, 8 ; select row
-	ldi r28, 80 //2 * rows * #borders (this is used to check whether no bounds are on the screen => no bounds means end of game)
+	ldi r28, 96 //2 * rows * #borders (this is used to check whether no bounds are on the screen => no bounds means end of game)
 	outer_loop: 
 		ldi r17, 80 // select column
 		cpi r18, 1 // only convert joystick position to frequency when row 1 of display is selected (no need to do it for each row of the display)
@@ -308,6 +310,7 @@ main:
 		dec r18
 	brne outer_loop
 
+	mov r9, r14
 	cpi r28, 0 // if r28 is 0 => no borders on screen => game has end
 	breq score_menu_setup // jump to load screen if game has ended
 
@@ -590,7 +593,7 @@ Blockloop_score:
 	load_adress:
 	ldi zh, high(Level<<1) // load adress of first border into z
 	ldi zl, low(Level<<1)
-	ldi r19, 5
+	ldi r19, 6
 	mov r6, r19 // counter for amount of borders ( r6 = #borders excluding border ending in 25 for y position)
 	ldi r19, 40
 	mov r7, r19 // for bottom part of display (need to add 40 to get pixels to show on bottom part of screen)
@@ -618,9 +621,7 @@ Blockloop_score:
 	rjmp continue_drawing
 
 	top_row_border:
-	inc r16 // add 2 to r16 to compensate for the -2 to check if r16 should be drawn on the top half of the screen
-	inc r16
-	subi r16, 7 // substract 7 from y-position to check if border should be drawn on lower half of the screen
+	subi r16, 5 // substract 7 from y-position to check if border should be drawn on lower half of the screen  add 2 to r16 to compensate for the -2 to check if r16 should be drawn on the top half of the screen 
 	cp r16, r18
 	breq set_bottom_row
 	subi r16, 2 // check for upper part of border
@@ -693,12 +694,15 @@ Blockloop_score:
 	dec r11 // decrease amount of pixels that are left to draw for the border
 	// for score
 	cpi r17, 5
-	brne pixel
-	mov r14, r18
-	cp r8, r19
+	breq top_screen
+	cpi r17, 45
 	brne pixel
 	ldi r19, 7
+	mov r14, r18
 	add r14, r19
+	rjmp pixel
+	top_screen:
+	mov r14, r18
 	rjmp pixel
 
 	continue_drawing: // checks where position of joystick and tail should be drawn
@@ -786,7 +790,7 @@ TIM1_OVF: // higher r22 => faster
 // timer1 determines at which rate the borders shift to the left (also determines tail shift speed)
 	inc r25 // r25 works as a way to shift the borders across the screen
 	push r22 // push r22 on stack since it is used here
-	push r15
+	push r16
 	ldi r22, 0x6F // setup timer1 again to have the same refresh rate
 	sts TCNT1H, r22 
 	ldi r22, 0xFF
@@ -802,22 +806,22 @@ TIM1_OVF: // higher r22 => faster
 		SBIS PIND, 4 // if C is pressed, jump to sound
 		rjmp sound
 		mov r3, r22 // if C is pressed, then a tail comes of the pixel that displays the position of the joystick, otherwise the tail dissapears
+		pop r16
 		pop r22
-		pop r15
 		SBI PORTD, 0 // avoids return to menu unwanted
 		reti
 	sound:
 	//score
-	mov r15, r14
-	cp r15, r22 // if r14 = 0 => no boundaries so if C is not pressed +1
+	mov r16, r9
+	cp r16, r22 // if r14 = 0 => no boundaries so if C is not pressed +1
 	breq no_score
-	inc r15
-	cp r15, r20
+	inc r16
+	cp r16, r20
 	brne no_score
 	inc r5
 	no_score:
 	mov r3, r4 // if C is pressed, then a tail comes of the pixel that displays the position of the joystick, otherwise the tail dissapears
-	pop r15
+	pop r16
 	pop r22
 	SBI PORTD, 0 // avoids return to menu unwanted
 	reti
@@ -866,7 +870,8 @@ TIM1_OVF: // higher r22 => faster
 	.db 0b00000000, 0b00000110, 0b00000001, 0b00000001, 0b00000111, 0b00001001, 0b00001001, 0b00000110 //9
 
 	Level:
-	.db 9, 41, 86, 81, 5, 0, 0, 0
+	.db 9, 50, 93, 90, 3, 0, 0, 0
+	.db 4, 41, 86, 81, 5, 0, 0, 0
 	.db 11, 30, 80, 70, 10, 0, 0, 0 
 	.db 5, 21, 65, 61, 4, 0, 0, 0
 	.db 3, 5, 50, 45, 5, 0, 0, 0
