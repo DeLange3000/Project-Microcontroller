@@ -603,12 +603,12 @@ Blockloop_score:
 	lpm r16, z //y position of border
 	cpi r16, 25 // if y = 25 then end of border sequence is reached
 	breq temp_continue_drawing
-	cpi r16, 9 // the score glitches out if the line is between the bottom and top half of the screen
+	cpi r16, 9 // the score glitches out if the line is between the bottom and top half of the screen (r16 = 8 or 9
 	breq push_data
 	cpi r16, 8
 	brne push_zero
 	push_data:
-	ldi r24, 1
+	ldi r24, 1 // use r24 to check wether r16 is 9 or 8
 	rjmp no_edge
 	push_zero:
 	ldi r24, 0
@@ -706,18 +706,18 @@ Blockloop_score:
 	breq top_screen
 	cpi r17, 45
 	brne pixel
-	cpi r24, 1
+	cpi r24, 1 // if r16 near edge between top and bottom of screen only add 5 to r14 so scoring is correct
 	brne add_7
-	ldi r19, 5
+	ldi r19, 5 // load 5 into r19 to add to r14
 	rjmp add_5
 	add_7:
-	ldi r19, 7
+	ldi r19, 7 // load 7 into r19 to add to r14
 	add_5:
-	mov r14, r18
-	add r14, r19
+	mov r14, r18 //load current line of screen into r14
+	add r14, r19 //add 5 or 7 to r14
 	rjmp pixel
 	top_screen:
-	mov r14, r18
+	mov r14, r18 //load current line of screen into r14
 	rjmp pixel
 
 	continue_drawing: // checks where position of joystick and tail should be drawn

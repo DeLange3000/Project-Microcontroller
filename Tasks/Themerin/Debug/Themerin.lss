@@ -1,5 +1,5 @@
 
-AVRASM ver. 2.2.8  D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm Sat Jul 22 18:14:52 2023
+AVRASM ver. 2.2.8  D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm Sat Jul 22 18:18:05 2023
 
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328Pdef.inc'
 D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm(52): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328pdef.inc'
@@ -1634,12 +1634,12 @@ D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\The
 00018d 9104                      	lpm r16, z //y position of border
 00018e 3109                      	cpi r16, 25 // if y = 25 then end of border sequence is reached
 00018f f079                      	breq temp_continue_drawing
-000190 3009                      	cpi r16, 9 // the score glitches out if the line is between the bottom and top half of the screen
+000190 3009                      	cpi r16, 9 // the score glitches out if the line is between the bottom and top half of the screen (r16 = 8 or 9
 000191 f011                      	breq push_data
 000192 3008                      	cpi r16, 8
 000193 f411                      	brne push_zero
                                  	push_data:
-000194 e081                      	ldi r24, 1
+000194 e081                      	ldi r24, 1 // use r24 to check wether r16 is 9 or 8
 000195 c001                      	rjmp no_edge
                                  	push_zero:
 000196 e080                      	ldi r24, 0
@@ -1737,18 +1737,18 @@ D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\The
 0001dd f051                      	breq top_screen
 0001de 321d                      	cpi r17, 45
 0001df f539                      	brne pixel
-0001e0 3081                      	cpi r24, 1
+0001e0 3081                      	cpi r24, 1 // if r16 near edge between top and bottom of screen only add 5 to r14 so scoring is correct
 0001e1 f411                      	brne add_7
-0001e2 e035                      	ldi r19, 5
+0001e2 e035                      	ldi r19, 5 // load 5 into r19 to add to r14
 0001e3 c001                      	rjmp add_5
                                  	add_7:
-0001e4 e037                      	ldi r19, 7
+0001e4 e037                      	ldi r19, 7 // load 7 into r19 to add to r14
                                  	add_5:
-0001e5 2ee2                      	mov r14, r18
-0001e6 0ee3                      	add r14, r19
+0001e5 2ee2                      	mov r14, r18 //load current line of screen into r14
+0001e6 0ee3                      	add r14, r19 //add 5 or 7 to r14
 0001e7 c01f                      	rjmp pixel
                                  	top_screen:
-0001e8 2ee2                      	mov r14, r18
+0001e8 2ee2                      	mov r14, r18 //load current line of screen into r14
 0001e9 c01d                      	rjmp pixel
                                  
                                  	continue_drawing: // checks where position of joystick and tail should be drawn
