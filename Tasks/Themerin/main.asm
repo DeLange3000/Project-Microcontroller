@@ -601,8 +601,6 @@ Blockloop_score:
 	next_border:
 	// if border not on r18 => no need to check it
 	lpm r16, z //y position of border
-	cpi r16, 25 // if y = 25 then end of border sequence is reached
-	breq temp_continue_drawing
 	cpi r16, 9 // the score glitches out if the line is between the bottom and top half of the screen (r16 = 8 or 9
 	breq push_data
 	cpi r16, 8
@@ -622,12 +620,6 @@ Blockloop_score:
 	ldi r19, 0 // to check if its top or bottom of screen
 	mov r8, r19 // r8 indicates if the border is part of the top or bottom part of the screen
 	rjmp load_data_border
-	
-
-	temp_continue_drawing:
-	ldi r19, 0 // if x = 25 => went through all the borders so r6 should be 0
-	mov r6, r19
-	rjmp continue_drawing
 
 	top_row_border:
 	subi r16, 5 // substract 7 from y-position to check if border should be drawn on lower half of the screen  add 2 to r16 to compensate for the -2 to check if r16 should be drawn on the top half of the screen 
@@ -662,11 +654,11 @@ Blockloop_score:
 	mov r13, r7 // r13 = 40
 	inc r13 // r13 = 41
 	cp r15, r13 // x + length of border - r25 >= 41 => border is beyond screen edge
-	brlo draw_border_bottom
+	brlo draw_border_bottom_setup
 	sub r15, r7 // r15 = x + length of border - r25 - 40 => length of border that is off the screen
 	sub r11, r15 // r11 => length of border that is on the screen
 	inc r11 // increase r11 so the border length matches the wanted border length
-	rjmp draw_border_bottom
+	rjmp draw_border_bottom_setup
 
 	skip_border1: // skip border after checking y-position (add total of 8 to z-pointer)
 	adiw z, 2
@@ -677,6 +669,8 @@ Blockloop_score:
 	breq continue_drawing
 	rjmp next_border
 
+	draw_border_bottom_setup:
+	dec r6
 	draw_border_bottom: 
 	ldi r19, 1 // add 40 to x position of border should be drawn on the bottom half of the screen
 	cp r8 , r19
@@ -893,7 +887,6 @@ TIM1_OVF: // higher r22 => faster
 	.db 5, 21, 65, 61, 4, 0, 0, 0
 	.db 3, 5, 50, 45, 5, 0, 0, 0
 	.db 13, 0, 42, 40, 2, 0, 0, 0 
-	.db 25, 0, 0, 0, 0, 0, 0, 0
 	//y, min_r25, max_r25, x, length
 	// should be in reverse order
 	// us of limits for r25 to minimize screen flickering
