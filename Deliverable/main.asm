@@ -15,38 +15,36 @@
 
 // FEATURE OVERVIEW
 // - load screen using character buffer (buzzer does not work in loading screen)
-// - Press A to start game press 0 to go to menu
+// - Press "A" to start game press "0" to go to menu
 // - move joystick up/down to select frequency in scale (position regions of joystick mapped to different frequencies)
 // - point on screen indicates position of joystick
 // - press C to make a sound (play a note). Point on screen gets tail
 // - game where you try to stay within bounds. Play notes when bounds are visible on point
 // - generate bounds by programming a song in memory
-// - receive score based on how well you did (+1 for each time you are inside the borders)
+// - receive score based on how well you did (+1 for each time you are inside the borders
 
 // TO DO
 // - generation of bounds
 // -> PROBLEMS: - working with 80 bit long screen (bottom and top are wrongly shown)
-//				- flickering? 
+//				- flickering
 //				- border length should adjust at edge of window
-// -> SOLUTION: 1) flickering solved by redoing screen drawing function (reduced amount of memory loads)
+// -> SOLUTION: 1) flickering solved by redoing screen drawing function (reduced amount of memory loads) => OK
 //				2) check if bound should be drawn => OK
 //				3) check if upper and lower bound should be drawn in the bottom part of the screen => OK
 //				4) condition to check when next border should be drawn => OK
 //				5) recalculate border length at edge of screen => OK
 //
 // - implementation of score (+1 for each time you are inside the borders => no danger of overflow due to border length limitations)
-// -> register indicates if tone is in right position
+// -> calculate if tone is in right position
 // -> evaluate score during TIMER1 interrupt
 //
-// - clean up score display
-// - fix score calculation
 
 // BOUNDS
 // - upper bound defines also lower bound (-2)
 // - store in memory bound height and length
 // - CHANGE R28 AND R6 WHEN CHANGING AMOUNT OF BOUNDS!!!!!!!!!!!!!!!!!!!!!!!
 
-	//display: top is 1 bottom is 7 (0 is not on display)
+//display: top is 1 bottom is 7 (0 is not on display)
 
 ; Definition file of the ATmega328P
 .include "m328pdef.inc"

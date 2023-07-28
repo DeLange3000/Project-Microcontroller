@@ -15,38 +15,36 @@
 
 // FEATURE OVERVIEW
 // - load screen using character buffer (buzzer does not work in loading screen)
-// - Press A to start game press 0 to go to menu
+// - Press "A" to start game press "0" to go to menu
 // - move joystick up/down to select frequency in scale (position regions of joystick mapped to different frequencies)
 // - point on screen indicates position of joystick
 // - press C to make a sound (play a note). Point on screen gets tail
 // - game where you try to stay within bounds. Play notes when bounds are visible on point
 // - generate bounds by programming a song in memory
-// - receive score based on how well you did (+1 for each time you are inside the borders)
+// - receive score based on how well you did (+1 for each time you are inside the borders
 
 // TO DO
 // - generation of bounds
 // -> PROBLEMS: - working with 80 bit long screen (bottom and top are wrongly shown)
-//				- flickering? 
+//				- flickering
 //				- border length should adjust at edge of window
-// -> SOLUTION: 1) flickering solved by redoing screen drawing function (reduced amount of memory loads)
+// -> SOLUTION: 1) flickering solved by redoing screen drawing function (reduced amount of memory loads) => OK
 //				2) check if bound should be drawn => OK
 //				3) check if upper and lower bound should be drawn in the bottom part of the screen => OK
 //				4) condition to check when next border should be drawn => OK
 //				5) recalculate border length at edge of screen => OK
 //
 // - implementation of score (+1 for each time you are inside the borders => no danger of overflow due to border length limitations)
-// -> register indicates if tone is in right position
+// -> calculate if tone is in right position
 // -> evaluate score during TIMER1 interrupt
 //
-// - clean up score display
-// - fix score calculation
 
 // BOUNDS
 // - upper bound defines also lower bound (-2)
 // - store in memory bound height and length
 // - CHANGE R28 AND R6 WHEN CHANGING AMOUNT OF BOUNDS!!!!!!!!!!!!!!!!!!!!!!!
 
-	//display: top is 1 bottom is 7 (0 is not on display)
+//display: top is 1 bottom is 7 (0 is not on display)
 
 ; Definition file of the ATmega328P
 .include "m328pdef.inc"
@@ -601,6 +599,8 @@ Blockloop_score:
 	next_border:
 	// if border not on r18 => no need to check it
 	lpm r16, z //y position of border
+	cpi r16, 25 // if y = 25 then end of border sequence is reached
+	breq temp_continue_drawing
 	cpi r16, 9 // the score glitches out if the line is between the bottom and top half of the screen (r16 = 8 or 9
 	breq push_data
 	cpi r16, 8
@@ -620,6 +620,12 @@ Blockloop_score:
 	ldi r19, 0 // to check if its top or bottom of screen
 	mov r8, r19 // r8 indicates if the border is part of the top or bottom part of the screen
 	rjmp load_data_border
+	
+
+	temp_continue_drawing:
+	ldi r19, 0 // if x = 25 => went through all the borders so r6 should be 0
+	mov r6, r19
+	rjmp continue_drawing
 
 	top_row_border:
 	subi r16, 5 // substract 7 from y-position to check if border should be drawn on lower half of the screen  add 2 to r16 to compensate for the -2 to check if r16 should be drawn on the top half of the screen 
@@ -654,11 +660,11 @@ Blockloop_score:
 	mov r13, r7 // r13 = 40
 	inc r13 // r13 = 41
 	cp r15, r13 // x + length of border - r25 >= 41 => border is beyond screen edge
-	brlo draw_border_bottom_setup
+	brlo draw_border_bottom
 	sub r15, r7 // r15 = x + length of border - r25 - 40 => length of border that is off the screen
 	sub r11, r15 // r11 => length of border that is on the screen
 	inc r11 // increase r11 so the border length matches the wanted border length
-	rjmp draw_border_bottom_setup
+	rjmp draw_border_bottom
 
 	skip_border1: // skip border after checking y-position (add total of 8 to z-pointer)
 	adiw z, 2
@@ -669,8 +675,6 @@ Blockloop_score:
 	breq continue_drawing
 	rjmp next_border
 
-	draw_border_bottom_setup:
-	dec r6
 	draw_border_bottom: 
 	ldi r19, 1 // add 40 to x position of border should be drawn on the bottom half of the screen
 	cp r8 , r19
@@ -887,6 +891,7 @@ TIM1_OVF: // higher r22 => faster
 	.db 5, 21, 65, 61, 4, 0, 0, 0
 	.db 3, 5, 50, 45, 5, 0, 0, 0
 	.db 13, 0, 42, 40, 2, 0, 0, 0 
+	.db 25, 0, 0, 0, 0, 0, 0, 0
 	//y, min_r25, max_r25, x, length
 	// should be in reverse order
 	// us of limits for r25 to minimize screen flickering

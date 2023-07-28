@@ -1,5 +1,5 @@
 
-AVRASM ver. 2.2.8  D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm Fri Jul 28 17:17:01 2023
+AVRASM ver. 2.2.8  D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm Fri Jul 28 17:24:17 2023
 
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328Pdef.inc'
 D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\Themerin\main.asm(52): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328pdef.inc'
@@ -1089,8 +1089,8 @@ D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\The
                                  ;Boot code
 000000 c020                      .org 0x0000 rjmp init //ORDER IS IMPORTANT (smallest adress first)
                                  ; Interrupt address vectors
-00001a c208                      .org 0x001A rjmp TIM1_OVF // timer1 interrupt
-000020 c1f4                      .org 0x0020 rjmp TIM0_OVF_ISR // timer2 interrupt
+00001a c20c                      .org 0x001A rjmp TIM1_OVF // timer1 interrupt
+000020 c1f8                      .org 0x0020 rjmp TIM0_OVF_ISR // timer2 interrupt
                                  
                                  init:
                                  // ------------------ SETUP ---------------------------
@@ -1231,7 +1231,7 @@ D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\The
 000077 e018                      	ldi r17, 8 // offset for each block in memory
 000078 915a                      	ld r21, -y //predecrement Y and load char value pointed to by Y
 000079 e0f4                      	ldi zh, high(CharTable<<1) // load adress table of char into Z
-00007a e8ee                      	ldi zl, low(CharTable<<1)
+00007a e9e6                      	ldi zl, low(CharTable<<1)
                                  	//calculate offset in table for char
 00007b 0fe6                      	add zl, r22 // line offset
 00007c f408                      	brcc next_addition
@@ -1410,7 +1410,7 @@ D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\The
 0000fb 3047                      	cpi r20, 7
 0000fc f518                      	brsh zeros_on_screen // show empty blocks after the wod "score" on the top part of the screen
 0000fd e0f5                      	ldi zh, high(ScoreTable<<1) // load adress table of char into Z
-0000fe e0ee                      	ldi zl, low(ScoreTable<<1)
+0000fe e1e6                      	ldi zl, low(ScoreTable<<1)
 0000ff 0fe6                      	add zl, r22 // line offset
 000100 f408                      	brcc next_addition_score
 000101 95f3                      	inc zh // carry for word
@@ -1426,7 +1426,7 @@ D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\The
                                  
                                  	score_on_screen: // use register r2 -> r4 for each digit
 000108 e0f5                      	ldi zh, high(DigitsTable<<1) // load adress table of char into Z
-000109 e3ee                      	ldi zl, low(DigitsTable<<1)
+000109 e4e6                      	ldi zl, low(DigitsTable<<1)
 00010a 0fe6                      	add zl, r22 // line offset
 00010b f408                      	brcc next_addition_digit
 00010c 95f3                      	inc zh // carry for word
@@ -1622,7 +1622,7 @@ D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\The
 000185 f439                      	brne next_border
                                  	load_adress:
 000186 e0f5                      	ldi zh, high(Level<<1) // load adress of first border into z
-000187 e8ee                      	ldi zl, low(Level<<1)
+000187 e9e6                      	ldi zl, low(Level<<1)
 000188 e036                      	ldi r19, 6
 000189 2e63                      	mov r6, r19 // counter for amount of borders ( r6 = #borders excluding border ending in 25 for y position)
 00018a e238                      	ldi r19, 40
@@ -1632,241 +1632,247 @@ D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\The
                                  	next_border:
                                  	// if border not on r18 => no need to check it
 00018d 9104                      	lpm r16, z //y position of border
-00018e 3009                      	cpi r16, 9 // the score glitches out if the line is between the bottom and top half of the screen (r16 = 8 or 9
-00018f f011                      	breq push_data
-000190 3008                      	cpi r16, 8
-000191 f411                      	brne push_zero
+00018e 3109                      	cpi r16, 25 // if y = 25 then end of border sequence is reached
+00018f f079                      	breq temp_continue_drawing
+000190 3009                      	cpi r16, 9 // the score glitches out if the line is between the bottom and top half of the screen (r16 = 8 or 9
+000191 f011                      	breq push_data
+000192 3008                      	cpi r16, 8
+000193 f411                      	brne push_zero
                                  	push_data:
-000192 e081                      	ldi r24, 1 // use r24 to check wether r16 is 9 or 8
-000193 c001                      	rjmp no_edge
+000194 e081                      	ldi r24, 1 // use r24 to check wether r16 is 9 or 8
+000195 c001                      	rjmp no_edge
                                  	push_zero:
-000194 e080                      	ldi r24, 0
+000196 e080                      	ldi r24, 0
                                  	no_edge:
-000195 1702                      	cp r16, r18 // only look at rest of data of border if its y-position is equal to the row that has to be drawn
-000196 f019                      	breq set_top_row
-000197 5002                      	subi r16, 2 // check for upper part of border
-000198 1702                      	cp r16, r18 // only look at rest of data of border if its y-position is equal to the row that has to be drawn
-000199 f419                      	brne top_row_border // if y-position is not equal to r18, then it might be because the y-position belongs to the bottom part of the screen
+000197 1702                      	cp r16, r18 // only look at rest of data of border if its y-position is equal to the row that has to be drawn
+000198 f019                      	breq set_top_row
+000199 5002                      	subi r16, 2 // check for upper part of border
+00019a 1702                      	cp r16, r18 // only look at rest of data of border if its y-position is equal to the row that has to be drawn
+00019b f431                      	brne top_row_border // if y-position is not equal to r18, then it might be because the y-position belongs to the bottom part of the screen
                                  	set_top_row:
-00019a e030                      	ldi r19, 0 // to check if its top or bottom of screen
-00019b 2e83                      	mov r8, r19 // r8 indicates if the border is part of the top or bottom part of the screen
-00019c c008                      	rjmp load_data_border
+00019c e030                      	ldi r19, 0 // to check if its top or bottom of screen
+00019d 2e83                      	mov r8, r19 // r8 indicates if the border is part of the top or bottom part of the screen
+00019e c00b                      	rjmp load_data_border
+                                 	
+                                 
+                                 	temp_continue_drawing:
+00019f e030                      	ldi r19, 0 // if x = 25 => went through all the borders so r6 should be 0
+0001a0 2e63                      	mov r6, r19
+0001a1 c048                      	rjmp continue_drawing
                                  
                                  	top_row_border:
-00019d 5005                      	subi r16, 5 // substract 7 from y-position to check if border should be drawn on lower half of the screen  add 2 to r16 to compensate for the -2 to check if r16 should be drawn on the top half of the screen 
-00019e 1702                      	cp r16, r18
-00019f f019                      	breq set_bottom_row
-0001a0 5002                      	subi r16, 2 // check for upper part of border
-0001a1 1702                      	cp r16, r18
-0001a2 f4d1                      	brne skip_border1
+0001a2 5005                      	subi r16, 5 // substract 7 from y-position to check if border should be drawn on lower half of the screen  add 2 to r16 to compensate for the -2 to check if r16 should be drawn on the top half of the screen 
+0001a3 1702                      	cp r16, r18
+0001a4 f019                      	breq set_bottom_row
+0001a5 5002                      	subi r16, 2 // check for upper part of border
+0001a6 1702                      	cp r16, r18
+0001a7 f4d1                      	brne skip_border1
                                  	set_bottom_row:
-0001a3 e031                      	ldi r19, 1
-0001a4 2e83                      	mov r8, r19
+0001a8 e031                      	ldi r19, 1
+0001a9 2e83                      	mov r8, r19
                                  
                                  	load_data_border: // (r16:y, r10:x, r12:length)
-0001a5 9631                      	adiw zl, 1 // +1
-0001a6 90a4                      	lpm r10, z // min_r25
-0001a7 9631                      	adiw zl, 1 // +2
-0001a8 159a                      	cp r25, r10 // if r25 < min_r25 the border should not be drawn and is to be skipped
-0001a9 f0a0                      	brlo skip_border2
-0001aa 90a4                      	lpm r10, z // max_r25
-0001ab 16a9                      	cp r10, r25 // if r25 > max_r25 the border should not be drawn and is to be skipped
-0001ac f088                      	brlo skip_border2
-0001ad 9631                      	adiw z, 1 // +3
-0001ae 90a4                      	lpm r10, z // x position of border
-0001af 9631                      	adiw z, 1 // +4
-0001b0 90c4                      	lpm r12, z // length of border
-0001b1 2cbc                      	mov r11, r12 // r11 is used to check how mnay pixels should be on	
+0001aa 9631                      	adiw zl, 1 // +1
+0001ab 90a4                      	lpm r10, z // min_r25
+0001ac 9631                      	adiw zl, 1 // +2
+0001ad 159a                      	cp r25, r10 // if r25 < min_r25 the border should not be drawn and is to be skipped
+0001ae f0a0                      	brlo skip_border2
+0001af 90a4                      	lpm r10, z // max_r25
+0001b0 16a9                      	cp r10, r25 // if r25 > max_r25 the border should not be drawn and is to be skipped
+0001b1 f088                      	brlo skip_border2
+0001b2 9631                      	adiw z, 1 // +3
+0001b3 90a4                      	lpm r10, z // x position of border
+0001b4 9631                      	adiw z, 1 // +4
+0001b5 90c4                      	lpm r12, z // length of border
+0001b6 2cbc                      	mov r11, r12 // r11 is used to check how mnay pixels should be on	
                                  	// calculate new border length if border is outside of screen (this only has to be done for the right part of the screen, left part is solved by using r8)
                                  	// if this calculation is not done, other borders on the same screen line will not be drawn
-0001b2 2cfa                      	mov r15, r10 // r15 = x
-0001b3 0cfc                      	add r15, r12 // r15 = x + length of border
-0001b4 1af9                      	sub r15, r25 // r15 = x + length of border - r25
-0001b5 2cd7                      	mov r13, r7 // r13 = 40
-0001b6 94d3                      	inc r13 // r13 = 41
-0001b7 14fd                      	cp r15, r13 // x + length of border - r25 >= 41 => border is beyond screen edge
-0001b8 f050                      	brlo draw_border_bottom_setup
-0001b9 18f7                      	sub r15, r7 // r15 = x + length of border - r25 - 40 => length of border that is off the screen
-0001ba 18bf                      	sub r11, r15 // r11 => length of border that is on the screen
-0001bb 94b3                      	inc r11 // increase r11 so the border length matches the wanted border length
-0001bc c006                      	rjmp draw_border_bottom_setup
+0001b7 2cfa                      	mov r15, r10 // r15 = x
+0001b8 0cfc                      	add r15, r12 // r15 = x + length of border
+0001b9 1af9                      	sub r15, r25 // r15 = x + length of border - r25
+0001ba 2cd7                      	mov r13, r7 // r13 = 40
+0001bb 94d3                      	inc r13 // r13 = 41
+0001bc 14fd                      	cp r15, r13 // x + length of border - r25 >= 41 => border is beyond screen edge
+0001bd f050                      	brlo draw_border_bottom
+0001be 18f7                      	sub r15, r7 // r15 = x + length of border - r25 - 40 => length of border that is off the screen
+0001bf 18bf                      	sub r11, r15 // r11 => length of border that is on the screen
+0001c0 94b3                      	inc r11 // increase r11 so the border length matches the wanted border length
+0001c1 c006                      	rjmp draw_border_bottom
                                  
                                  	skip_border1: // skip border after checking y-position (add total of 8 to z-pointer)
-0001bd 9632                      	adiw z, 2
+0001c2 9632                      	adiw z, 2
                                  	skip_border2: // skip border after checking min_r25 and max_r25
-0001be 9636                      	adiw z, 6 // add 6 to z-pointer
-0001bf 95ca                      	dec r28 // if r28 = 0 => no borders on screen
-0001c0 946a                      	dec r6 // if r6 = 0 => no borders need to be checked/drawn on that pixel line
-0001c1 f121                      	breq continue_drawing
-0001c2 cfca                      	rjmp next_border
+0001c3 9636                      	adiw z, 6 // add 6 to z-pointer
+0001c4 95ca                      	dec r28 // if r28 = 0 => no borders on screen
+0001c5 946a                      	dec r6 // if r6 = 0 => no borders need to be checked/drawn on that pixel line
+0001c6 f119                      	breq continue_drawing
+0001c7 cfc5                      	rjmp next_border
                                  
-                                 	draw_border_bottom_setup:
-0001c3 946a                      	dec r6
                                  	draw_border_bottom: 
-0001c4 e031                      	ldi r19, 1 // add 40 to x position of border should be drawn on the bottom half of the screen
-0001c5 1683                      	cp r8 , r19
-0001c6 f409                      	brne draw_border
-0001c7 0ca7                      	add r10, r7 // add 40 to shift border to bottom of screen
+0001c8 e031                      	ldi r19, 1 // add 40 to x position of border should be drawn on the bottom half of the screen
+0001c9 1683                      	cp r8 , r19
+0001ca f409                      	brne draw_border
+0001cb 0ca7                      	add r10, r7 // add 40 to shift border to bottom of screen
                                  	draw_border:
-0001c8 e031                      	ldi r19, 1
-0001c9 1683                      	cp r8, r19 // check if border is on top or bottom half of the screen
-0001ca f419                      	brne no_lower_limit
-0001cb 3219                      	cpi r17, 41 // only draw for r17 < 41 if border is on the top half of the screen
-0001cc f0c8                      	brlo continue_drawing
-0001cd c002                      	rjmp borders
+0001cc e031                      	ldi r19, 1
+0001cd 1683                      	cp r8, r19 // check if border is on top or bottom half of the screen
+0001ce f419                      	brne no_lower_limit
+0001cf 3219                      	cpi r17, 41 // only draw for r17 < 41 if border is on the top half of the screen
+0001d0 f0c8                      	brlo continue_drawing
+0001d1 c002                      	rjmp borders
                                  	no_lower_limit:
-0001ce 3219                      	cpi r17, 41 // only draw fr r17 >= 41 if border is on the bottom half of the screen
-0001cf f4b0                      	brsh continue_drawing
+0001d2 3219                      	cpi r17, 41 // only draw fr r17 >= 41 if border is on the bottom half of the screen
+0001d3 f4b0                      	brsh continue_drawing
                                  	borders:
-0001d0 2d0a                      	mov r16, r10 // move x position to reg 16
-0001d1 1b09                      	sub r16, r25 // substract r25 from x position => you get current x-position based on the shift caused by r25
-0001d2 1710                      	cp r17, r16 // if r17 < r16 => no border for that pixel
-0001d3 f094                      	brlt continue_drawing
-0001d4 0d0c                      	add r16, r12 // add length of border to r16
-0001d5 1710                      	cp r17, r16 // of r17 < r16 => border should be drawn  => everything between the 'x-position - r25' and the 'x-position - r25 + length of the border' should be drawn 
-0001d6 f478                      	brsh continue_drawing
-0001d7 94ba                      	dec r11 // decrease amount of pixels that are left to draw for the border
+0001d4 2d0a                      	mov r16, r10 // move x position to reg 16
+0001d5 1b09                      	sub r16, r25 // substract r25 from x position => you get current x-position based on the shift caused by r25
+0001d6 1710                      	cp r17, r16 // if r17 < r16 => no border for that pixel
+0001d7 f094                      	brlt continue_drawing
+0001d8 0d0c                      	add r16, r12 // add length of border to r16
+0001d9 1710                      	cp r17, r16 // of r17 < r16 => border should be drawn  => everything between the 'x-position - r25' and the 'x-position - r25 + length of the border' should be drawn 
+0001da f478                      	brsh continue_drawing
+0001db 94ba                      	dec r11 // decrease amount of pixels that are left to draw for the border
                                  	// for score
-0001d8 3015                      	cpi r17, 5
-0001d9 f051                      	breq top_screen
-0001da 321d                      	cpi r17, 45
-0001db f539                      	brne pixel
-0001dc 3081                      	cpi r24, 1 // if r16 near edge between top and bottom of screen only add 5 to r14 so scoring is correct
-0001dd f411                      	brne add_7
-0001de e035                      	ldi r19, 5 // load 5 into r19 to add to r14
-0001df c001                      	rjmp add_5
+0001dc 3015                      	cpi r17, 5
+0001dd f051                      	breq top_screen
+0001de 321d                      	cpi r17, 45
+0001df f539                      	brne pixel
+0001e0 3081                      	cpi r24, 1 // if r16 near edge between top and bottom of screen only add 5 to r14 so scoring is correct
+0001e1 f411                      	brne add_7
+0001e2 e035                      	ldi r19, 5 // load 5 into r19 to add to r14
+0001e3 c001                      	rjmp add_5
                                  	add_7:
-0001e0 e037                      	ldi r19, 7 // load 7 into r19 to add to r14
+0001e4 e037                      	ldi r19, 7 // load 7 into r19 to add to r14
                                  	add_5:
-0001e1 2ee2                      	mov r14, r18 //load current line of screen into r14
-0001e2 0ee3                      	add r14, r19 //add 5 or 7 to r14
-0001e3 c01f                      	rjmp pixel
+0001e5 2ee2                      	mov r14, r18 //load current line of screen into r14
+0001e6 0ee3                      	add r14, r19 //add 5 or 7 to r14
+0001e7 c01f                      	rjmp pixel
                                  	top_screen:
-0001e4 2ee2                      	mov r14, r18 //load current line of screen into r14
-0001e5 c01d                      	rjmp pixel
+0001e8 2ee2                      	mov r14, r18 //load current line of screen into r14
+0001e9 c01d                      	rjmp pixel
                                  
                                  	continue_drawing: // checks where position of joystick and tail should be drawn
-0001e6 e070                      	ldi r23, 0 //upper screen index
-0001e7 e208                      	ldi r16, 40 // lower screen index
-0001e8 e0b0                      	ldi r27, 0 // LSB part of address of first pixel
-0001e9 e0a0                      	ldi r26, 0 // MSB part of adress of first pixel
-0001ea 321e                      	cpi r17, 46 // tail and joystick are only drawn on the left 5 pixels of the screen so any other r17 values can be ignored
-0001eb f4cc                      	brge no_pixel
-0001ec 3218                      	cpi r17, 40
-0001ed f41c                      	brge next_pixel_tail
-0001ee 3016                      	cpi r17, 6
-0001ef f008                      	brlo next_pixel_tail
-0001f0 c014                      	rjmp no_pixel
+0001ea e070                      	ldi r23, 0 //upper screen index
+0001eb e208                      	ldi r16, 40 // lower screen index
+0001ec e0b0                      	ldi r27, 0 // LSB part of address of first pixel
+0001ed e0a0                      	ldi r26, 0 // MSB part of adress of first pixel
+0001ee 321e                      	cpi r17, 46 // tail and joystick are only drawn on the left 5 pixels of the screen so any other r17 values can be ignored
+0001ef f4cc                      	brge no_pixel
+0001f0 3218                      	cpi r17, 40
+0001f1 f41c                      	brge next_pixel_tail
+0001f2 3016                      	cpi r17, 6
+0001f3 f008                      	brlo next_pixel_tail
+0001f4 c014                      	rjmp no_pixel
                                  
                                  	next_pixel_tail:
                                  	// pixel tail is stored in r0->r4
-0001f1 9573                      	inc r23 // increase upper screen index
-0001f2 9503                      	inc r16 // increase lower screen index
-0001f3 916d                      	ld r22, X+ // load data from r0 -> r4 using adress X and increase adress X
-0001f4 30a6                      	cpi r26, 6 // if r4 is reached, end of tail registers reached, and no pixel should be drawn
-0001f5 f47c                      	brge no_pixel
-0001f6 3068                      	cpi r22, 8 // if y-position of tail >= 8 it should be drawn on the bottom part of the screen
-0001f7 f428                      	brsh top_row
-0001f8 1726                      	cp r18, r22 // if y-position of tail = r18 then check r17
-0001f9 f7b9                      	brne next_pixel_tail
-0001fa 1717                      	cp r17, r23 // if r23 = r17 (correct x-position of tail) then draw tail
-0001fb f039                      	breq pixel
-0001fc cff4                      	rjmp next_pixel_tail // run through all the registers used for the tail and check if they should be drawn
+0001f5 9573                      	inc r23 // increase upper screen index
+0001f6 9503                      	inc r16 // increase lower screen index
+0001f7 916d                      	ld r22, X+ // load data from r0 -> r4 using adress X and increase adress X
+0001f8 30a6                      	cpi r26, 6 // if r4 is reached, end of tail registers reached, and no pixel should be drawn
+0001f9 f47c                      	brge no_pixel
+0001fa 3068                      	cpi r22, 8 // if y-position of tail >= 8 it should be drawn on the bottom part of the screen
+0001fb f428                      	brsh top_row
+0001fc 1726                      	cp r18, r22 // if y-position of tail = r18 then check r17
+0001fd f7b9                      	brne next_pixel_tail
+0001fe 1717                      	cp r17, r23 // if r23 = r17 (correct x-position of tail) then draw tail
+0001ff f039                      	breq pixel
+000200 cff4                      	rjmp next_pixel_tail // run through all the registers used for the tail and check if they should be drawn
                                  
                                  	top_row: //(7->11)
-0001fd 5067                      	subi r22, 7 // substract 7 from the y-position of the tail so we get a  y-position we can use in the screen
-0001fe 1726                      	cp r18, r22 // if y-position of tail = r18 then check r17
-0001ff f789                      	brne next_pixel_tail
-000200 1710                      	cp r17, r16// if r21 = r17 (correct x-position of tail for bottom part of the screen) then draw tail
-000201 f009                      	breq pixel
-000202 cfee                      	rjmp next_pixel_tail
+000201 5067                      	subi r22, 7 // substract 7 from the y-position of the tail so we get a  y-position we can use in the screen
+000202 1726                      	cp r18, r22 // if y-position of tail = r18 then check r17
+000203 f789                      	brne next_pixel_tail
+000204 1710                      	cp r17, r16// if r21 = r17 (correct x-position of tail for bottom part of the screen) then draw tail
+000205 f009                      	breq pixel
+000206 cfee                      	rjmp next_pixel_tail
                                  
                                  	pixel: // turn pixel on
-000203 9a2b                      	sbi portb, 3
-000204 c001                      	rjmp set_pixel_value
+000207 9a2b                      	sbi portb, 3
+000208 c001                      	rjmp set_pixel_value
                                  	no_pixel: // turn pixel off	
-000205 982b                      	cbi portb, 3
+000209 982b                      	cbi portb, 3
                                  	set_pixel_value: // push pixel on stack
-000206 982d                      	cbi PORTB, 5
-000207 9a2d                      	sbi PORTB, 5
-000208 951a                      	dec r17 // decrease column counter
-000209 f051                      	breq stop_drawing
-00020a 3218                      	cpi r17, 40 // if r17 then the adress for the borders should be loaded in again and borders should be checked again
-00020b f031                      	breq temp_continue_with_borders
-00020c e030                      	ldi r19, 0
-00020d 1663                      	cp r6, r19 // if r6 =0 then all borders are checked and there is no need to check them again so only the tail is evaluated
-00020e f2b9                      	breq continue_drawing
-00020f 16b3                      	cp r11, r19 // if r11 > 0 then more of the selected border should be drawn
-000210 f411                      	brne temp_draw_border
-000211 9634                      	adiw z, 4 // add 4 to z-pointer to point to the next border
+00020a 982d                      	cbi PORTB, 5
+00020b 9a2d                      	sbi PORTB, 5
+00020c 951a                      	dec r17 // decrease column counter
+00020d f051                      	breq stop_drawing
+00020e 3218                      	cpi r17, 40 // if r17 then the adress for the borders should be loaded in again and borders should be checked again
+00020f f031                      	breq temp_continue_with_borders
+000210 e030                      	ldi r19, 0
+000211 1663                      	cp r6, r19 // if r6 =0 then all borders are checked and there is no need to check them again so only the tail is evaluated
+000212 f2b9                      	breq continue_drawing
+000213 16b3                      	cp r11, r19 // if r11 > 0 then more of the selected border should be drawn
+000214 f411                      	brne temp_draw_border
+000215 9634                      	adiw z, 4 // add 4 to z-pointer to point to the next border
                                  	temp_continue_with_borders:
-000212 cf6f                      	rjmp continue_with_borders // rjmp has larger range then conditional jump so used here
+000216 cf6b                      	rjmp continue_with_borders // rjmp has larger range then conditional jump so used here
                                  	temp_draw_border:
-000213 cfb4                      	rjmp draw_border // rjmp has larger range then conditional jump so used here
+000217 cfb4                      	rjmp draw_border // rjmp has larger range then conditional jump so used here
                                  	stop_drawing:
-000214 9508                      	ret
+000218 9508                      	ret
                                  
                                  // ------------ TIMER INTERRUPT ----------------------------
                                  TIM0_OVF_ISR:
                                  	// checks just row 0 since only button C is used
-000215 9858                      	CBI PORTD, 0 //check row 0
-000216 9a59                      	SBI PORTD, 1
-000217 9a5a                      	SBI PORTD, 2
-000218 9a5b                      	SBI PORTD, 3
-000219 9b4c                      		SBIS PIND, 4 // if C is pressed, jump to output_C
-00021a c003                      		rjmp buzzz
-00021b 9a43                      		sbi portc, 3 // turn led off if C is not pressed
-00021c 9a58                      		SBI PORTD, 0 // avoids return to menu unwanted
-00021d 9518                      	reti
+000219 9858                      	CBI PORTD, 0 //check row 0
+00021a 9a59                      	SBI PORTD, 1
+00021b 9a5a                      	SBI PORTD, 2
+00021c 9a5b                      	SBI PORTD, 3
+00021d 9b4c                      		SBIS PIND, 4 // if C is pressed, jump to output_C
+00021e c003                      		rjmp buzzz
+00021f 9a43                      		sbi portc, 3 // turn led off if C is not pressed
+000220 9a58                      		SBI PORTD, 0 // avoids return to menu unwanted
+000221 9518                      	reti
                                  
                                  	buzzz:
-00021e 9843                      	cbi portc, 3
-00021f bd56                      	out TCNT0, R21 // set value of buzzer
-000220 9a19                      	SBI PINB, 1 // make buzzer go bzzzzzzzzzzzz
-000221 9a58                      	SBI PORTD, 0 // avoids return to menu unwanted
-000222 9518                      	reti
+000222 9843                      	cbi portc, 3
+000223 bd56                      	out TCNT0, R21 // set value of buzzer
+000224 9a19                      	SBI PINB, 1 // make buzzer go bzzzzzzzzzzzz
+000225 9a58                      	SBI PORTD, 0 // avoids return to menu unwanted
+000226 9518                      	reti
                                  
                                  TIM1_OVF: // higher r22 => faster
                                  // timer1 determines at which rate the borders shift to the left (also determines tail shift speed)
-000223 9593                      	inc r25 // r25 works as a way to shift the borders across the screen
-000224 936f                      	push r22 // push r22 on stack since it is used here
-000225 930f                      	push r16
-000226 e66f                      	ldi r22, 0x6F // setup timer1 again to have the same refresh rate
-000227 9360 0085                 	sts TCNT1H, r22 
-000229 ef6f                      	ldi r22, 0xFF
-00022a 9360 0084                 	sts TCNT1L, r22
-00022c 2c01                      	mov r0, r1 // shift tail y-positions from right to left for each refresh
-00022d 2c12                      	mov r1, r2
-00022e 2c23                      	mov r2, r3
-00022f e060                      	ldi r22, 0
-000230 9858                      	CBI PORTD, 0 //check row 0
-000231 9a59                      	SBI PORTD, 1
-000232 9a5a                      	SBI PORTD, 2
-000233 9a5b                      	SBI PORTD, 3
-000234 9b4c                      		SBIS PIND, 4 // if C is pressed, jump to sound
-000235 c005                      		rjmp sound
-000236 2e36                      		mov r3, r22 // if C is pressed, then a tail comes of the pixel that displays the position of the joystick, otherwise the tail dissapears
-000237 910f                      		pop r16
-000238 916f                      		pop r22
-000239 9a58                      		SBI PORTD, 0 // avoids return to menu unwanted
-00023a 9518                      		reti
+000227 9593                      	inc r25 // r25 works as a way to shift the borders across the screen
+000228 936f                      	push r22 // push r22 on stack since it is used here
+000229 930f                      	push r16
+00022a e66f                      	ldi r22, 0x6F // setup timer1 again to have the same refresh rate
+00022b 9360 0085                 	sts TCNT1H, r22 
+00022d ef6f                      	ldi r22, 0xFF
+00022e 9360 0084                 	sts TCNT1L, r22
+000230 2c01                      	mov r0, r1 // shift tail y-positions from right to left for each refresh
+000231 2c12                      	mov r1, r2
+000232 2c23                      	mov r2, r3
+000233 e060                      	ldi r22, 0
+000234 9858                      	CBI PORTD, 0 //check row 0
+000235 9a59                      	SBI PORTD, 1
+000236 9a5a                      	SBI PORTD, 2
+000237 9a5b                      	SBI PORTD, 3
+000238 9b4c                      		SBIS PIND, 4 // if C is pressed, jump to sound
+000239 c005                      		rjmp sound
+00023a 2e36                      		mov r3, r22 // if C is pressed, then a tail comes of the pixel that displays the position of the joystick, otherwise the tail dissapears
+00023b 910f                      		pop r16
+00023c 916f                      		pop r22
+00023d 9a58                      		SBI PORTD, 0 // avoids return to menu unwanted
+00023e 9518                      		reti
                                  	sound:
                                  	//score
-00023b 2d09                      	mov r16, r9
-00023c 1706                      	cp r16, r22 // if r14 = 0 => no boundaries so if C is not pressed +1
-00023d f021                      	breq no_score
-00023e 9503                      	inc r16
-00023f 1704                      	cp r16, r20
-000240 f409                      	brne no_score
+00023f 2d09                      	mov r16, r9
+000240 1706                      	cp r16, r22 // if r14 = 0 => no boundaries so if C is not pressed +1
+000241 f021                      	breq no_score
+000242 9503                      	inc r16
+000243 1704                      	cp r16, r20
+000244 f409                      	brne no_score
                                  	score:
-000241 9453                      	inc r5
+000245 9453                      	inc r5
                                  	no_score:
-000242 2c34                      	mov r3, r4 // if C is pressed, then a tail comes of the pixel that displays the position of the joystick, otherwise the tail dissapears
-000243 910f                      	pop r16
-000244 916f                      	pop r22
+000246 2c34                      	mov r3, r4 // if C is pressed, then a tail comes of the pixel that displays the position of the joystick, otherwise the tail dissapears
+000247 910f                      	pop r16
+000248 916f                      	pop r22
                                  	no_push:
-000245 9a58                      	SBI PORTD, 0 // avoids return to menu unwanted
-000246 9518                      	reti
+000249 9a58                      	SBI PORTD, 0 // avoids return to menu unwanted
+00024a 9518                      	reti
                                  
                                  
                                  
@@ -1874,164 +1880,168 @@ D:\VUB\MA1\Sensors and Microsystem Electronics\Project Microcontroller\Tasks\The
                                  
                                  	CharTable: // bottom => top
                                  	// displays load menu
-000247 0800
-000248 0808
-000249 090e
-00024a 0e09                      	.db 0b00000000, 0b00001000, 0b00001000, 0b00001000, 0b00001110, 0b00001001, 0b00001001, 0b00001110  //P adress 0x0100
-00024b 0900
-00024c 0a09
+00024b 0800
+00024c 0808
 00024d 090e
-00024e 0e09                      	.db 0b00000000, 0b00001001, 0b00001001, 0b00001010, 0b00001110, 0b00001001, 0b00001001, 0b00001110  //R
-00024f 0f00
-000250 0808
-000251 080e
-000252 0f08                      	.db 0b00000000, 0b00001111, 0b00001000, 0b00001000, 0b00001110, 0b00001000, 0b00001000, 0b00001111  //E
-000253 0e00
-000254 0101
-000255 0806
-000256 0708                      	.db 0b00000000, 0b00001110, 0b00000001, 0b00000001, 0b00000110, 0b00001000, 0b00001000, 0b00000111  //S
+00024e 0e09                      	.db 0b00000000, 0b00001000, 0b00001000, 0b00001000, 0b00001110, 0b00001001, 0b00001001, 0b00001110  //P adress 0x0100
+00024f 0900
+000250 0a09
+000251 090e
+000252 0e09                      	.db 0b00000000, 0b00001001, 0b00001001, 0b00001010, 0b00001110, 0b00001001, 0b00001001, 0b00001110  //R
+000253 0f00
+000254 0808
+000255 080e
+000256 0f08                      	.db 0b00000000, 0b00001111, 0b00001000, 0b00001000, 0b00001110, 0b00001000, 0b00001000, 0b00001111  //E
 000257 0e00
 000258 0101
 000259 0806
 00025a 0708                      	.db 0b00000000, 0b00001110, 0b00000001, 0b00000001, 0b00000110, 0b00001000, 0b00001000, 0b00000111  //S
-00025b 0000
-00025c 0000
-00025d 0000
-00025e 0000                      	.db 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000  // space
-00025f 0900
-000260 0909
-000261 090f
-000262 0609                      	.db 0b00000000, 0b00001001, 0b00001001, 0b00001001, 0b00001111, 0b00001001, 0b00001001, 0b00000110  //A
-000263 0000
-000264 0000
-000265 0000
-000266 0000                      	.db 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000  // space
-000267 0400
-000268 0404
-000269 0404
-00026a 1f04                      	.db 0b00000000, 0b00000100, 0b00000100, 0b00000100, 0b00000100, 0b00000100, 0b00000100, 0b00011111  //T
-00026b 0600
-00026c 0909
-00026d 0909
-00026e 0609                      	.db 0b00000000, 0b00000110, 0b00001001, 0b00001001, 0b00001001, 0b00001001, 0b00001001, 0b00000110  //O
-00026f 0000
-000270 0000
-000271 0000
-000272 0000                      	.db 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000  // space
-000273 0e00
-000274 0101
-000275 0806
-000276 0708                      	.db 0b00000000, 0b00001110, 0b00000001, 0b00000001, 0b00000110, 0b00001000, 0b00001000, 0b00000111  //S
-000277 0400
-000278 0404
-000279 0404
-00027a 1f04                      	.db 0b00000000, 0b00000100, 0b00000100, 0b00000100, 0b00000100, 0b00000100, 0b00000100, 0b00011111  //T
-00027b 0900
-00027c 0909
-00027d 090f
-00027e 0609                      	.db 0b00000000, 0b00001001, 0b00001001, 0b00001001, 0b00001111, 0b00001001, 0b00001001, 0b00000110  //A
+00025b 0e00
+00025c 0101
+00025d 0806
+00025e 0708                      	.db 0b00000000, 0b00001110, 0b00000001, 0b00000001, 0b00000110, 0b00001000, 0b00001000, 0b00000111  //S
+00025f 0000
+000260 0000
+000261 0000
+000262 0000                      	.db 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000  // space
+000263 0900
+000264 0909
+000265 090f
+000266 0609                      	.db 0b00000000, 0b00001001, 0b00001001, 0b00001001, 0b00001111, 0b00001001, 0b00001001, 0b00000110  //A
+000267 0000
+000268 0000
+000269 0000
+00026a 0000                      	.db 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000  // space
+00026b 0400
+00026c 0404
+00026d 0404
+00026e 1f04                      	.db 0b00000000, 0b00000100, 0b00000100, 0b00000100, 0b00000100, 0b00000100, 0b00000100, 0b00011111  //T
+00026f 0600
+000270 0909
+000271 0909
+000272 0609                      	.db 0b00000000, 0b00000110, 0b00001001, 0b00001001, 0b00001001, 0b00001001, 0b00001001, 0b00000110  //O
+000273 0000
+000274 0000
+000275 0000
+000276 0000                      	.db 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000  // space
+000277 0e00
+000278 0101
+000279 0806
+00027a 0708                      	.db 0b00000000, 0b00001110, 0b00000001, 0b00000001, 0b00000110, 0b00001000, 0b00001000, 0b00000111  //S
+00027b 0400
+00027c 0404
+00027d 0404
+00027e 1f04                      	.db 0b00000000, 0b00000100, 0b00000100, 0b00000100, 0b00000100, 0b00000100, 0b00000100, 0b00011111  //T
 00027f 0900
-000280 0a09
-000281 090e
-000282 0e09                      	.db 0b00000000, 0b00001001, 0b00001001, 0b00001010, 0b00001110, 0b00001001, 0b00001001, 0b00001110  //R
-000283 0400
-000284 0404
-000285 0404
-000286 1f04                      	.db 0b00000000, 0b00000100, 0b00000100, 0b00000100, 0b00000100, 0b00000100, 0b00000100, 0b00011111  //T adress 0x010F
+000280 0909
+000281 090f
+000282 0609                      	.db 0b00000000, 0b00001001, 0b00001001, 0b00001001, 0b00001111, 0b00001001, 0b00001001, 0b00000110  //A
+000283 0900
+000284 0a09
+000285 090e
+000286 0e09                      	.db 0b00000000, 0b00001001, 0b00001001, 0b00001010, 0b00001110, 0b00001001, 0b00001001, 0b00001110  //R
+000287 0400
+000288 0404
+000289 0404
+00028a 1f04                      	.db 0b00000000, 0b00000100, 0b00000100, 0b00000100, 0b00000100, 0b00000100, 0b00000100, 0b00011111  //T adress 0x010F
                                  
                                  	ScoreTable: // displays the word "score"
-000287 0e00
-000288 0101
-000289 0806
-00028a 0708                      	.db 0b00000000, 0b00001110, 0b00000001, 0b00000001, 0b00000110, 0b00001000, 0b00001000, 0b00000111  //S
-00028b 0700
-00028c 0808
-00028d 0808
-00028e 0708                      	.db 0b00000000, 0b00000111, 0b00001000, 0b00001000, 0b00001000, 0b00001000, 0b00001000, 0b00000111  //C
-00028f 0600
-000290 0909
-000291 0909
-000292 0609                      	.db 0b00000000, 0b00000110, 0b00001001, 0b00001001, 0b00001001, 0b00001001, 0b00001001, 0b00000110  //O
-000293 0900
-000294 0a09
-000295 090e
-000296 0e09                      	.db 0b00000000, 0b00001001, 0b00001001, 0b00001010, 0b00001110, 0b00001001, 0b00001001, 0b00001110  //R
-000297 0f00
-000298 0808
-000299 080e
-00029a 0f08                      	.db 0b00000000, 0b00001111, 0b00001000, 0b00001000, 0b00001110, 0b00001000, 0b00001000, 0b00001111  //E
-00029b 0000
-00029c 0008
-00029d 0000
-00029e 0008                      	.db 0b00000000, 0b00000000, 0b00001000, 0b00000000, 0b00000000, 0b00000000, 0b00001000, 0b00000000  //:
+00028b 0e00
+00028c 0101
+00028d 0806
+00028e 0708                      	.db 0b00000000, 0b00001110, 0b00000001, 0b00000001, 0b00000110, 0b00001000, 0b00001000, 0b00000111  //S
+00028f 0700
+000290 0808
+000291 0808
+000292 0708                      	.db 0b00000000, 0b00000111, 0b00001000, 0b00001000, 0b00001000, 0b00001000, 0b00001000, 0b00000111  //C
+000293 0600
+000294 0909
+000295 0909
+000296 0609                      	.db 0b00000000, 0b00000110, 0b00001001, 0b00001001, 0b00001001, 0b00001001, 0b00001001, 0b00000110  //O
+000297 0900
+000298 0a09
+000299 090e
+00029a 0e09                      	.db 0b00000000, 0b00001001, 0b00001001, 0b00001010, 0b00001110, 0b00001001, 0b00001001, 0b00001110  //R
+00029b 0f00
+00029c 0808
+00029d 080e
+00029e 0f08                      	.db 0b00000000, 0b00001111, 0b00001000, 0b00001000, 0b00001110, 0b00001000, 0b00001000, 0b00001111  //E
+00029f 0000
+0002a0 0008
+0002a1 0000
+0002a2 0008                      	.db 0b00000000, 0b00000000, 0b00001000, 0b00000000, 0b00000000, 0b00000000, 0b00001000, 0b00000000  //:
                                  
                                  	DigitsTable:
-00029f 0600
-0002a0 0909
-0002a1 0909
-0002a2 0609                      	.db 0b00000000, 0b00000110, 0b00001001, 0b00001001, 0b00001001, 0b00001001, 0b00001001, 0b00000110 //0
-0002a3 0200
-0002a4 0202
-0002a5 0202
-0002a6 0206                      	.db 0b00000000, 0b00000010, 0b00000010, 0b00000010, 0b00000010, 0b00000010, 0b00000110, 0b00000010 //1
-0002a7 0f00
-0002a8 0408
-0002a9 0102
-0002aa 0e01                      	.db 0b00000000, 0b00001111, 0b00001000, 0b00000100, 0b00000010, 0b00000001, 0b00000001, 0b00001110 //2
-0002ab 0e00
-0002ac 0101
-0002ad 0107
-0002ae 0e01                      	.db 0b00000000, 0b00001110, 0b00000001, 0b00000001, 0b00000111, 0b00000001, 0b00000001, 0b00001110 //3
-0002af 0200
-0002b0 0f02
-0002b1 080a
-0002b2 0808                      	.db 0b00000000, 0b00000010, 0b00000010, 0b00001111, 0b00001010, 0b00001000, 0b00001000, 0b00001000 //4
-0002b3 0e00
-0002b4 0101
-0002b5 0806
-0002b6 0f08                      	.db 0b00000000, 0b00001110, 0b00000001, 0b00000001, 0b00000110, 0b00001000, 0b00001000, 0b00001111 //5
-0002b7 0600
-0002b8 0909
-0002b9 080e
-0002ba 0608                      	.db 0b00000000, 0b00000110, 0b00001001, 0b00001001, 0b00001110, 0b00001000, 0b00001000, 0b00000110 //6
-0002bb 0400
-0002bc 0404
-0002bd 0204
-0002be 0f01                      	.db 0b00000000, 0b00000100, 0b00000100, 0b00000100, 0b00000100, 0b00000010, 0b00000001, 0b00001111 //7
-0002bf 0600
-0002c0 0909
-0002c1 0906
-0002c2 0609                      	.db 0b00000000, 0b00000110, 0b00001001, 0b00001001, 0b00000110, 0b00001001, 0b00001001, 0b00000110 //8
+0002a3 0600
+0002a4 0909
+0002a5 0909
+0002a6 0609                      	.db 0b00000000, 0b00000110, 0b00001001, 0b00001001, 0b00001001, 0b00001001, 0b00001001, 0b00000110 //0
+0002a7 0200
+0002a8 0202
+0002a9 0202
+0002aa 0206                      	.db 0b00000000, 0b00000010, 0b00000010, 0b00000010, 0b00000010, 0b00000010, 0b00000110, 0b00000010 //1
+0002ab 0f00
+0002ac 0408
+0002ad 0102
+0002ae 0e01                      	.db 0b00000000, 0b00001111, 0b00001000, 0b00000100, 0b00000010, 0b00000001, 0b00000001, 0b00001110 //2
+0002af 0e00
+0002b0 0101
+0002b1 0107
+0002b2 0e01                      	.db 0b00000000, 0b00001110, 0b00000001, 0b00000001, 0b00000111, 0b00000001, 0b00000001, 0b00001110 //3
+0002b3 0200
+0002b4 0f02
+0002b5 080a
+0002b6 0808                      	.db 0b00000000, 0b00000010, 0b00000010, 0b00001111, 0b00001010, 0b00001000, 0b00001000, 0b00001000 //4
+0002b7 0e00
+0002b8 0101
+0002b9 0806
+0002ba 0f08                      	.db 0b00000000, 0b00001110, 0b00000001, 0b00000001, 0b00000110, 0b00001000, 0b00001000, 0b00001111 //5
+0002bb 0600
+0002bc 0909
+0002bd 080e
+0002be 0608                      	.db 0b00000000, 0b00000110, 0b00001001, 0b00001001, 0b00001110, 0b00001000, 0b00001000, 0b00000110 //6
+0002bf 0400
+0002c0 0404
+0002c1 0204
+0002c2 0f01                      	.db 0b00000000, 0b00000100, 0b00000100, 0b00000100, 0b00000100, 0b00000010, 0b00000001, 0b00001111 //7
 0002c3 0600
-0002c4 0101
-0002c5 0907
-0002c6 0609                      	.db 0b00000000, 0b00000110, 0b00000001, 0b00000001, 0b00000111, 0b00001001, 0b00001001, 0b00000110 //9
+0002c4 0909
+0002c5 0906
+0002c6 0609                      	.db 0b00000000, 0b00000110, 0b00001001, 0b00001001, 0b00000110, 0b00001001, 0b00001001, 0b00000110 //8
+0002c7 0600
+0002c8 0101
+0002c9 0907
+0002ca 0609                      	.db 0b00000000, 0b00000110, 0b00000001, 0b00000001, 0b00000111, 0b00001001, 0b00001001, 0b00000110 //9
                                  
                                  	Level:
-0002c7 320b
-0002c8 5a5c
-0002c9 0002
-0002ca 0000                      	.db 11, 50, 92, 90, 2, 0, 0, 0
-0002cb 2807
-0002cc 5055
-0002cd 0005
-0002ce 0000                      	.db 7, 40, 85, 80, 5, 0, 0, 0
-0002cf 1e09
-0002d0 4650
-0002d1 000a
-0002d2 0000                      	.db 9, 30, 80, 70, 10, 0, 0, 0 
-0002d3 1505
-0002d4 3d41
-0002d5 0004
-0002d6 0000                      	.db 5, 21, 65, 61, 4, 0, 0, 0
-0002d7 0503
-0002d8 2d32
-0002d9 0005
-0002da 0000                      	.db 3, 5, 50, 45, 5, 0, 0, 0
-0002db 000d
-0002dc 282a
-0002dd 0002
-0002de 0000                      	.db 13, 0, 42, 40, 2, 0, 0, 0 
+0002cb 320b
+0002cc 5a5c
+0002cd 0002
+0002ce 0000                      	.db 11, 50, 92, 90, 2, 0, 0, 0
+0002cf 2807
+0002d0 5055
+0002d1 0005
+0002d2 0000                      	.db 7, 40, 85, 80, 5, 0, 0, 0
+0002d3 1e09
+0002d4 4650
+0002d5 000a
+0002d6 0000                      	.db 9, 30, 80, 70, 10, 0, 0, 0 
+0002d7 1505
+0002d8 3d41
+0002d9 0004
+0002da 0000                      	.db 5, 21, 65, 61, 4, 0, 0, 0
+0002db 0503
+0002dc 2d32
+0002dd 0005
+0002de 0000                      	.db 3, 5, 50, 45, 5, 0, 0, 0
+0002df 000d
+0002e0 282a
+0002e1 0002
+0002e2 0000                      	.db 13, 0, 42, 40, 2, 0, 0, 0 
+0002e3 0019
+0002e4 0000
+0002e5 0000
+0002e6 0000                      	.db 25, 0, 0, 0, 0, 0, 0, 0
                                  	//y, min_r25, max_r25, x, length
                                  	// should be in reverse order
                                  	// us of limits for r25 to minimize screen flickering
@@ -2062,7 +2072,7 @@ counted separately from r26..r31 here.
 "ATmega328P" register use summary:
 x  :   1 y  :   2 z  :  15 r0 :   5 r1 :   3 r2 :   8 r3 :   9 r4 :   8 
 r5 :   3 r6 :   4 r7 :   4 r8 :   4 r9 :   2 r10:   8 r11:   5 r12:   4 
-r13:   3 r14:   5 r15:   7 r16:  64 r17:  25 r18:  18 r19:  24 r20:  44 
+r13:   3 r14:   5 r15:   7 r16:  65 r17:  25 r18:  18 r19:  26 r20:  44 
 r21:  25 r22:  22 r23:   7 r24:  11 r25:   8 r26:   2 r27:   1 r28:   5 
 r29:   2 r30:  14 r31:  12 
 Registers used: 35 out of 35 (100.0%)
@@ -2070,18 +2080,18 @@ Registers used: 35 out of 35 (100.0%)
 "ATmega328P" instruction use summary:
 .lds  :   0 .sts  :   0 adc   :   0 add   :  12 adiw  :   7 and   :   0 
 andi  :   0 asr   :   0 bclr  :   0 bld   :   0 brbc  :   0 brbs  :   0 
-brcc  :  10 brcs  :   0 break :   0 breq  :  14 brge  :   3 brhc  :   0 
+brcc  :  10 brcs  :   0 break :   0 breq  :  15 brge  :   3 brhc  :   0 
 brhs  :   0 brid  :   0 brie  :   0 brlo  :   7 brlt  :   1 brmi  :   0 
 brne  :  28 brpl  :   0 brsh  :  17 brtc  :   0 brts  :   0 brvc  :   0 
 brvs  :   0 bset  :   0 bst   :   0 call  :   2 cbi   :  27 cbr   :   0 
 clc   :   2 clh   :   0 cli   :   2 cln   :   0 clr   :   0 cls   :   0 
 clt   :   0 clv   :   0 clz   :   0 com   :   0 cp    :  22 cpc   :   0 
-cpi   :  36 cpse  :   0 dec   :  15 eor   :   0 fmul  :   0 fmuls :   0 
+cpi   :  37 cpse  :   0 dec   :  14 eor   :   0 fmul  :   0 fmuls :   0 
 fmulsu:   0 icall :   0 ijmp  :   0 in    :   0 inc   :  20 jmp   :   0 
-ld    :   3 ldd   :   0 ldi   :  96 lds   :   1 lpm   :  20 lsl   :   0 
-lsr   :   0 mov   :  33 movw  :   0 mul   :   3 muls  :   0 mulsu :   0 
+ld    :   3 ldd   :   0 ldi   :  97 lds   :   1 lpm   :  20 lsl   :   0 
+lsr   :   0 mov   :  34 movw  :   0 mul   :   3 muls  :   0 mulsu :   0 
 neg   :   0 nop   :   0 or    :   0 ori   :   0 out   :   4 pop   :   4 
-push  :   2 rcall :   0 ret   :  13 reti  :   4 rjmp  :  41 rol   :   0 
+push  :   2 rcall :   0 ret   :  13 reti  :   4 rjmp  :  42 rol   :   0 
 ror   :   2 sbc   :   0 sbci  :   0 sbi   :  62 sbic  :   0 sbis  :   5 
 sbiw  :   0 sbr   :   0 sbrc  :   0 sbrs  :   0 sec   :   0 seh   :   0 
 sei   :   1 sen   :   0 ser   :   0 ses   :   0 set   :   0 sev   :   0 
@@ -2092,7 +2102,7 @@ Instructions used: 36 out of 113 (31.9%)
 "ATmega328P" memory use summary [bytes]:
 Segment   Begin    End      Code   Data   Used    Size   Use%
 ---------------------------------------------------------------
-[.cseg] 0x000000 0x0005be   1106    304   1410   32768   4.3%
+[.cseg] 0x000000 0x0005ce   1114    312   1426   32768   4.4%
 [.dseg] 0x000100 0x000100      0      0      0    2048   0.0%
 [.eseg] 0x000000 0x000000      0      0      0    1024   0.0%
 
